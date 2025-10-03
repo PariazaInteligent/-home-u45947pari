@@ -5,9 +5,9 @@
 $defaultConfig = [
     'host' => 'localhost',
     'port' => '3306',
-    'name' => 'database_name',
-    'user' => 'username',
-    'pass' => 'password',
+    'name' => 'u45947pari_pariaza_inteligent',
+    'user' => 'u45947pari_admin_pariaza',
+    'pass' => '3DSecurity31',
 ];
 
 $db_host = getenv('DB_HOST') ?: $defaultConfig['host'];
