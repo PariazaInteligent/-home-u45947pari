@@ -1,7 +1,59 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, ReactNode } from 'react';
-import { AppData, GlobalStats, User, Transaction, DailyHistoryRecord, Role, TransactionType, TransactionStatus, NotificationType, Announcement, UserMessage, MessageImportance, UserMessageType, InvestmentAlert, InvestmentAlertConditionType, DashboardWidgetConfig, BadgeType, UserBadge, FeedbackItem, FeedbackCategory, PlatformSetting, PlatformSettingKey, PlatformSettingsData, AuditDetail, TransactionDetails, Referral, ReferralStatus, CalendarEvent, CalendarEventType, AccentPaletteKey, InterfaceDensity, InvestmentGoal, GoalType, GoalStatus, Bet, BetStatus, BetType, FeedbackStatus, CookieConsentData } from '../types'; 
+import {
+  AppData,
+  GlobalStats,
+  User,
+  Transaction,
+  DailyHistoryRecord,
+  Role,
+  TransactionType,
+  TransactionStatus,
+  NotificationType,
+  Announcement,
+  UserMessage,
+  MessageImportance,
+  UserMessageType,
+  InvestmentAlert,
+  InvestmentAlertConditionType,
+  DashboardWidgetConfig,
+  BadgeType,
+  UserBadge,
+  FeedbackItem,
+  FeedbackCategory,
+  PlatformSetting,
+  PlatformSettingKey,
+  PlatformSettingsData,
+  AuditDetail,
+  TransactionDetails,
+  Referral,
+  ReferralStatus,
+  CalendarEvent,
+  CalendarEventType,
+  AccentPaletteKey,
+  InterfaceDensity,
+  InvestmentGoal,
+  GoalType,
+  GoalStatus,
+  Bet,
+  BetStatus,
+  BetType,
+  FeedbackStatus,
+  CookieConsentData,
+  AdminPermissionsRecord,
+} from '../types';
+
 import { dataService } from '../services/dataService';
-import { API_ENDPOINTS, UI_TEXT_ROMANIAN, BADGE_DEFINITIONS, ADMIN_TELEGRAM_USERNAME_FALLBACK, TELEGRAM_PREDEFINED_MESSAGE_FALLBACK, AVAILABLE_ADMIN_PERMISSIONS, ACCENT_COLOR_PALETTES, INTERFACE_DENSITY_OPTIONS } from '../constants';
+import {
+  API_ENDPOINTS,
+  UI_TEXT_ROMANIAN,
+  BADGE_DEFINITIONS,
+  ADMIN_TELEGRAM_USERNAME_FALLBACK,
+  TELEGRAM_PREDEFINED_MESSAGE_FALLBACK,
+  AVAILABLE_ADMIN_PERMISSIONS,
+  ACCENT_COLOR_PALETTES,
+  INTERFACE_DENSITY_OPTIONS,
+  DEFAULT_AVATAR_URL,
+} from '../constants';
 import { useNotifications } from './NotificationContext';
 import { useAuth } from './AuthContext';
 import { 
@@ -29,12 +81,468 @@ const defaultInitialData: AppData = {
   announcements: generateInitialAnnouncements(),
   userMessages: generateInitialUserMessages(),
   investmentAlerts: generateInitialInvestmentAlerts(),
-  feedback: generateInitialFeedback(), 
+  feedback: generateInitialFeedback(),
   platformSettings: generateInitialPlatformSettings(),
   referrals: generateInitialReferrals(),
   calendarEvents: generateInitialCalendarEvents(),
   investmentGoals: generateInitialInvestmentGoals(),
   bets: generateInitialBets(),
+};
+
+const pickFirst = <T,>(...values: (T | null | undefined)[]): T | undefined => {
+  for (const value of values) {
+    if (value !== undefined && value !== null) {
+      return value;
+    }
+  }
+  return undefined;
+};
+
+const parseJsonField = <T,>(value: unknown, fieldName: string): T | null => {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value) as T;
+    } catch (error) {
+      console.error(`Failed to parse JSON field "${fieldName}"`, {
+        error,
+        value,
+      });
+      return null;
+    }
+  }
+
+  if (typeof value === 'object') {
+    return value as T;
+  }
+
+  console.warn(`Unexpected type for JSON field "${fieldName}":`, typeof value);
+  return null;
+};
+
+const normalizeEnumValue = <T extends string>(value: unknown, enumObject: Record<string, T>, fallback: T): T => {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+
+  const stringValue = String(value).trim();
+  if (!stringValue) {
+    return fallback;
+  }
+
+  const enumValues = Object.values(enumObject) as string[];
+  if (enumValues.includes(stringValue)) {
+    return stringValue as T;
+  }
+
+  const normalizedValue = stringValue.toUpperCase().replace(/[\s-]+/g, '_');
+  if (enumValues.includes(normalizedValue)) {
+    return normalizedValue as T;
+  }
+
+  return fallback;
+};
+
+const toBoolean = (value: unknown, defaultValue: boolean = false): boolean => {
+  if (value === null || value === undefined) {
+    return defaultValue;
+  }
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    return value !== 0;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (['1', 'true', 'yes', 'y', 'da'].includes(normalized)) {
+      return true;
+    }
+    if (['0', 'false', 'no', 'n', 'nu'].includes(normalized)) {
+      return false;
+    }
+  }
+  return defaultValue;
+};
+
+const toNumber = (value: unknown, fallback: number = 0): number => {
+  if (value === null || value === undefined || value === '') {
+    return fallback;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const toOptionalNumber = (value: unknown): number | undefined => {
+  if (value === null || value === undefined || value === '') {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const toIsoString = (value: unknown, fallback?: string): string => {
+  if (value === null || value === undefined || value === '') {
+    return fallback ?? new Date().toISOString();
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (typeof value === 'number') {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return fallback ?? new Date().toISOString();
+    }
+    const standardized = trimmed.includes('T') ? trimmed : trimmed.replace(' ', 'T');
+    const timestamp = Date.parse(standardized);
+    if (!Number.isNaN(timestamp)) {
+      return new Date(timestamp).toISOString();
+    }
+    return trimmed;
+  }
+
+  return fallback ?? new Date().toISOString();
+};
+
+const toDateOnly = (value: unknown, fallbackIso: string): string => {
+  const iso = toIsoString(value, fallbackIso);
+  if (iso.includes('T')) {
+    return iso.split('T')[0];
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    return iso;
+  }
+  const parsed = Date.parse(iso);
+  if (!Number.isNaN(parsed)) {
+    return new Date(parsed).toISOString().split('T')[0];
+  }
+  return fallbackIso.split('T')[0];
+};
+
+const isValidAccentPalette = (value: unknown): value is AccentPaletteKey =>
+  typeof value === 'string' && Object.prototype.hasOwnProperty.call(ACCENT_COLOR_PALETTES, value);
+
+const normalizeUser = (dbUser: any): User => {
+  const {
+    id: rawId,
+    user_id,
+    email: rawEmail,
+    password: rawPassword,
+    role: rawRole,
+    user_role,
+    name: rawName,
+    full_name,
+    avatar: rawAvatar,
+    profile_picture,
+    isActive: rawIsActive,
+    is_active,
+    isGlobalAdmin: rawIsGlobalAdmin,
+    is_global_admin,
+    lastLogin: rawLastLogin,
+    last_login,
+    contactPhone: rawContactPhone,
+    contact_phone,
+    address: rawAddress,
+    investedAmount,
+    invested_amount,
+    totalProfitEarned,
+    total_profit_earned,
+    currentGrossProfit,
+    current_gross_profit,
+    platformFeePaid,
+    platform_fee_paid,
+    currentNetProfit,
+    current_net_profit,
+    joinDate,
+    join_date,
+    adminPermissions: adminPermissionsRaw,
+    admin_permissions,
+    profileData: profileDataRaw,
+    profile_data,
+    badges,
+    profileBadges,
+    profile_badges,
+    dashboardWidgetsConfig,
+    dashboard_widgets_config,
+    investmentHistory,
+    investment_history,
+    accentPalette,
+    accent_palette,
+    interfaceDensity,
+    interface_density,
+    cookieConsent,
+    cookie_consent
+  } = dbUser ?? {};
+
+  const profileDataFromDb = parseJsonField<Partial<User['profileData']>>(
+    pickFirst(profileDataRaw, profile_data),
+    'profileData'
+  ) ?? undefined;
+
+  const parsedBadges =
+    parseJsonField<UserBadge[]>(
+      pickFirst(badges, profileBadges, profile_badges, profileDataFromDb?.badges),
+      'badges'
+    ) ?? [];
+
+  const parsedInvestmentHistory =
+    parseJsonField<any[]>(
+      pickFirst(investmentHistory, investment_history, profileDataFromDb?.investmentHistory),
+      'investmentHistory'
+    ) ?? [];
+
+  const parsedDashboardWidgetsConfig =
+    parseJsonField<DashboardWidgetConfig[]>(
+      pickFirst(
+        dashboardWidgetsConfig,
+        dashboard_widgets_config,
+        profileDataFromDb?.dashboardWidgetsConfig,
+        (profileDataFromDb as any)?.dashboard_widgets_config
+      ),
+      'dashboardWidgetsConfig'
+    ) ?? [];
+
+  const parsedAdminPermissions =
+    parseJsonField<AdminPermissionsRecord>(
+      pickFirst(adminPermissionsRaw, admin_permissions),
+      'adminPermissions'
+    ) ?? {};
+
+  const accentPaletteCandidate = pickFirst(
+    accentPalette,
+    accent_palette,
+    profileDataFromDb?.accentPalette,
+    (profileDataFromDb as any)?.accent_palette
+  );
+
+  const interfaceDensityCandidate = pickFirst(
+    interfaceDensity,
+    interface_density,
+    profileDataFromDb?.interfaceDensity,
+    (profileDataFromDb as any)?.interface_density
+  );
+
+  const parsedCookieConsent =
+    parseJsonField<CookieConsentData>(
+      pickFirst(cookieConsent, cookie_consent, profileDataFromDb?.cookieConsent),
+      'cookieConsent'
+    ) ?? undefined;
+
+  const joinDateValue = pickFirst(
+    joinDate,
+    join_date,
+    profileDataFromDb?.joinDate,
+    (profileDataFromDb as any)?.join_date
+  );
+
+  const lastLoginValue = pickFirst(rawLastLogin, last_login);
+
+  const contactPhoneValue = pickFirst(
+    rawContactPhone,
+    contact_phone,
+    profileDataFromDb?.contactPhone,
+    (profileDataFromDb as any)?.contact_phone
+  );
+
+  const addressValue = pickFirst(rawAddress, profileDataFromDb?.address, (profileDataFromDb as any)?.address);
+
+  const role = normalizeEnumValue(rawRole ?? user_role, Role, Role.USER);
+  const isAdmin = role === Role.ADMIN;
+
+  const user: User = {
+    id: String(rawId ?? user_id ?? generateId('user')),
+    email: rawEmail ? String(rawEmail) : '',
+    password: rawPassword ? String(rawPassword) : undefined,
+    role,
+    name: String(rawName ?? full_name ?? rawEmail ?? 'Utilizator'),
+    avatar: rawAvatar ? String(rawAvatar) : profile_picture ? String(profile_picture) : DEFAULT_AVATAR_URL,
+    isActive: toBoolean(pickFirst(rawIsActive, is_active), true),
+    isGlobalAdmin: isAdmin ? toBoolean(pickFirst(rawIsGlobalAdmin, is_global_admin), false) : undefined,
+    adminPermissions: isAdmin ? parsedAdminPermissions : undefined,
+    profileData: {
+      investedAmount: toNumber(
+        pickFirst(investedAmount, invested_amount, profileDataFromDb?.investedAmount, (profileDataFromDb as any)?.invested_amount),
+        0
+      ),
+      totalProfitEarned: toNumber(
+        pickFirst(
+          totalProfitEarned,
+          total_profit_earned,
+          profileDataFromDb?.totalProfitEarned,
+          (profileDataFromDb as any)?.total_profit_earned
+        ),
+        0
+      ),
+      currentGrossProfit: toNumber(
+        pickFirst(
+          currentGrossProfit,
+          current_gross_profit,
+          profileDataFromDb?.currentGrossProfit,
+          (profileDataFromDb as any)?.current_gross_profit
+        ),
+        0
+      ),
+      platformFeePaid: toNumber(
+        pickFirst(
+          platformFeePaid,
+          platform_fee_paid,
+          profileDataFromDb?.platformFeePaid,
+          (profileDataFromDb as any)?.platform_fee_paid
+        ),
+        0
+      ),
+      currentNetProfit: toNumber(
+        pickFirst(
+          currentNetProfit,
+          current_net_profit,
+          profileDataFromDb?.currentNetProfit,
+          (profileDataFromDb as any)?.current_net_profit
+        ),
+        0
+      ),
+      joinDate: toIsoString(joinDateValue, new Date().toISOString()),
+      investmentHistory: parsedInvestmentHistory,
+      badges: parsedBadges,
+      dashboardWidgetsConfig: parsedDashboardWidgetsConfig,
+      contactPhone: contactPhoneValue ? String(contactPhoneValue) : undefined,
+      address: addressValue ? String(addressValue) : undefined,
+      accentPalette: isValidAccentPalette(accentPaletteCandidate) ? (accentPaletteCandidate as AccentPaletteKey) : undefined,
+      interfaceDensity: normalizeEnumValue(
+        interfaceDensityCandidate,
+        InterfaceDensity,
+        InterfaceDensity.COMFORTABLE
+      ),
+      cookieConsent: parsedCookieConsent,
+    },
+    lastLogin: lastLoginValue ? toIsoString(lastLoginValue) : undefined,
+  };
+
+  if (!user.avatar) {
+    user.avatar = DEFAULT_AVATAR_URL;
+  }
+
+  return user;
+};
+
+const normalizeTransaction = (raw: any): Transaction => {
+  const userIdValue = pickFirst(raw?.userId, raw?.user_id, raw?.investorId, raw?.investor_id);
+  const adminIdValue = pickFirst(raw?.adminId, raw?.admin_id, raw?.processedBy, raw?.processed_by);
+  const amountValue = pickFirst(raw?.amount, raw?.value, raw?.sum, raw?.transaction_amount);
+
+  const details =
+    parseJsonField<TransactionDetails>(
+      pickFirst(raw?.details, raw?.details_json, raw?.detailsJson, raw?.metadata),
+      'transactionDetails'
+    ) ?? undefined;
+
+  return {
+    id: String(pickFirst(raw?.id, raw?.transaction_id) ?? generateId('txn')),
+    timestamp: toIsoString(pickFirst(raw?.timestamp, raw?.created_at, raw?.createdAt, raw?.date), new Date().toISOString()),
+    userId: userIdValue !== undefined && userIdValue !== null ? String(userIdValue) : undefined,
+    adminId: adminIdValue !== undefined && adminIdValue !== null ? String(adminIdValue) : undefined,
+    type: normalizeEnumValue(pickFirst(raw?.type, raw?.transaction_type, raw?.actionType, raw?.action_type), TransactionType, TransactionType.ADMIN_ACTION),
+    status: normalizeEnumValue(pickFirst(raw?.status, raw?.transaction_status, raw?.state), TransactionStatus, TransactionStatus.COMPLETED),
+    amount: toOptionalNumber(amountValue),
+    description: raw?.description ? String(raw.description) : raw?.notes ? String(raw.notes) : raw?.summary ? String(raw.summary) : undefined,
+    details,
+  };
+};
+
+const normalizeBet = (raw: any): Bet => {
+  const eventTimestamp = toIsoString(
+    pickFirst(raw?.eventTimestamp, raw?.event_timestamp, raw?.eventTime, raw?.resolvedAt, raw?.resolved_at, raw?.updated_at),
+    new Date().toISOString()
+  );
+
+  const dateValue = toDateOnly(
+    pickFirst(raw?.date, raw?.bet_date, raw?.created_at, raw?.timestamp),
+    eventTimestamp
+  );
+
+  const middleDetailsSource = pickFirst(
+    raw?.middleDetails,
+    raw?.middle_details,
+    raw?.middleDetailsJson,
+    raw?.middle_details_json
+  );
+
+  let middleDetails = parseJsonField<{ p1: number; p2: number; pb: number }>(middleDetailsSource, 'middleDetails');
+
+  if (!middleDetails) {
+    const p1 = toOptionalNumber(pickFirst(raw?.middleP1, raw?.middle_p1, raw?.p1));
+    const p2 = toOptionalNumber(pickFirst(raw?.middleP2, raw?.middle_p2, raw?.p2));
+    const pb = toOptionalNumber(pickFirst(raw?.middlePb, raw?.middle_pb, raw?.pb));
+    if (p1 !== undefined || p2 !== undefined || pb !== undefined) {
+      middleDetails = {
+        p1: p1 ?? 0,
+        p2: p2 ?? 0,
+        pb: pb ?? 0,
+      };
+    }
+  } else {
+    middleDetails = {
+      p1: toNumber(middleDetails.p1, 0),
+      p2: toNumber(middleDetails.p2, 0),
+      pb: toNumber(middleDetails.pb, 0),
+    };
+  }
+
+  const profitValue = toOptionalNumber(pickFirst(raw?.profit, raw?.net_profit, raw?.result_profit, raw?.payout));
+
+  const rawBetId = pickFirst(raw?.id, raw?.bet_id);
+  const betId = String(rawBetId ?? generateId('bet'));
+  const rawGroupId = pickFirst(raw?.groupId, raw?.group_id, raw?.batchId, raw?.batch_id);
+  const resolvedAtRaw = pickFirst(raw?.resolvedAt, raw?.resolved_at, raw?.settledAt, raw?.settled_at);
+  const notesRaw = pickFirst(raw?.notes, raw?.comment, raw?.description);
+
+  const bet: Bet = {
+    id: betId,
+    groupId: rawGroupId ? String(rawGroupId) : betId,
+    date: dateValue,
+    eventTimestamp,
+    sport: String(pickFirst(raw?.sport, raw?.sportType, raw?.sport_name) ?? ''),
+    league: String(pickFirst(raw?.league, raw?.league_name, raw?.competition) ?? ''),
+    event: String(pickFirst(raw?.event, raw?.event_name, raw?.match, raw?.game) ?? ''),
+    market: String(pickFirst(raw?.market, raw?.market_type, raw?.marketName) ?? ''),
+    selection: String(pickFirst(raw?.selection, raw?.pick, raw?.selection_name) ?? ''),
+    odds: toNumber(pickFirst(raw?.odds, raw?.odds_decimal, raw?.oddsDecimal, raw?.odds_value), 0),
+    stake: toNumber(pickFirst(raw?.stake, raw?.stake_amount, raw?.amount, raw?.wager), 0),
+    betType: normalizeEnumValue(pickFirst(raw?.betType, raw?.bet_type), BetType, BetType.VALUE),
+    status: normalizeEnumValue(pickFirst(raw?.status, raw?.bet_status), BetStatus, BetStatus.PENDING),
+    profit: profitValue,
+    createdByAdminId: String(pickFirst(raw?.createdByAdminId, raw?.created_by_admin_id, raw?.adminId, raw?.admin_id) ?? 'unknown_admin'),
+    resolvedAt: resolvedAtRaw ? toIsoString(resolvedAtRaw) : undefined,
+    processedInDailyHistory: toBoolean(pickFirst(raw?.processedInDailyHistory, raw?.processed_in_daily_history, raw?.is_processed), false),
+    notes: notesRaw ? String(notesRaw) : undefined,
+    middleDetails: middleDetails ?? undefined,
+  };
+
+  if (bet.profit === undefined) {
+    delete bet.profit;
+  }
+  if (!bet.notes) {
+    delete bet.notes;
+  }
+  if (!bet.middleDetails) {
+    delete bet.middleDetails;
+  }
+  if (!bet.resolvedAt) {
+    delete bet.resolvedAt;
+  }
+
+  return bet;
 };
 
 export type ValueBetData = Omit<Bet, 'id' | 'status' | 'processedInDailyHistory' | 'groupId' | 'betType' | 'middleDetails'>;
@@ -62,54 +570,7 @@ interface DataContextType {
   sendBulkUserMessages: (userIds: string[], title: string, content: string, adminId: string) => Promise<void>;
   markUserMessageAsRead: (messageId: string, userId: string) => void;
   markAllUserMessagesAsRead: (userId: string) => void;
-  getUnreadMessageCount: (userId: string) => number;
-  // InvestmentAlert functions
-  addInvestmentAlert: (alertData: Omit<InvestmentAlert, 'id' | 'createdAt' | 'lastTriggeredAt'>) => InvestmentAlert | null;
-  updateInvestmentAlert: (updatedAlert: InvestmentAlert) => void;
-  deleteInvestmentAlert: (alertId: string, userId: string) => void;
-  checkAndTriggerInvestmentAlerts: (usersForAlertCheck: User[], allAlerts: InvestmentAlert[]) => Promise<{ updatedAlerts: InvestmentAlert[], triggeredMessagesCount: number }>;
-  // Dashboard Widget Config function
-  updateCurrentUserWidgetConfigAndExport: (userId: string, newConfig: DashboardWidgetConfig[]) => Promise<void>;
-  // Gamification Badge functions
-  checkUserBadgesOnLoad: (userId: string) => Promise<void>; 
-  checkAndAwardBadges: (userId: string, eventType: 'PROFIT_DISTRIBUTION' | 'INVESTMENT_APPROVAL' | 'USER_LOAD' | 'GOAL_COMPLETED', eventData?: any) => Promise<void>;
-  // Feedback System functions
-  addFeedbackItem: (item: Omit<FeedbackItem, 'id' | 'timestamp' | 'status'>) => FeedbackItem | null;
-  updateFeedbackStatus: (feedbackId: string, newStatus: FeedbackStatus, adminId: string) => Promise<void>;
-  // Platform Settings functions
-  getPlatformSettingValue: (key: PlatformSettingKey, defaultValue?: string) => string;
-  updatePlatformSettings: (updatedSettings: PlatformSetting[]) => Promise<void>;
-  // Referral System functions
-  getOrGenerateUserReferralCode: (userId: string) => Promise<string>;
-  linkReferral: (referredUserId: string, referralCode: string, referredUserName: string) => Promise<boolean>;
-  completeReferral: (referredUserId: string) => Promise<void>;
-  // Investment Goal functions
-  addInvestmentGoal: (goalData: Omit<InvestmentGoal, 'id' | 'startDate' | 'status'> & { userId: string }) => InvestmentGoal | null;
-  updateInvestmentGoal: (goalId: string, updates: Partial<Omit<InvestmentGoal, 'id' | 'userId' | 'startDate'>>) => InvestmentGoal | null;
-  deleteInvestmentGoal: (goalId: string) => boolean; // Or mark as CANCELLED
-  checkAndCompleteGoals: (userId: string) => Promise<void>;
-  // Bet Management Functions
-  addBet: (betData: Omit<Bet, 'id' | 'status' | 'processedInDailyHistory' | 'groupId' | 'betType' | 'middleDetails'>) => Promise<Bet | null>;
-  addValueMiddlePair: (valueBetData: ValueBetData, middleBetData: MiddleBetData) => Promise<void>;
-  updateBet: (betId: string, updates: Partial<Omit<Bet, 'id'>>) => Promise<Bet | null>;
-  deleteBet: (betId: string) => Promise<boolean>;
-  deleteBetGroup: (groupId: string) => Promise<void>;
-  resolveDayAndDistribute: (date: string, adminId: string) => Promise<void>;
-  // FIX: Add missing function to DataContextType
-  updateUserCookieConsent: (userId: string, consentData: CookieConsentData) => Promise<void>;
-}
-
-const DataContext = createContext<DataContextType | undefined>(undefined);
-
-export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [appData, setAppData] = useState<AppData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const { addNotification } = useNotifications();
-  const { user: authUser } = useAuth();
-
-  const fetchData = useCallback(async (showNotification: boolean = false) => {
-    setLoading(true);
+@@ -113,132 +621,76 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
     try {
       const [
@@ -135,78 +596,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       // Post-processing for users to match the nested structure expected by the frontend.
       // This is a temporary measure. Ideally, the API would return the correct structure.
-	  const parseJsonField = <T,>(value: unknown, fieldName: string): T | null => {
-        if (value === null || value === undefined) {
-          return null;
-        }
+      const processedUsers = Array.isArray(fetchedUsers)
+        ? (fetchedUsers as any[]).map(normalizeUser)
+        : [];
 
-        if (typeof value === 'string') {
-          try {
-            return JSON.parse(value) as T;
-          } catch (error) {
-            console.error(`Failed to parse JSON field "${fieldName}"`, {
-              error,
-              value,
-            });
-            return null;
-          }
-        }
+      const processedTransactions = Array.isArray(fetchedTransactions)
+        ? (fetchedTransactions as any[]).map(normalizeTransaction)
+        : [];
 
-        if (typeof value === 'object') {
-          return value as T;
-        }
-
-        console.warn(`Unexpected type for JSON field "${fieldName}":`, typeof value);
-        return null;
-      };
-	  
-      const processedUsers = (fetchedUsers as any[]).map(dbUser => {
-        // Assume profileData fields might be returned flat from a simple SELECT *
-        const {
-            investedAmount, totalProfitEarned, currentGrossProfit, platformFeePaid, currentNetProfit,
-            joinDate, investmentHistory, badges, dashboardWidgetsConfig, contactPhone, address,
-            accentPalette, interfaceDensity, cookieConsent,
-            ...restOfUser
-        } = dbUser;
-
-        // Attempt to parse JSON string fields if they exist
-        let parsedPermissions = restOfUser.adminPermissions;
-        if(typeof parsedPermissions === 'string') {
-            try { parsedPermissions = JSON.parse(parsedPermissions); }
-            catch(e) { console.error(`Failed to parse adminPermissions for user ${dbUser.id}`, e); parsedPermissions = {}; }
-        }
-		
-         const parsedCookieConsent = parseJsonField<CookieConsentData>(cookieConsent, 'cookieConsent');
- 
-        return {
-            ...restOfUser,
-            adminPermissions: parsedPermissions,
-            profileData: {
-                investedAmount: Number(investedAmount) || 0,
-                totalProfitEarned: Number(totalProfitEarned) || 0,
-                currentGrossProfit: Number(currentGrossProfit) || 0,
-                platformFeePaid: Number(platformFeePaid) || 0,
-                currentNetProfit: Number(currentNetProfit) || 0,
-                joinDate: joinDate || new Date().toISOString(),
-                // These are likely in other tables and won't be in the flat user object.
-                // We initialize them as empty arrays to prevent crashes.
-                investmentHistory: [], 
-                badges: [],
-                dashboardWidgetsConfig: [],
-                contactPhone: contactPhone,
-                address: address,
-                accentPalette: accentPalette,
-                interfaceDensity: interfaceDensity,
-                cookieConsent: parsedCookieConsent,
-            }
-        } as User;
-      });
-
+      const processedBets = Array.isArray(fetchedBets)
+        ? (fetchedBets as any[]).map(normalizeBet)
+        : [];
 
       setAppData({
         globalStats: fetchedGlobalStats as GlobalStats,
         users: processedUsers,
-        transactions: fetchedTransactions as Transaction[],
+        transactions: processedTransactions,
         dailyHistory: fetchedDailyHistory as DailyHistoryRecord[],
         announcements: fetchedAnnouncements as Announcement[],
         userMessages: fetchedUserMessages as UserMessage[],
@@ -216,7 +621,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         referrals: fetchedReferrals as Referral[],
         calendarEvents: fetchedCalendarEvents as CalendarEvent[],
         investmentGoals: fetchedInvestmentGoals as InvestmentGoal[],
-        bets: fetchedBets as Bet[],
+        bets: processedBets,
       });
       
       if (showNotification) {
