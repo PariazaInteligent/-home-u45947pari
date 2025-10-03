@@ -2,12 +2,20 @@
 // api/data.php
 
 // --- START: Configuration ---
-$db_host = 'localhost:3306';
-$db_name = 'u45947pari_pariaza_inteligent';
-$db_user = 'u45947pari_admin_pariaza';
-$db_pass = '3DSecurity31'; 
-// --- END: Configuration ---
+$defaultConfig = [
+    'host' => 'localhost',
+    'port' => '3306',
+    'name' => 'u45947pari_pariaza_inteligent',
+    'user' => 'u45947pari_admin_pariaza',
+    'pass' => '3DSecurity31',
+];
 
+$db_host = getenv('DB_HOST') ?: $defaultConfig['host'];
+$db_port = getenv('DB_PORT') ?: $defaultConfig['port'];
+$db_name = getenv('DB_NAME') ?: $defaultConfig['name'];
+$db_user = getenv('DB_USER') ?: $defaultConfig['user'];
+$db_pass = getenv('DB_PASS') ?: $defaultConfig['pass'];
+// --- END: Configuration ---
 
 // --- Headers & Security ---
 // Permite cereri de la orice origine. Pentru producție, ar trebui restricționat la domeniul tău.
@@ -16,7 +24,8 @@ header("Content-Type: application/json; charset=UTF-8");
 
 // --- Database Connection ---
 try {
-    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
+    $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $db_host, $db_port, $db_name);
+    $pdo = new PDO($dsn, $db_user, $db_pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -64,7 +73,7 @@ try {
     // Pe viitor, vom rafina acest script pentru a construi JSON-ul exact cum trebuie,
     // posibil prin interogări mai complexe (JOINs) sau procesare în PHP.
     // Deocamdată, frontend-ul va face o transformare de bază.
-    
+
     // global_stats este un singur obiect, nu un array.
     if ($endpoint === 'globalStats' && count($data) >= 1) {
         echo json_encode($data[0]);
