@@ -1,0 +1,94 @@
+--- 
+files: 
+  certificate: 
+    pariazainteligent_ro_c965c_ad84f_1790875541_d1159d6e534e8182b7156f69aacf20be: 
+      created: '1759339541'
+      domains: 
+        - pariazainteligent.ro
+        - www.pariazainteligent.ro
+        - mail.pariazainteligent.ro
+        - cpanel.pariazainteligent.ro
+        - webmail.pariazainteligent.ro
+        - webdisk.pariazainteligent.ro
+        - cpcontacts.pariazainteligent.ro
+        - cpcalendars.pariazainteligent.ro
+        - autodiscover.pariazainteligent.ro
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: Cert for “pariazainteligent.ro”
+      id: pariazainteligent_ro_c965c_ad84f_1790875541_d1159d6e534e8182b7156f69aacf20be
+      is_self_signed: 1
+      issuer.commonName: pariazainteligent.ro
+      issuer.organizationName: ~
+      key_algorithm: rsaEncryption
+      modulus: c965caff55b279217b5f4885d70a447bf1026498dccab1707645d12419d5f18ca2f68df8c31e7976679ac2dea3f48a39777646fc0bdfdfd366ccf12423bbb4817e7e680a7dec5ad4270f16e239316ce5702858c57850af6056868172ff450e4ac0f6a8140bf2fc8444fe6f8bdbac390fe314f017e5a62d270adf8458367f2ca5382a061efecd5c6bdfee7236962b948ba18eb2f3c75642bc643b5e4c88a32a0cb59cd81e2412bb398c7a00b18f21df926df9bf6fca8f508ae2932feefa9ee44d41077c64e8b1d692eaa82a4dcf532f9f8ada044d0497cf30036bd60291f4d43898d22ff4f5387e96544b5db87fcd75ece976293e65467a7e0b7dc4d497cad84f
+      modulus_length: 2048
+      not_after: '1790875541'
+      not_before: '1759339541'
+      serial: 0168c0b70c
+      signature_algorithm: sha256WithRSAEncryption
+      subject.commonName: pariazainteligent.ro
+      validation_type: ~
+    pariazainteligent_ro_d0ea1_761e5_1767112109_060a6d1d0a15b4e0b592754be06c2cf9: 
+      created: '1759339620'
+      domains: 
+        - "*.pariazainteligent.ro"
+        - pariazainteligent.ro
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: Cert for “pariazainteligent.ro” 1759339620.0
+      id: pariazainteligent_ro_d0ea1_761e5_1767112109_060a6d1d0a15b4e0b592754be06c2cf9
+      is_self_signed: 0
+      issuer.commonName: R13
+      issuer.organizationName: Let's Encrypt
+      key_algorithm: rsaEncryption
+      modulus: d0ea1a82c333b912948a0a108764cddb5263d3b84ec54ab7f2f3f82e11bcb2b7b774c91253c5133225a6c7e0422ebbed532ad9965b232fe04143bd20ca94ce4f4eeec15ec856bfb9886a0da712eaf83e6db8e4b4a177284e58dd55e75caf2bd418c9bfbb715cd720fa18a0d05bee8aeca9200e2992454d2de75c9573c745c0cb35447e57b62e95993d076b092bbebe9b69af0274e4b44a12420afb8d9ab57d16ecaecbbc8eb92e122cf502862e9922008df1ad61c543a85404fe8d7ffa75eb43d58a0faa7fe2c6a5670f57f4e13a5175d63c00f1e92a3ec07ad1c330d9868e862fa70a5d4d1c65691c0961949b8aa4f29a6c0dcd669a3359dfcf41750c3761e5
+      modulus_length: 2048
+      not_after: '1767112109'
+      not_before: '1759336110'
+      serial: 065ee802f1209e991f8e6b02f4f19bfe55be
+      signature_algorithm: sha256WithRSAEncryption
+      subject.commonName: pariazainteligent.ro
+      validation_type: dv
+  key: 
+    c965c_ad84f_e16b77493892ed40ba73956ba28480c7: 
+      created: '1759339541'
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: Key for “pariazainteligent.ro”
+      id: c965c_ad84f_e16b77493892ed40ba73956ba28480c7
+      key_algorithm: rsaEncryption
+      modulus: c965caff55b279217b5f4885d70a447bf1026498dccab1707645d12419d5f18ca2f68df8c31e7976679ac2dea3f48a39777646fc0bdfdfd366ccf12423bbb4817e7e680a7dec5ad4270f16e239316ce5702858c57850af6056868172ff450e4ac0f6a8140bf2fc8444fe6f8bdbac390fe314f017e5a62d270adf8458367f2ca5382a061efecd5c6bdfee7236962b948ba18eb2f3c75642bc643b5e4c88a32a0cb59cd81e2412bb398c7a00b18f21df926df9bf6fca8f508ae2932feefa9ee44d41077c64e8b1d692eaa82a4dcf532f9f8ada044d0497cf30036bd60291f4d43898d22ff4f5387e96544b5db87fcd75ece976293e65467a7e0b7dc4d497cad84f
+      modulus_length: 2048
+    d0ea1_761e5_1aba14fbc662be8eeae6f1a0b499f834: 
+      created: '1759339620'
+      ecdsa_curve_name: ~
+      ecdsa_public: ~
+      friendly_name: Key for “pariazainteligent.ro” 1759339620.0
+      id: d0ea1_761e5_1aba14fbc662be8eeae6f1a0b499f834
+      key_algorithm: rsaEncryption
+      modulus: d0ea1a82c333b912948a0a108764cddb5263d3b84ec54ab7f2f3f82e11bcb2b7b774c91253c5133225a6c7e0422ebbed532ad9965b232fe04143bd20ca94ce4f4eeec15ec856bfb9886a0da712eaf83e6db8e4b4a177284e58dd55e75caf2bd418c9bfbb715cd720fa18a0d05bee8aeca9200e2992454d2de75c9573c745c0cb35447e57b62e95993d076b092bbebe9b69af0274e4b44a12420afb8d9ab57d16ecaecbbc8eb92e122cf502862e9922008df1ad61c543a85404fe8d7ffa75eb43d58a0faa7fe2c6a5670f57f4e13a5175d63c00f1e92a3ec07ad1c330d9868e862fa70a5d4d1c65691c0961949b8aa4f29a6c0dcd669a3359dfcf41750c3761e5
+      modulus_length: 2048
+indexes: 
+  certificate: 
+    modulus: 
+      c965caff55b279217b5f4885d70a447bf1026498dccab1707645d12419d5f18ca2f68df8c31e7976679ac2dea3f48a39777646fc0bdfdfd366ccf12423bbb4817e7e680a7dec5ad4270f16e239316ce5702858c57850af6056868172ff450e4ac0f6a8140bf2fc8444fe6f8bdbac390fe314f017e5a62d270adf8458367f2ca5382a061efecd5c6bdfee7236962b948ba18eb2f3c75642bc643b5e4c88a32a0cb59cd81e2412bb398c7a00b18f21df926df9bf6fca8f508ae2932feefa9ee44d41077c64e8b1d692eaa82a4dcf532f9f8ada044d0497cf30036bd60291f4d43898d22ff4f5387e96544b5db87fcd75ece976293e65467a7e0b7dc4d497cad84f: 
+        pariazainteligent_ro_c965c_ad84f_1790875541_d1159d6e534e8182b7156f69aacf20be: ~
+      d0ea1a82c333b912948a0a108764cddb5263d3b84ec54ab7f2f3f82e11bcb2b7b774c91253c5133225a6c7e0422ebbed532ad9965b232fe04143bd20ca94ce4f4eeec15ec856bfb9886a0da712eaf83e6db8e4b4a177284e58dd55e75caf2bd418c9bfbb715cd720fa18a0d05bee8aeca9200e2992454d2de75c9573c745c0cb35447e57b62e95993d076b092bbebe9b69af0274e4b44a12420afb8d9ab57d16ecaecbbc8eb92e122cf502862e9922008df1ad61c543a85404fe8d7ffa75eb43d58a0faa7fe2c6a5670f57f4e13a5175d63c00f1e92a3ec07ad1c330d9868e862fa70a5d4d1c65691c0961949b8aa4f29a6c0dcd669a3359dfcf41750c3761e5: 
+        pariazainteligent_ro_d0ea1_761e5_1767112109_060a6d1d0a15b4e0b592754be06c2cf9: ~
+    subject.commonName: 
+      pariazainteligent.ro: 
+        pariazainteligent_ro_c965c_ad84f_1790875541_d1159d6e534e8182b7156f69aacf20be: ~
+        pariazainteligent_ro_d0ea1_761e5_1767112109_060a6d1d0a15b4e0b592754be06c2cf9: ~
+uniques: 
+  certificate: 
+    friendly_name: 
+      Cert for “pariazainteligent.ro”: pariazainteligent_ro_c965c_ad84f_1790875541_d1159d6e534e8182b7156f69aacf20be
+      Cert for “pariazainteligent.ro” 1759339620.0: pariazainteligent_ro_d0ea1_761e5_1767112109_060a6d1d0a15b4e0b592754be06c2cf9
+  key: 
+    friendly_name: 
+      Key for “pariazainteligent.ro”: c965c_ad84f_e16b77493892ed40ba73956ba28480c7
+      Key for “pariazainteligent.ro” 1759339620.0: d0ea1_761e5_1aba14fbc662be8eeae6f1a0b499f834
+    modulus:ecdsa_curve_name:ecdsa_public: 
+      c965caff55b279217b5f4885d70a447bf1026498dccab1707645d12419d5f18ca2f68df8c31e7976679ac2dea3f48a39777646fc0bdfdfd366ccf12423bbb4817e7e680a7dec5ad4270f16e239316ce5702858c57850af6056868172ff450e4ac0f6a8140bf2fc8444fe6f8bdbac390fe314f017e5a62d270adf8458367f2ca5382a061efecd5c6bdfee7236962b948ba18eb2f3c75642bc643b5e4c88a32a0cb59cd81e2412bb398c7a00b18f21df926df9bf6fca8f508ae2932feefa9ee44d41077c64e8b1d692eaa82a4dcf532f9f8ada044d0497cf30036bd60291f4d43898d22ff4f5387e96544b5db87fcd75ece976293e65467a7e0b7dc4d497cad84f: c965c_ad84f_e16b77493892ed40ba73956ba28480c7
+      d0ea1a82c333b912948a0a108764cddb5263d3b84ec54ab7f2f3f82e11bcb2b7b774c91253c5133225a6c7e0422ebbed532ad9965b232fe04143bd20ca94ce4f4eeec15ec856bfb9886a0da712eaf83e6db8e4b4a177284e58dd55e75caf2bd418c9bfbb715cd720fa18a0d05bee8aeca9200e2992454d2de75c9573c745c0cb35447e57b62e95993d076b092bbebe9b69af0274e4b44a12420afb8d9ab57d16ecaecbbc8eb92e122cf502862e9922008df1ad61c543a85404fe8d7ffa75eb43d58a0faa7fe2c6a5670f57f4e13a5175d63c00f1e92a3ec07ad1c330d9868e862fa70a5d4d1c65691c0961949b8aa4f29a6c0dcd669a3359dfcf41750c3761e5: d0ea1_761e5_1aba14fbc662be8eeae6f1a0b499f834

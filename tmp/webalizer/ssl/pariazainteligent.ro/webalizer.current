@@ -1,0 +1,344 @@
+# Webalizer V2.23-08 Incremental Data - 10/03/2025 14:10:34
+2025 10 3 14 10 34
+449 361 27 22 11 28 5389056 103 34 0
+9 15 109 1 3
+102 67 81644 14 54 19
+225 174 1647354 5 37 7
+122 120 3660058 9 12 8
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+1 1 11789 1
+0 0 0 0
+0 0 0 0
+28 28 688374 3
+1 1 11152 0
+2 2 571196 1
+3 3 23578 2
+72 72 2349296 4
+0 0 0 0
+0 0 0 0
+0 0 0 0
+15 13 4673 1
+0 0 0 0
+32 14 29635 19
+28 21 20825 3
+16 7 40348 6
+0 0 0 0
+75 52 61557 38
+27 15 20087 16
+40 34 1489068 2
+109 98 67478 7
+0
+0
+0
+361
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+41
+0
+0
+4
+0
+0
+16
+27
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+# -urls- 
+/test.php
+0 3 94528517241872 33 0 0
+/assets/favicon-B_SY1GJM.svg
+0 8 94528517243936 0 0 0
+/sellers.json
+0 1 94528517244640 11152 0 0
+/icon-192.svg
+0 8 94528517247904 55760 0 0
+/assets/manifest-B0_AWLi9.json
+0 6 94528517244064 1818 0 0
+/test.php/
+0 2 94528517247776 38 0 0
+/assets/index-5hRfE9LJ.js
+0 1 94528517242496 11112 0 0
+/favicon.svg
+0 4 94528517247072 11152 0 0
+/manifest.json
+0 6 94528517246960 12061 0 0
+/ads.txt
+0 1 94528517244752 11152 0 0
+/assets/index-DF-gOw39.js
+0 8 94528517243808 4514469 0 0
+/api/data.php
+0 211 94528517242160 356396 0 0
+/favicon.ico
+0 4 94528517243184 44528 0 0
+/error_403.html
+0 4 94528517242720 7012 2 1
+/icon-512.svg
+0 2 94528517242272 11152 0 0
+/service-worker.js
+0 26 94528517241952 24274 0 0
+/app-ads.txt
+0 1 94528517244528 11152 0 0
+/_autoindex/assets/icons/folder-fill.svg
+0 8 8299978418438106209 2664 0 0
+/_autoindex/assets/css/autoindex.css
+0 8 7146702663700002355 9360 0 0
+/
+0 68 8026309784111295794 233677 31 7
+/_autoindex/assets/js/tablesort.js
+0 11 94528517234368 23507 0 0
+/_autoindex/assets/js/tablesort.number.js
+0 11 94528517245184 3542 0 0
+# End Of Table - urls
+# -sites- (monthly)
+161.123.158.124
+0 6 5 5317 1 1759352413
+/
+e4304c2b-1b0f-4384-bdee-cdff8d0ba473.fr-par-2.baremetal.scw.cloud
+0 28 28 688374 1 1759472813
+/
+23.27.145.127
+0 1 1 11789 1 1759483173
+/
+149.57.180.52
+0 1 1 11789 1 1759463649
+/
+152.39.177.155
+0 1 0 796 0 0
+-
+146.70.196.231
+0 2 1 1355 1 1759351003
+/
+crawl-66-249-77-71.googlebot.com
+0 1 1 1170 0 0
+-
+ec2-107-20-236-150.compute-1.amazonaws.com
+0 1 0 796 0 0
+-
+103.4.251.106
+0 8 4 6752 2 1759350455
+/
+5.77.116.93
+0 37 22 26358 4 1759354036
+/
+2.195.139.188
+0 150 133 1567698 1 1759447636
+/
+srv863603.hstgr.cloud
+0 1 1 697 1 1759350490
+/
+crawl-66-249-77-69.googlebot.com
+0 4 4 2158 0 0
+-
+crawl-66-249-77-70.googlebot.com
+0 7 5 7306 1 1759350762
+/
+2.195.147.155
+0 73 41 87463 5 1759428427
+/error_403.html
+ec2-44-227-127-2.us-west-2.compute.amazonaws.com
+0 8 7 6715 2 1759350637
+/
+138.197.166.32
+0 2 2 11789 1 1759485159
+/
+103.225.130.43
+0 6 5 5317 1 1759352439
+/
+103.4.250.60
+0 8 4 6193 3 1759350460
+/
+109.55.245.197
+0 15 13 4673 1 1759500634
+/
+ip-149-154-161-245.ptr.telegram.org
+0 1 1 1753 1 1759428388
+/error_403.html
+ec2-44-243-19-51.us-west-2.compute.amazonaws.com
+0 36 36 1174648 1 1759486099
+/
+89.249.59.147
+0 6 5 5317 1 1759351215
+/
+ec2-3-222-232-239.compute-1.amazonaws.com
+0 1 0 796 0 0
+-
+ip75.ip-172-241-234.mpp.dc.com
+0 2 2 571196 1 1759480633
+/
+103.196.9.76
+0 7 3 6193 2 1759351984
+-
+ec2-35-88-75-204.us-west-2.compute.amazonaws.com
+0 36 36 1174648 1 1759486717
+/
+# End Of Table - sites (monthly)
+# -sites- (daily)
+e4304c2b-1b0f-4384-bdee-cdff8d0ba473.fr-par-2.baremetal.scw.cloud
+0 28 28 688374 1 1759472813
+/
+23.27.145.127
+0 1 1 11789 1 1759483173
+/
+149.57.180.52
+0 1 1 11789 1 1759463649
+/
+2.195.139.188
+0 1 1 11152 0 0
+-
+138.197.166.32
+0 2 2 11789 1 1759485159
+/
+109.55.245.197
+0 15 13 4673 1 1759500634
+/
+ec2-44-243-19-51.us-west-2.compute.amazonaws.com
+0 36 36 1174648 1 1759486099
+/
+ip75.ip-172-241-234.mpp.dc.com
+0 2 2 571196 1 1759480633
+/
+ec2-35-88-75-204.us-west-2.compute.amazonaws.com
+0 36 36 1174648 1 1759486717
+/
+# End Of Table - sites (daily)
+# -referrers- 
+https://pariazainteligent.ro/
+0 263
+https://cp117s.zooku.eu:2083/
+0 1
+https://mail.pariazainteligent.ro/
+0 5
+- (Direct Request)
+0 111
+https://github.com/PariazaInteligent/Pariaza-Inteligent1/deployments
+0 2
+https://pariazainteligent.ro/service-worker.js
+0 25
+https://pariazainteligent.ro/index.html
+0 1
+https://pariazainteligent.ro/test.php
+0 2
+https://www.pariazainteligent.ro/
+0 35
+https://pariazainteligent.ro/error_403.html
+0 3
+https://pariazainteligent.ro/test/
+0 1
+# End Of Table - referrers
+# -agents- 
+Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/139.0.7
+0 4
+Mozilla/5.0 (Linux; Android 8.0.0; SM-G965U Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.111 Mobile S
+0 36
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 EdgA/126.0.0.
+0 1
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36
+0 219
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36
+0 7
+Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Mobile S
+0 1
+Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
+0 2
+Mozilla/5.0 (iPhone; CPU iPhone OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 
+0 6
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 OPR/120.0.0.0
+0 27
+Googlebot-Image/1.0
+0 1
+Mozilla/5.0 (Linux; Android 15; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.207 Mobile Safari/537.36
+0 2
+Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0
+0 2
+Go-http-client/2.0
+0 2
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36
+0 8
+Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/116.0.5845.177 Mobile/1
+0 12
+Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/138.0.7204.156 Mobile/1
+0 1
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.3
+0 28
+Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/28.0 Chrome/130.0.0.0 Mobile Safari/
+0 27
+Mozilla/5.0 (X11; Linux i686; rv:109.0) Gecko/20100101 Firefox/120.0
+0 2
+TelegramBot (like TwitterBot)
+0 1
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.1
+0 36
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36
+0 2
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36
+0 1
+Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.7258.127 Mobile
+0 4
+Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)
+0 2
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36
+0 7
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/137.0.0.0 Safari/537.36
+0 6
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+0 2
+# End Of Table - agents
+# -search strings- 
+# End Of Table - search strings
+# -usernames- 
+# End Of Table - usernames
