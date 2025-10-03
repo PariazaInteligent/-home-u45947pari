@@ -135,6 +135,31 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       // Post-processing for users to match the nested structure expected by the frontend.
       // This is a temporary measure. Ideally, the API would return the correct structure.
+	  const parseJsonField = <T,>(value: unknown, fieldName: string): T | null => {
+        if (value === null || value === undefined) {
+          return null;
+        }
+
+        if (typeof value === 'string') {
+          try {
+            return JSON.parse(value) as T;
+          } catch (error) {
+            console.error(`Failed to parse JSON field "${fieldName}"`, {
+              error,
+              value,
+            });
+            return null;
+          }
+        }
+
+        if (typeof value === 'object') {
+          return value as T;
+        }
+
+        console.warn(`Unexpected type for JSON field "${fieldName}":`, typeof value);
+        return null;
+      };
+	  
       const processedUsers = (fetchedUsers as any[]).map(dbUser => {
         // Assume profileData fields might be returned flat from a simple SELECT *
         const {
@@ -150,7 +175,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             try { parsedPermissions = JSON.parse(parsedPermissions); }
             catch(e) { console.error(`Failed to parse adminPermissions for user ${dbUser.id}`, e); parsedPermissions = {}; }
         }
-
+		
+         const parsedCookieConsent = parseJsonField<CookieConsentData>(cookieConsent, 'cookieConsent');
+ 
         return {
             ...restOfUser,
             adminPermissions: parsedPermissions,
@@ -170,7 +197,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 address: address,
                 accentPalette: accentPalette,
                 interfaceDensity: interfaceDensity,
-                cookieConsent: cookieConsent,
+                cookieConsent: parsedCookieConsent,
             }
         } as User;
       });
