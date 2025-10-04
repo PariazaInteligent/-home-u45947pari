@@ -1,3 +1,10 @@
+# nu rescrie aceste resurse spre index.html
+RewriteCond %{REQUEST_URI} !^/service-worker\.js$
+RewriteCond %{REQUEST_URI} !^/manifest\.json$
+RewriteCond %{REQUEST_URI} !^/robots\.txt$
+RewriteCond %{REQUEST_URI} !^/assets/
+RewriteCond %{REQUEST_URI} !^/api/
+
 Options -MultiViews
 <IfModule mod_rewrite.c>
   RewriteEngine On

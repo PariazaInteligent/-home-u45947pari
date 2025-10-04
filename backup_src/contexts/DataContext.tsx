@@ -455,7 +455,6 @@ const normalizeTransaction = (raw: any): Transaction => {
     ) ?? undefined;
 
   
-  // Try to resolve amount from details when missing
   const normalizedAmount =
     toOptionalNumber(amountValue) ??
     toOptionalNumber((details as any)?.amount) ??

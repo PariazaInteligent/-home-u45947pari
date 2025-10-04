@@ -54,18 +54,26 @@ const LiveActivityFeed: React.FC = () => {
 const investmentItems: FeedItem[] = (appData.transactions || [])
   .filter(tx =>
     tx.type === TransactionType.INVESTMENT_APPROVAL &&
-    (tx.status === TransactionStatus.COMPLETED || tx.status === TransactionStatus.APPROVED) &&
-    typeof tx.amount === 'number' && tx.amount > 0
+    (tx.status === TransactionStatus.COMPLETED || tx.status === TransactionStatus.APPROVED)
   )
   .map(tx => {
           const user = tx.userId ? usersById[tx.userId] : undefined;
+          const displayAmount = Number.isFinite(Number(tx.amount))
+            ? Number(tx.amount)
+            : Number((tx as any)?.details?.amount ?? (tx as any)?.details?.value ?? 0);
+          const displayName = user?.name
+            || (tx as any)?.details?.investorName
+            || (tx as any)?.details?.userName
+            || (tx as any)?.details?.name
+            || 'un investitor';
+const user = appData.users.find(u => u.id === tx.userId);
           return {
             id: `invest-${tx.id}`,
             type: 'INVESTMENT',
             timestamp: tx.timestamp,
             text: (
               <>
-                Investiție nouă de <span className=\"font-bold text-primary-500 dark:text-primary-400\">{formatCurrency(Number.isFinite(tx.amount as number) ? (tx.amount as number) : 0)}</span> primită de la <span className="font-semibold text-neutral-800 dark:text-neutral-100">{user?.name || 'un investitor'}</span>.
+                Investiție nouă de <span className="font-bold text-primary-500 dark:text-primary-400">{formatCurrency(displayAmount)}</span> primită de la <span className="font-semibold text-neutral-800 dark:text-neutral-100">{displayName}</span>.
               </>
             ),
             icon: <BanknotesIcon className="h-6 w-6 text-primary-500 dark:text-primary-400" />,
@@ -102,7 +110,7 @@ const investmentItems: FeedItem[] = (appData.transactions || [])
             timestamp: tx.timestamp,
             text: (
               <>
-                Retragere de <span className="font-bold text-rose-500">{formatCurrency(tx.amount)}</span> aprobată pentru <span className="font-semibold text-neutral-800 dark:text-neutral-100">{user?.name || 'un investitor'}</span>.
+                Retragere de <span className="font-bold text-rose-500">{formatCurrency(displayAmount)}</span> aprobată pentru <span className="font-semibold text-neutral-800 dark:text-neutral-100">{displayName}</span>.
               </>
             ),
             icon: <ArrowLeftEndOnRectangleIcon className="h-6 w-6 text-rose-500" />,

@@ -14,6 +14,9 @@ const urlsToCache = [
   // 'https://cdn.tailwindcss.com', // Example: Caching Tailwind, though CDN caching can be tricky
 ];
 
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', () => self.clients.claim());
+
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
