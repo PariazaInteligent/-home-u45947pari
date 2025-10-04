@@ -439,7 +439,14 @@ const normalizeUser = (dbUser: any): User => {
 const normalizeTransaction = (raw: any): Transaction => {
   const userIdValue = pickFirst(raw?.userId, raw?.user_id, raw?.investorId, raw?.investor_id);
   const adminIdValue = pickFirst(raw?.adminId, raw?.admin_id, raw?.processedBy, raw?.processed_by);
-  const amountValue = pickFirst(raw?.amount, raw?.value, raw?.sum, raw?.transaction_amount);
+  const amountValue  = pickFirst(
+    raw?.amount,
+    raw?.value,
+    raw?.sum,
+    raw?.transaction_amount,
+    raw?.amount_eur,
+    raw?.ammount
+  );
 
   const details =
     parseJsonField<TransactionDetails>(
@@ -447,14 +454,21 @@ const normalizeTransaction = (raw: any): Transaction => {
       'transactionDetails'
     ) ?? undefined;
 
-  return {
+  
+  // Try to resolve amount from details when missing
+  const normalizedAmount =
+    toOptionalNumber(amountValue) ??
+    toOptionalNumber((details as any)?.amount) ??
+    toOptionalNumber((details as any)?.value) ??
+    0;
+return {
     id: String(pickFirst(raw?.id, raw?.transaction_id) ?? generateId('txn')),
     timestamp: toIsoString(pickFirst(raw?.timestamp, raw?.created_at, raw?.createdAt, raw?.date), new Date().toISOString()),
     userId: userIdValue !== undefined && userIdValue !== null ? String(userIdValue) : undefined,
     adminId: adminIdValue !== undefined && adminIdValue !== null ? String(adminIdValue) : undefined,
     type: normalizeEnumValue(pickFirst(raw?.type, raw?.transaction_type, raw?.actionType, raw?.action_type), TransactionType, TransactionType.ADMIN_ACTION),
     status: normalizeEnumValue(pickFirst(raw?.status, raw?.transaction_status, raw?.state), TransactionStatus, TransactionStatus.COMPLETED),
-    amount: toOptionalNumber(amountValue),
+    amount: normalizedAmount,
     description: raw?.description ? String(raw.description) : raw?.notes ? String(raw.notes) : raw?.summary ? String(raw.summary) : undefined,
     details,
   };
