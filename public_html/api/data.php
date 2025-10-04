@@ -1,89 +1,124 @@
 <?php
-// api/data.php
+// --- CONFIG ---
+ini_set('display_errors', 0);
+header('Content-Type: application/json; charset=utf-8');
 
-// --- START: Configuration ---
-$defaultConfig = [
-    'host' => 'localhost',
-    'port' => '3306',
-    'name' => 'u45947pari_pariaza_inteligent',
-    'user' => 'u45947pari_admin_pariaza',
-    'pass' => '3DSecurity31',
-];
+$DB_HOST = 'localhost';
+$DB_NAME = 'u54947pari_pariaza_inteligent';   // <- înlocuiește cu numele tău exact
+$DB_USER = 'u45947pari_admin_pariaza';                     // <- utilizator MySQL
+$DB_PASS = '3DSecurity31';                   // <- parola MySQL
+$DSN = "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4";
 
-$db_host = getenv('DB_HOST') ?: $defaultConfig['host'];
-$db_port = getenv('DB_PORT') ?: $defaultConfig['port'];
-$db_name = getenv('DB_NAME') ?: $defaultConfig['name'];
-$db_user = getenv('DB_USER') ?: $defaultConfig['user'];
-$db_pass = getenv('DB_PASS') ?: $defaultConfig['pass'];
-// --- END: Configuration ---
-
-// --- Headers & Security ---
-// Permite cereri de la orice origine. Pentru producție, ar trebui restricționat la domeniul tău.
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-
-// --- Database Connection ---
-try {
-    $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $db_host, $db_port, $db_name);
-    $pdo = new PDO($dsn, $db_user, $db_pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(["error" => "Database connection failed: " . $e->getMessage()]);
-    exit();
+// --- HELPERS ---
+function send_json($data, int $code = 200) {
+  http_response_code($code);
+  echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  exit;
 }
 
-// --- Endpoint Routing ---
-$endpoint = isset($_GET['endpoint']) ? $_GET['endpoint'] : '';
-
-// Maparea dintre numele folosite în frontend și numele tabelelor din baza de date
-$allowed_tables = [
-    'globalStats'      => 'global_stats',
-    'users'            => 'users',
-    'transactions'     => 'transactions',
-    'dailyHistory'     => 'daily_history',
-    'announcements'    => 'announcements',
-    'userMessages'     => 'user_messages',
-    'investmentAlerts' => 'investment_alerts',
-    'feedback'         => 'feedback',
-    'platformSettings' => 'app_settings',
-    'referrals'        => 'referrals',
-    'calendarEvents'   => 'calendar_events',
-    'investmentGoals'  => 'investment_goals',
-    'bets'             => 'bets'
-];
-
-if (!array_key_exists($endpoint, $allowed_tables)) {
-    http_response_code(400);
-    echo json_encode(["error" => "Invalid endpoint requested."]);
-    exit();
+function safe_json_decode($s) {
+  if ($s === null) return null;
+  $s = trim((string)$s);
+  if ($s === '') return null;
+  $x = json_decode($s, true);
+  return (json_last_error() === JSON_ERROR_NONE) ? $x : ['raw' => $s];
 }
 
-$table_name = $allowed_tables[$endpoint];
-
-// --- Data Fetching ---
 try {
-    $stmt = $pdo->prepare("SELECT * FROM " . $table_name);
-    $stmt->execute();
-    $data = $stmt->fetchAll();
+  $pdo = new PDO($DSN, $DB_USER, $DB_PASS, [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+  ]);
+} catch (Throwable $e) {
+  send_json(['error' => 'DB_CONNECT_ERROR', 'message' => $e->getMessage()], 500);
+}
 
-    // NOTĂ IMPORTANTĂ: Baza de date returnează datele într-un format "plat".
-    // Frontend-ul se așteaptă la structuri complexe (ex: un obiect 'profileData' în interiorul fiecărui utilizator).
-    // Pe viitor, vom rafina acest script pentru a construi JSON-ul exact cum trebuie,
-    // posibil prin interogări mai complexe (JOINs) sau procesare în PHP.
-    // Deocamdată, frontend-ul va face o transformare de bază.
+$endpoint = $_GET['endpoint'] ?? '';
 
-    // global_stats este un singur obiect, nu un array.
-    if ($endpoint === 'globalStats' && count($data) >= 1) {
-        echo json_encode($data[0]);
-    } else {
-        echo json_encode($data);
+try {
+  switch ($endpoint) {
+    case 'users': {
+      // Adaptează la structura ta de tabel `users`
+      $sql = "SELECT 
+                id, email, name, avatar, role, 
+                is_active AS isActive, 
+                is_global_admin AS isGlobalAdmin,
+                profile_data
+              FROM users";
+      $rows = $pdo->query($sql)->fetchAll();
+
+      $out = array_map(function($r) {
+        return [
+          'id'            => (string)$r['id'],
+          'email'         => (string)($r['email'] ?? ''),
+          'name'          => (string)($r['name'] ?? 'Utilizator'),
+          'avatar'        => $r['avatar'] ?? null,
+          'role'          => (string)($r['role'] ?? 'USER'),
+          'isActive'      => (bool)($r['isActive'] ?? true),
+          'isGlobalAdmin' => (bool)($r['isGlobalAdmin'] ?? false),
+          // dacă ai JSON în coloana profile_data
+          'profileData'   => safe_json_decode($r['profile_data'] ?? null) ?? new stdClass(),
+        ];
+      }, $rows);
+
+      send_json($out);
     }
 
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(["error" => "Query failed: " . $e->getMessage()]);
-    exit();
+    case 'transactions': {
+      // Tabelul tău `transactions` din screenshot
+      $sql = "SELECT id, timestamp, user_id, admin_id, type, status, amount, description, details
+              FROM transactions
+              ORDER BY timestamp DESC
+              LIMIT 500";
+      $rows = $pdo->query($sql)->fetchAll();
+
+      $out = array_map(function($r) {
+        return [
+          'id'          => (string)$r['id'],
+          'timestamp'   => date('c', strtotime($r['timestamp'] ?? 'now')),
+          'userId'      => isset($r['user_id'])  ? (string)$r['user_id']  : null,
+          'adminId'     => isset($r['admin_id']) ? (string)$r['admin_id'] : null,
+          'type'        => (string)($r['type'] ?? 'ADMIN_ACTION'),
+          'status'      => (string)($r['status'] ?? 'COMPLETED'),
+          'amount'      => isset($r['amount']) ? floatval($r['amount']) : null,
+          'description' => $r['description'] ?? null,
+          // `details` poate conține JSON sau poate fi NULL
+          'details'     => safe_json_decode($r['details'] ?? null),
+        ];
+      }, $rows);
+
+      send_json($out);
+    }
+
+    // Endpoints pe care le cere frontend-ul tău — întoarce obiecte/tablouri valide chiar dacă sunt goale:
+    case 'globalStats':
+      // opțional: calcule rapide, ca să eviți fallback-ul demo
+      $sum = $pdo->query("SELECT COALESCE(SUM(amount),0) AS s 
+                          FROM transactions 
+                          WHERE type='INVESTMENT_APPROVAL' AND status='COMPLETED'")->fetch()['s'] ?? 0;
+      $investors = $pdo->query("SELECT COUNT(DISTINCT user_id) AS c 
+                                FROM transactions 
+                                WHERE type='INVESTMENT_APPROVAL' AND status='COMPLETED'")->fetch()['c'] ?? 0;
+      send_json([
+        'totalInvested'          => floatval($sum),
+        'totalProfitDistributed' => 0,
+        'activeInvestors'        => intval($investors),
+      ]);
+
+    case 'dailyHistory':        send_json([]);  // dacă nu ai tabel, întoarce gol
+    case 'announcements':       send_json([]);
+    case 'userMessages':        send_json([]);
+    case 'investmentAlerts':    send_json([]);
+    case 'feedback':            send_json([]);
+    case 'platformSettings':    send_json([]);  // dacă nu-l folosești, gol
+    case 'referrals':           send_json([]);
+    case 'calendarEvents':      send_json([]);
+    case 'investmentGoals':     send_json([]);
+    case 'bets':                send_json([]);
+
+    default:
+      send_json(['error' => 'UNKNOWN_ENDPOINT'], 400);
+  }
+} catch (Throwable $e) {
+  send_json(['error' => 'UNHANDLED_EXCEPTION', 'message' => $e->getMessage()], 500);
 }
-?>

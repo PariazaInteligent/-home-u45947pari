@@ -1,3 +1,21 @@
+RewriteEngine On
+RewriteBase /
+
+# 1) Lasă fișierele și directoarele reale în pace
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 2) NU rescrie API-ul și fișierele critice
+RewriteCond %{REQUEST_URI} !^/api/
+RewriteCond %{REQUEST_URI} !^/service-worker\.js$
+RewriteCond %{REQUEST_URI} !^/manifest\.json$
+RewriteCond %{REQUEST_URI} !^/robots\.txt$
+RewriteCond %{REQUEST_URI} !^/assets/
+
+# 3) Restul merg la index.html (SPA)
+RewriteRule . /index.html [L]
+
 # nu rescrie aceste resurse spre index.html
 RewriteCond %{REQUEST_URI} !^/service-worker\.js$
 RewriteCond %{REQUEST_URI} !^/manifest\.json$
