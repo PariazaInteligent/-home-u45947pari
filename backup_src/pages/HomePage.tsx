@@ -6,7 +6,7 @@ import { UI_TEXT_ROMANIAN, BADGE_DEFINITIONS } from '../constants';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { ChartBarIcon, UserCircleIcon, ShieldCheckIcon, BanknotesIcon, TrophyIcon, CheckBadgeIcon, SparklesIcon, ArrowLeftEndOnRectangleIcon } from '../components/ui/Icons';
-import { Role, PlatformSettingKey, BetStatus, TransactionType } from '../types';
+import { BetStatus, PlatformSettingKey, Role, TransactionStatus, TransactionType } from '../types';
 import { timeAgo, formatCurrency } from '../utils/helpers';
 import Spinner from '../components/ui/Spinner';
 
@@ -21,7 +21,7 @@ interface FeedItem {
   colorClass: string;
 }
 
-const SIGNIFICANT_INVESTMENT_THRESHOLD = 500; // EUR
+const SIGNIFICANT_INVESTMENT_THRESHOLD = 0; // EUR
 
 const LiveActivityFeed: React.FC = () => {
   const { appData, loading } = useData();
@@ -45,21 +45,27 @@ const LiveActivityFeed: React.FC = () => {
         colorClass: 'border-yellow-400',
       }));
 
-    const investmentItems: FeedItem[] = (appData.transactions || [])
-      .filter(tx => 
-        tx.type === TransactionType.INVESTMENT_APPROVAL && 
-        tx.status === 'COMPLETED' &&
-        tx.amount && tx.amount >= SIGNIFICANT_INVESTMENT_THRESHOLD
-      )
-      .map(tx => {
-          const user = appData.users.find(u => u.id === tx.userId);
+    const usersById = useMemo(() => {
+  const map: Record<string, { id: string; name?: string }> = {};
+  for (const u of appData?.users ?? []) map[u.id] = u;
+  return map;
+}, [appData?.users]);
+
+const investmentItems: FeedItem[] = (appData.transactions || [])
+  .filter(tx =>
+    tx.type === TransactionType.INVESTMENT_APPROVAL &&
+    (tx.status === TransactionStatus.COMPLETED || tx.status === TransactionStatus.APPROVED) &&
+    typeof tx.amount === 'number' && tx.amount > 0
+  )
+  .map(tx => {
+          const user = tx.userId ? usersById[tx.userId] : undefined;
           return {
             id: `invest-${tx.id}`,
             type: 'INVESTMENT',
             timestamp: tx.timestamp,
             text: (
               <>
-                Investiție nouă de <span className="font-bold text-primary-500 dark:text-primary-400">{formatCurrency(tx.amount)}</span> primită de la <span className="font-semibold text-neutral-800 dark:text-neutral-100">{user?.name || 'un investitor'}</span>.
+                Investiție nouă de <span className=\"font-bold text-primary-500 dark:text-primary-400\">{formatCurrency(Number.isFinite(tx.amount as number) ? (tx.amount as number) : 0)}</span> primită de la <span className="font-semibold text-neutral-800 dark:text-neutral-100">{user?.name || 'un investitor'}</span>.
               </>
             ),
             icon: <BanknotesIcon className="h-6 w-6 text-primary-500 dark:text-primary-400" />,
