@@ -1,1 +1,0 @@
-{"mode":"simple","statusmsg":"Ran adminbin Cpanel/ftp/LISTSTORE","version":"2.4","status":1,"timeout":0,"data":[{"user":"u45947pari","type":"main","homedir":"/home/u45947pari"},{"user":"u45947pari_logs","type":"logaccess","homedir":"/etc/apache2/logs/domlogs/u45947pari"}],"exit_code":0,"error":0,"action":"fetch"}
