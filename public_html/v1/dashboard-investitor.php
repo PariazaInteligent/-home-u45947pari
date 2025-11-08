@@ -1011,6 +1011,8 @@ if ($name === '') $name = 'Investitor';
     const meName = document.body.dataset.userName || 'Investitor';
     let lastId = +(sessionStorage.getItem('chat:lastId') || 0);
     let sse = null;
+    let pollTimer = null;
+    const POLL_MS = 4000;
     const SEEN = new Set();            // dedup sigur
     const NF_TIME = new Intl.DateTimeFormat('ro-RO',{hour:'2-digit',minute:'2-digit'});
 
@@ -1051,55 +1053,84 @@ if ($name === '') $name = 'Investitor';
       if (stick) scrollBottom();
     }
 
+function stopPoll(){
+      if (!pollTimer) return;
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+
+    async function pullLatest(){
+      try{
+        const r = await fetch(`/api/chat/fetch.php?since_id=${encodeURIComponent(lastId||0)}`, {credentials:'include'});
+        const j = await r.json();
+        (j.items||[]).forEach(appendMsg);
+      }catch(_){/* fallback silent */}
+    }
+
+    function startPoll(immediate=false){
+      if (pollTimer) return;
+      if (immediate) pullLatest();
+      pollTimer = setInterval(pullLatest, POLL_MS);
+    }
+
     async function bootstrap(){
       try{
         const r = await fetch('/api/chat/fetch.php?limit=50', {credentials:'include'});
         const j = await r.json();
         (j.items||[]).forEach(appendMsg);
         scrollBottom();
-        openSSE();
+        if ('EventSource' in window) {
+          openSSE();
+        } else {
+          liveB.textContent='sync';
+          liveB.className='badge bg-amber-500/15 text-amber-200 border border-amber-400/30';
+          startPoll(true);
+        }
       }catch{
         liveB.textContent='offline';
         liveB.className='badge bg-rose-500/15 text-rose-200 border border-rose-400/30';
+         startPoll(true);
       }
     }
 
     function openSSE(){
-  if (sse) { try{sse.close();}catch{}; sse=null; }
-  const url = `/api/chat/stream.php?last_id=${encodeURIComponent(lastId||0)}`;
-  sse = new EventSource(url); // same-origin -> fără withCredentials
+   if (sse) { try{sse.close();}catch{}; sse=null; }
+      const url = `/api/chat/stream.php?last_id=${encodeURIComponent(lastId||0)}`;
+      sse = new EventSource(url); // same-origin -> fără withCredentials
 
-  sse.addEventListener('open', ()=>{
-    liveB.textContent='live';
-    liveB.className='badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30';
-  });
+      sse.addEventListener('open', ()=>{
+        liveB.textContent='live';
+        liveB.className='badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30';
+        stopPoll();
+      });
+      
+      sse.addEventListener('hello', (e)=>{
+        try{
+          const d = JSON.parse(e.data);
+          if (d && d.last_id) {
+            lastId = Math.max(lastId, d.last_id|0);
+            sessionStorage.setItem('chat:lastId', String(lastId));
+          }
+        }catch(_){}
+      });
 
-  sse.addEventListener('hello', (e)=>{
-    try{
-      const d = JSON.parse(e.data);
-      if (d && d.last_id) {
-        lastId = Math.max(lastId, d.last_id|0);
-        sessionStorage.setItem('chat:lastId', String(lastId));
-      }
-    }catch(_){}
-  });
-
-  sse.addEventListener('message', (e)=>{
-  try{
-    const m = JSON.parse(e.data);
-    appendMsg(m); // <- nu renderMsg
-  }catch(_){}
-});
+      sse.addEventListener('message', (e)=>{
+        try{
+          const m = JSON.parse(e.data);
+          appendMsg(m); // <- nu renderMsg
+        }catch(_){}
+      });
 
 
-  sse.addEventListener('ping', ()=>{ /* keepalive */ });
+      sse.addEventListener('ping', ()=>{ /* keepalive */ });
 
-  sse.addEventListener('error', ()=>{
-    liveB.textContent='reconectare…';
-    liveB.className='badge bg-amber-500/15 text-amber-200 border border-amber-400/30';
-    // NU redeschidem manual; EventSource reconectează singur cu retry:3000
-  });
-}
+   sse.addEventListener('error', ()=>{
+        liveB.textContent='sync';
+        liveB.className='badge bg-amber-500/15 text-amber-200 border border-amber-400/30';
+        // NU redeschidem manual; EventSource reconectează singur cu retry:3000
+        startPoll(true);
+      });
+    }
 
 // opțional, dacă tab-ul revine din background și EventSource e CLOSED (2), redeschidem:
 document.addEventListener('visibilitychange', ()=>{
@@ -1125,6 +1156,9 @@ document.addEventListener('visibilitychange', ()=>{
           alert(t);
         } else {
           input.value=''; // mesajul va veni prin SSE
+           if (!sse || sse.readyState !== 1) {
+            await pullLatest();
+          }
         }
       }catch{
         alert('Conexiune indisponibilă.');
@@ -1134,7 +1168,10 @@ document.addEventListener('visibilitychange', ()=>{
       }
     });
 
-    window.addEventListener('beforeunload', ()=>{ try{sse?.close();}catch{} });
+    window.addEventListener('beforeunload', ()=>{
+      try{sse?.close();}catch{}
+      stopPoll();
+    });
 
     bootstrap();
   })();
