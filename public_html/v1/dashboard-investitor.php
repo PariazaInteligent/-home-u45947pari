@@ -721,6 +721,22 @@ if ($name === '') $name = 'Investitor';
           <span id="chatLive" class="badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30">live</span>
         </div>
 
+        <form id="chatSearchForm" class="mb-2 flex items-center gap-2 text-xs">
+          <input id="chatSearchInput" autocomplete="off" maxlength="120"
+                 class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus:border-cyan-400/60 focus:outline-none"
+                 placeholder="Caută în arhivă (minim 2 caractere)…" />
+          <button type="submit"
+                  class="rounded-xl px-3 py-2 border border-white/10 hover:border-cyan-400/40 text-[11px] uppercase tracking-wide text-slate-300">Caută</button>
+        </form>
+
+        <div id="chatSearchResults" class="hidden rounded-xl border border-white/10 bg-slate-900/60 p-3 text-xs space-y-2">
+          <div class="flex items-center justify-between gap-3 text-[11px] uppercase tracking-wide text-slate-400">
+            <span id="chatSearchMeta"></span>
+            <button type="button" id="chatSearchClose" class="text-slate-500 hover:text-slate-200 transition"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div id="chatSearchItems" class="max-h-36 overflow-y-auto nice-scroll space-y-2"></div>
+        </div>
+
         <div id="chatFeed" class="h-48 overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
 
         <form id="chatForm" class="mt-3 flex items-center gap-2">
@@ -1503,7 +1519,7 @@ if ($name === '') $name = 'Investitor';
   </script>
   <!-- /PI — Procesare medie (Widget) -->
 
-  <!-- Chat Comunitate (SSE single-instance + dedup) -->
+  <!-- Chat Comunitate (SSE single-instance + dedup + lazy history + search) -->
   <script>
   (function(){
     const feed  = document.getElementById('chatFeed');
@@ -1511,35 +1527,52 @@ if ($name === '') $name = 'Investitor';
     const input = document.getElementById('chatInput');
     const btn   = document.getElementById('chatSend');
     const liveB = document.getElementById('chatLive');
+    const searchForm   = document.getElementById('chatSearchForm');
+    const searchInput  = document.getElementById('chatSearchInput');
+    const searchResults = document.getElementById('chatSearchResults');
+    const searchMeta   = document.getElementById('chatSearchMeta');
+    const searchItems  = document.getElementById('chatSearchItems');
+    const searchClose  = document.getElementById('chatSearchClose');
+    const searchSubmit = searchForm ? searchForm.querySelector('button[type="submit"]') : null;
     if(!feed || !form) return;
 
     const meName = document.body.dataset.userName || 'Investitor';
     let lastId = +(sessionStorage.getItem('chat:lastId') || 0);
+    let oldestId = null;
+    let loadingOlder = false;
+    let olderEnd = false;
     let sse = null;
     let pollTimer = null;
+    let searchAbort = null;
     const POLL_MS = 4000;
+    const PAGE_LIMIT = 50;
     const SEEN = new Set();            // dedup sigur
     const NF_TIME = new Intl.DateTimeFormat('ro-RO',{hour:'2-digit',minute:'2-digit'});
+    const NF_DATE = new Intl.DateTimeFormat('ro-RO',{dateStyle:'short',timeStyle:'short'});
 
     function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
     function atBottom(){ return Math.abs(feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 6; }
     function scrollBottom(){ feed.scrollTo({top:feed.scrollHeight, behavior:'smooth'}); }
 
-    function appendMsg(m){
+    function buildRow(m){
       const id = m.id|0;
-      if (id && SEEN.has(id)) return;
+      if (id && SEEN.has(id)) return null;
       if (id) {
         SEEN.add(id);
-        if (SEEN.size > 5000) { // protecție memorie
+        if (SEEN.size > 5000) {
           let n = 0;
           for (const x of SEEN){ SEEN.delete(x); if(++n>=1000) break; }
         }
-        lastId = Math.max(lastId, id);
-        sessionStorage.setItem('chat:lastId', String(lastId));
+        if (oldestId === null || id < oldestId) oldestId = id;
+        if (id > lastId) {
+          lastId = id;
+          sessionStorage.setItem('chat:lastId', String(lastId));
+        }
       }
       const mine = (m.user_name === meName);
       const row = document.createElement('div');
       row.className = 'w-full flex ' + (mine ? 'justify-end' : 'justify-start');
+      if (id) row.dataset.chatId = String(id);
 
       const badge = m.role === 'ADMIN'
         ? '<span class="badge bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 ml-2">Admin</span>'
@@ -1553,12 +1586,69 @@ if ($name === '') $name = 'Investitor';
           </div>
           <div>${esc(m.body||'')}</div>
         </div>`;
+      return row;
+    }
+
+    function appendMsg(m){
+      const row = buildRow(m);
+      if (!row) return;
       const stick = atBottom();
       feed.appendChild(row);
       if (stick) scrollBottom();
     }
 
-function stopPoll(){
+    function prependBatch(items){
+      if (!items || !items.length) return false;
+      const frag = document.createDocumentFragment();
+      let appended = false;
+      for (const m of items) {
+        const row = buildRow(m);
+        if (!row) continue;
+        frag.appendChild(row);
+        appended = true;
+      }
+      if (!appended) return false;
+      feed.insertBefore(frag, feed.firstChild);
+      return true;
+    }
+
+    async function loadOlder(){
+      if (loadingOlder || olderEnd || !oldestId) return false;
+      loadingOlder = true;
+      feed.setAttribute('aria-busy','true');
+      feed.dataset.loadingOlder = '1';
+      const prevHeight = feed.scrollHeight;
+      const prevTop = feed.scrollTop;
+      let inserted = false;
+      try{
+        const r = await fetch(`/api/chat/fetch.php?before_id=${encodeURIComponent(oldestId)}&limit=${PAGE_LIMIT}`, {credentials:'include'});
+        const j = await r.json();
+        const items = Array.isArray(j.items) ? j.items : [];
+        if (!items.length) {
+          olderEnd = true;
+        } else {
+          inserted = prependBatch(items);
+          if (items.length < PAGE_LIMIT) olderEnd = true;
+          if (inserted) {
+            const diff = feed.scrollHeight - prevHeight;
+            if (diff > 0) feed.scrollTop = diff + prevTop;
+          }
+        }
+      }catch(_){
+        // silent fallback
+      }finally{
+        delete feed.dataset.loadingOlder;
+        feed.removeAttribute('aria-busy');
+        loadingOlder = false;
+      }
+      return inserted;
+    }
+
+    feed.addEventListener('scroll', ()=>{
+      if (feed.scrollTop <= 12) loadOlder();
+    });
+
+    function stopPoll(){
       if (!pollTimer) return;
       clearInterval(pollTimer);
       pollTimer = null;
@@ -1580,9 +1670,11 @@ function stopPoll(){
 
     async function bootstrap(){
       try{
-        const r = await fetch('/api/chat/fetch.php?limit=50', {credentials:'include'});
+        const r = await fetch(`/api/chat/fetch.php?limit=${PAGE_LIMIT}`, {credentials:'include'});
         const j = await r.json();
-        (j.items||[]).forEach(appendMsg);
+        const items = Array.isArray(j.items) ? j.items : [];
+        items.forEach(appendMsg);
+        if (!items.length || items.length < PAGE_LIMIT) olderEnd = true;
         scrollBottom();
         if ('EventSource' in window) {
           openSSE();
@@ -1594,12 +1686,12 @@ function stopPoll(){
       }catch{
         liveB.textContent='offline';
         liveB.className='badge bg-rose-500/15 text-rose-200 border border-rose-400/30';
-         startPoll(true);
+        startPoll(true);
       }
     }
 
     function openSSE(){
-   if (sse) { try{sse.close();}catch{}; sse=null; }
+      if (sse) { try{sse.close();}catch{}; sse=null; }
       const url = `/api/chat/stream.php?last_id=${encodeURIComponent(lastId||0)}`;
       sse = new EventSource(url); // same-origin -> fără withCredentials
 
@@ -1608,40 +1700,248 @@ function stopPoll(){
         liveB.className='badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30';
         stopPoll();
       });
-      
+
       sse.addEventListener('hello', (e)=>{
         try{
           const d = JSON.parse(e.data);
           if (d && d.last_id) {
-            lastId = Math.max(lastId, d.last_id|0);
-            sessionStorage.setItem('chat:lastId', String(lastId));
+            const lid = d.last_id|0;
+            if (lid > lastId) {
+              lastId = lid;
+              sessionStorage.setItem('chat:lastId', String(lastId));
+            }
           }
-        }catch(_){}
+        }catch(_){ }
       });
 
       sse.addEventListener('message', (e)=>{
         try{
           const m = JSON.parse(e.data);
-          appendMsg(m); // <- nu renderMsg
-        }catch(_){}
+          appendMsg(m);
+        }catch(_){ }
       });
-
 
       sse.addEventListener('ping', ()=>{ /* keepalive */ });
 
-   sse.addEventListener('error', ()=>{
+      sse.addEventListener('error', ()=>{
         liveB.textContent='sync';
         liveB.className='badge bg-amber-500/15 text-amber-200 border border-amber-400/30';
-        // NU redeschidem manual; EventSource reconectează singur cu retry:3000
         startPoll(true);
       });
     }
 
-// opțional, dacă tab-ul revine din background și EventSource e CLOSED (2), redeschidem:
-document.addEventListener('visibilitychange', ()=>{
-  if (!document.hidden && sse && sse.readyState === 2) openSSE();
-});
+    document.addEventListener('visibilitychange', ()=>{
+      if (!document.hidden && sse && sse.readyState === 2) openSSE();
+    });
 
+    function clearSearchResults(){
+      if (searchAbort) { searchAbort.abort(); searchAbort = null; }
+      if (searchItems) searchItems.innerHTML = '';
+      if (searchMeta) searchMeta.textContent = '';
+      if (searchResults) searchResults.classList.add('hidden');
+    }
+
+    function setSearchLoading(state){
+      if (!searchForm) return;
+      searchForm.classList.toggle('opacity-60', state);
+      if (searchSubmit) searchSubmit.disabled = state;
+    }
+<<<<<<< ours
+
+    function renderSearch(term, items, hint){
+      if (!searchResults || !searchItems || !searchMeta) return;
+      searchItems.innerHTML = '';
+
+      if (hint === 'too_short') {
+        const row = document.createElement('div');
+        row.className = 'text-slate-500';
+        row.textContent = 'Introdu minim 2 caractere pentru a căuta.';
+        searchItems.appendChild(row);
+      } else if (hint === 'auth') {
+        const row = document.createElement('div');
+        row.className = 'text-slate-500';
+        row.textContent = 'Sesiunea a expirat. Reautentifică-te pentru a căuta în arhivă.';
+        searchItems.appendChild(row);
+      } else if (!items.length) {
+        const row = document.createElement('div');
+        row.className = 'text-slate-500';
+        row.textContent = hint === 'error' ? 'Căutarea nu este disponibilă momentan.' : 'Nicio potrivire găsită.';
+        searchItems.appendChild(row);
+      } else {
+        for (const item of items) {
+          const id = item.id|0;
+          const entry = document.createElement('button');
+          entry.type = 'button';
+          entry.dataset.resultId = String(id);
+          entry.className = 'w-full text-left rounded-xl border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10 transition';
+          entry.innerHTML = `
+            <div class="flex items-center justify-between text-[11px] uppercase tracking-wide text-slate-400">
+              <span><i class="fa-regular fa-user"></i> ${esc(item.user_name||'—')}</span>
+              <span>${NF_DATE.format(new Date((item.ts||0)*1000))}</span>
+            </div>
+            <div class="mt-1 text-slate-200">${esc(item.body||'')}</div>`;
+          entry.addEventListener('click', ()=>{
+            focusMessage(id);
+          });
+          searchItems.appendChild(entry);
+        }
+      }
+
+      searchMeta.textContent = items.length
+        ? `${items.length} rezultate pentru „${term}”`
+        : `Rezultate pentru „${term}”`;
+      searchResults.classList.remove('hidden');
+    }
+
+    searchClose?.addEventListener('click', ()=>{
+      clearSearchResults();
+    });
+
+    searchInput?.addEventListener('input', ()=>{
+      if (!searchInput.value.trim()) clearSearchResults();
+    });
+
+    searchForm?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const term = (searchInput?.value || '').trim();
+      if (term.length < 2) {
+        clearSearchResults();
+        return;
+      }
+      if (searchAbort) { searchAbort.abort(); }
+      const controller = new AbortController();
+      searchAbort = controller;
+      setSearchLoading(true);
+      try{
+        const r = await fetch(`/api/chat/search.php?q=${encodeURIComponent(term)}&limit=20`, {credentials:'include', signal: controller.signal});
+        if (!r.ok) {
+          renderSearch(term, [], r.status === 401 ? 'auth' : 'error');
+          return;
+        }
+        const j = await r.json();
+        renderSearch(term, Array.isArray(j.items) ? j.items : [], j.hint || null);
+      }catch(err){
+        if (err.name !== 'AbortError') {
+          renderSearch(term, [], 'error');
+        }
+      }finally{
+        if (searchAbort === controller) searchAbort = null;
+        setSearchLoading(false);
+      }
+    });
+
+=======
+
+    function renderSearch(term, items, hint){
+      if (!searchResults || !searchItems || !searchMeta) return;
+      searchItems.innerHTML = '';
+
+      if (hint === 'too_short') {
+        const row = document.createElement('div');
+        row.className = 'text-slate-500';
+        row.textContent = 'Introdu minim 2 caractere pentru a căuta.';
+        searchItems.appendChild(row);
+      } else if (hint === 'auth') {
+        const row = document.createElement('div');
+        row.className = 'text-slate-500';
+        row.textContent = 'Sesiunea a expirat. Reautentifică-te pentru a căuta în arhivă.';
+        searchItems.appendChild(row);
+      } else if (!items.length) {
+        const row = document.createElement('div');
+        row.className = 'text-slate-500';
+        row.textContent = hint === 'error' ? 'Căutarea nu este disponibilă momentan.' : 'Nicio potrivire găsită.';
+        searchItems.appendChild(row);
+      } else {
+        for (const item of items) {
+          const id = item.id|0;
+          const entry = document.createElement('button');
+          entry.type = 'button';
+          entry.dataset.resultId = String(id);
+          entry.className = 'w-full text-left rounded-xl border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10 transition';
+          entry.innerHTML = `
+            <div class="flex items-center justify-between text-[11px] uppercase tracking-wide text-slate-400">
+              <span><i class="fa-regular fa-user"></i> ${esc(item.user_name||'—')}</span>
+              <span>${NF_DATE.format(new Date((item.ts||0)*1000))}</span>
+            </div>
+            <div class="mt-1 text-slate-200">${esc(item.body||'')}</div>`;
+          entry.addEventListener('click', ()=>{
+            focusMessage(id);
+          });
+          searchItems.appendChild(entry);
+        }
+      }
+
+      searchMeta.textContent = items.length
+        ? `${items.length} rezultate pentru „${term}”`
+        : `Rezultate pentru „${term}”`;
+      searchResults.classList.remove('hidden');
+    }
+
+    searchClose?.addEventListener('click', ()=>{
+      clearSearchResults();
+    });
+
+    searchInput?.addEventListener('input', ()=>{
+      if (!searchInput.value.trim()) clearSearchResults();
+    });
+
+    searchForm?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const term = (searchInput?.value || '').trim();
+      if (term.length < 2) {
+        clearSearchResults();
+        return;
+      }
+      if (searchAbort) { searchAbort.abort(); }
+      const controller = new AbortController();
+      searchAbort = controller;
+      setSearchLoading(true);
+      try{
+        const r = await fetch(`/api/chat/search.php?q=${encodeURIComponent(term)}&limit=20`, {credentials:'include', signal: controller.signal});
+        if (!r.ok) {
+          renderSearch(term, [], r.status === 401 ? 'auth' : 'error');
+          return;
+        }
+        const j = await r.json();
+        renderSearch(term, Array.isArray(j.items) ? j.items : [], j.hint || null);
+      }catch(err){
+        if (err.name !== 'AbortError') {
+          renderSearch(term, [], 'error');
+        }
+      }finally{
+        if (searchAbort === controller) searchAbort = null;
+        setSearchLoading(false);
+      }
+    });
+
+>>>>>>> theirs
+    async function focusMessage(rawId){
+      const targetId = rawId|0;
+      if (!targetId) return;
+      let attempts = 0;
+      if (!SEEN.has(targetId)) {
+        if (oldestId !== null && targetId < oldestId) {
+          while (!SEEN.has(targetId) && !olderEnd && attempts < 15) {
+            await loadOlder();
+            attempts++;
+          }
+        } else if (targetId > lastId) {
+          await pullLatest();
+        }
+      }
+      const node = feed.querySelector(`[data-chat-id="${targetId}"]`);
+      if (!node) {
+        alert('Mesajul este mai vechi. Continuă să derulezi în sus pentru a încărca mai mult din arhivă.');
+        return;
+      }
+      const top = Math.max(0, node.offsetTop - 12);
+      feed.scrollTo({ top, behavior: 'smooth' });
+      const bubble = node.firstElementChild;
+      if (bubble) {
+        bubble.classList.add('ring-2','ring-cyan-400/70');
+        setTimeout(()=>bubble.classList.remove('ring-2','ring-cyan-400/70'), 2000);
+      }
+    }
 
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
@@ -1661,7 +1961,7 @@ document.addEventListener('visibilitychange', ()=>{
           alert(t);
         } else {
           input.value=''; // mesajul va veni prin SSE
-           if (!sse || sse.readyState !== 1) {
+          if (!sse || sse.readyState !== 1) {
             await pullLatest();
           }
         }
@@ -1682,6 +1982,7 @@ document.addEventListener('visibilitychange', ()=>{
   })();
   </script>
   <!-- /Chat Comunitate -->
+
 
 </body>
 </html>
