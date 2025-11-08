@@ -1,0 +1,8 @@
+RewriteEngine on
+RewriteCond %{REQUEST_URI} ^/api/.*$
+RewriteRule .* - [L]
+
+# Disable all web access - website served from GitHub Pages
+Order deny,allow
+Deny from all
+ErrorDocument 403 /error_403.html

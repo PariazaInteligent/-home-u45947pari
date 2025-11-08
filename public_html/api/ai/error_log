@@ -1,0 +1,1 @@
+[31-Oct-2025 23:25:26 UTC] PHP Deprecated:  curl_json(): Implicitly marking parameter $post as nullable is deprecated, the explicit nullable type must be used instead in /home/u45947pari/public_html/api/ai/gemini_analyze.php on line 19

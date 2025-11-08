@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site în curs de configurare - Pariază Inteligent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out;
+            position: relative;
+            z-index: 10;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .icon-container {
+            margin-bottom: 30px;
+        }
+
+        .icon {
+            font-size: 80px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .status-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 30px 0;
+            font-size: 16px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6);
+            }
+        }
+
+        .loader {
+            margin: 30px auto;
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+
+        .loader-circle {
+            width: 100%;
+            height: 100%;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-text {
+            color: #888;
+            font-size: 14px;
+            margin-top: 30px;
+            line-height: 1.8;
+        }
+
+        .info-text strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .brand {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+            animation: fadeIn 1s ease-out 0.3s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Decorative elements */
+        .deco-line {
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            margin: 20px auto;
+            border-radius: 2px;
+            animation: expandWidth 1s ease-out;
+        }
+
+        @keyframes expandWidth {
+            from {
+                width: 0;
+            }
+            to {
+                width: 80px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 25px;
+            }
+            h1 {
+                font-size: 26px;
+            }
+            .subtitle {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background particles -->
+    <div class="particle" style="width: 80px; height: 80px; left: 10%; animation-delay: 0s;"></div>
+    <div class="particle" style="width: 60px; height: 60px; left: 30%; animation-delay: 2s;"></div>
+    <div class="particle" style="width: 100px; height: 100px; left: 50%; animation-delay: 4s;"></div>
+    <div class="particle" style="width: 70px; height: 70px; left: 70%; animation-delay: 1s;"></div>
+    <div class="particle" style="width: 90px; height: 90px; left: 85%; animation-delay: 3s;"></div>
+
+    <div class="container">
+        <div class="icon-container">
+            <div class="icon">🚀</div>
+        </div>
+
+        <div class="brand">Pariază Inteligent</div>
+        
+        <div class="deco-line"></div>
+
+        <h1>Site-ul este în curs de configurare</h1>
+        
+        <p class="subtitle">
+            Lucrăm intens pentru a vă oferi cea mai bună experiență de pariuri online.
+        </p>
+
+        <div class="status-message">
+            <strong>⚙️ Configurare DNS în progres</strong><br>
+            Sistemul nostru se pregătește pentru lansare
+        </div>
+
+        <div class="loader">
+            <div class="loader-circle"></div>
+        </div>
+
+        <div class="info-text">
+            <strong>Ce se întâmplă?</strong><br>
+            Site-ul nostru este în proces de configurare și propagare DNS. 
+            Acest proces poate dura câteva ore.<br><br>
+            <strong>Reveniți în curând</strong> pentru a experimenta platforma completă 
+            <strong>Pariază Inteligent</strong> - locul unde pariurile devin inteligente!
+        </div>
+    </div>
+
+    <script>
+        // Add dynamic particle animation
+        setInterval(function() {
+            const particles = document.querySelectorAll('.particle');
+            particles.forEach(function(particle) {
+                const randomDelay = Math.random() * 5;
+                particle.style.animationDelay = randomDelay + 's';
+            });
+        }, 15000);
+    </script>
+</body>
+</html>

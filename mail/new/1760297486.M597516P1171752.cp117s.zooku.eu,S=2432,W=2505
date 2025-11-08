@@ -1,0 +1,73 @@
+Return-Path: <>
+Delivered-To: u45947pari@cp117s.zooku.eu
+Received: from cp117s.zooku.eu
+	by cp117s.zooku.eu with LMTP
+	id YMSCHA4C7Ggo4REAwjeoqQ
+	(envelope-from <>)
+	for <u45947pari@cp117s.zooku.eu>; Sun, 12 Oct 2025 22:31:26 +0300
+Return-path: <>
+Envelope-to: u45947pari@cp117s.zooku.eu
+Delivery-date: Sun, 12 Oct 2025 22:31:26 +0300
+Received: from mailnull by cp117s.zooku.eu with local (Exim 4.98.2)
+	id 1v81mw-00000006fYP-16AC
+	for u45947pari@cp117s.zooku.eu;
+	Sun, 12 Oct 2025 22:31:26 +0300
+X-Failed-Recipients: test@test.com
+Auto-Submitted: auto-replied
+From: Mail Delivery System <Mailer-Daemon@cp117s.zooku.eu>
+To: u45947pari@cp117s.zooku.eu
+References: <E1v81ig-00000006ZKX-110x@cp117s.zooku.eu>
+Content-Type: multipart/report; report-type=delivery-status; boundary=1760297486-eximdsn-1874870203
+MIME-Version: 1.0
+Subject: Mail delivery failed: returning message to sender
+Message-Id: <E1v81mw-00000006fYP-16AC@cp117s.zooku.eu>
+Date: Sun, 12 Oct 2025 22:31:26 +0300
+
+--1760297486-eximdsn-1874870203
+Content-type: text/plain; charset=us-ascii
+
+This message was created automatically by mail delivery software.
+
+A message that you sent could not be delivered to one or more of its
+recipients. This is a permanent error. The following address(es) failed:
+
+  test@test.com
+    host test.com [3.18.255.247]
+    retry timeout exceeded
+
+--1760297486-eximdsn-1874870203
+Content-type: message/delivery-status
+
+Reporting-MTA: dns; cp117s.zooku.eu
+
+Action: failed
+Final-Recipient: rfc822;test@test.com
+Status: 5.0.0
+Remote-MTA: dns; test.com
+
+--1760297486-eximdsn-1874870203
+Content-type: message/rfc822
+
+Return-path: <u45947pari@cp117s.zooku.eu>
+Received: from u45947pari by cp117s.zooku.eu with local (Exim 4.98.2)
+	(envelope-from <u45947pari@cp117s.zooku.eu>)
+	id 1v81ig-00000006ZKX-110x
+	for test@test.com;
+	Sun, 12 Oct 2025 22:27:02 +0300
+To: test@test.com
+Subject: Confirmă adresa de email — Pariază Inteligent
+X-PHP-Script: pariazainteligent.ro/api/register.php for 109.52.51.216
+ X-PHP-Originating-Script: 1312:register.php
+Content-Type: text/plain; charset=UTF-8
+Message-Id: <E1v81ig-00000006ZKX-110x@cp117s.zooku.eu>
+From: u45947pari@cp117s.zooku.eu
+Date: Sun, 12 Oct 2025 22:27:02 +0300
+
+Salut,
+
+Finalizează înregistrarea confirmând emailul:
+https://pariazainteligent.ro/verify.php?t=a18e19e746c5f93c9d8d89cd836188894f4818d6a64de4aa1a5f78b411540d7f
+
+Linkul expiră în 24 de ore.
+
+--1760297486-eximdsn-1874870203--

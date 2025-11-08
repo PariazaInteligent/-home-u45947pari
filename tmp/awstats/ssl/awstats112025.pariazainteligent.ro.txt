@@ -1,0 +1,380 @@
+AWSTATS DATA FILE 8.0 (build 20240604)
+# If you remove this file, all statistics for date 202511 will be lost/reset.
+# Last config file used to build this data file was /home/u45947pari/tmp/awstats/ssl/awstats.pariazainteligent.ro.conf.
+
+# Position (offset in bytes) in this file for beginning of each section for
+# direct I/O access. If you made changes somewhere in this file, you should
+# also remove completely the MAP section (AWStats will rewrite it at next
+# update).
+BEGIN_MAP 28
+POS_GENERAL 2094                
+POS_TIME 2776                
+POS_VISITOR 7606                
+POS_DAY 9403                
+POS_DOMAIN 3445                
+POS_LOGIN 3821                
+POS_ROBOT 3976                
+POS_WORMS 4212                
+POS_EMAILSENDER 4343                
+POS_EMAILRECEIVER 4486                
+POS_SESSION 9658                
+POS_FILESIZE 10552               
+POS_REQUESTTIME 10695               
+POS_SIDER 9821                
+POS_FILETYPES 4621                
+POS_DOWNLOADS 4768                
+POS_OS 4816                
+POS_BROWSER 5022                
+POS_SCREENSIZE 5449                
+POS_UNKNOWNREFERER 5523                
+POS_UNKNOWNREFERERBROWSER 5922                
+POS_ORIGIN 6230                
+POS_SEREFERRALS 6368                
+POS_PAGEREFS 6512                
+POS_SEARCHWORDS 6660                
+POS_KEYWORDS 6812                
+POS_MISC 2440                
+POS_ERRORS 6871                
+POS_CLUSTER 3677                
+POS_SIDER_404 7024                
+END_MAP
+
+# LastLine    = Date of last record processed - Last record line number in last log - Last record offset in last log - Last record signature value
+# FirstTime   = Date of first visit for history file
+# LastTime    = Date of last visit for history file
+# LastUpdate  = Date of last update - Nb of parsed records - Nb of parsed old records - Nb of parsed new records - Nb of parsed corrupted - Nb of parsed dropped
+# TotalVisits = Number of visits
+# TotalUnique = Number of unique visitors
+# MonthHostsKnown   = Number of hosts known
+# MonthHostsUnKnown = Number of hosts unknown
+BEGIN_GENERAL 8
+LastLine 20251108140824 373 89910 16655977787565
+FirstTime 20251101001742
+LastTime 20251108140824
+LastUpdate 20251108145757 373 0 373 0 0
+TotalVisits 52                  
+TotalUnique 43                  
+MonthHostsKnown 0                   
+MonthHostsUnknown 43                  
+END_GENERAL
+
+# Misc ID - Pages - Hits - Bandwidth
+BEGIN_MISC 10
+FlashSupport 0 0 0
+DirectorSupport 0 0 0
+TotalMisc 0 0 0
+QuickTimeSupport 0 0 0
+RealPlayerSupport 0 0 0
+JavascriptDisabled 0 0 0
+JavaEnabled 0 0 0
+PDFSupport 0 0 0
+WindowsMediaPlayerSupport 0 0 0
+AddToFavourites 0 2 0
+END_MISC
+
+# Hour - Pages - Hits - Bandwidth - Not viewed Pages - Not viewed Hits - Not viewed Bandwidth
+BEGIN_TIME 24
+0 49 49 114445 6 8 3406
+1 50 50 133676 21 22 4583
+2 25 25 67829 2 2 1592
+3 17 17 47124 0 1 796
+4 17 17 47124 0 0 0
+5 18 18 49896 0 0 0
+6 18 18 49648 0 0 0
+7 18 18 49896 0 1 0
+8 19 19 52668 0 3 796
+9 18 18 49896 0 2 0
+10 18 18 49896 1 4 796
+11 18 18 59548 0 1 0
+12 18 18 44446 0 3 796
+13 147 147 246599 3 7 831
+14 40 40 55439 1 2 104
+15 16 16 43856 1 4 3320
+16 15 15 41580 1 3 902
+17 14 14 38808 0 0 0
+18 16 16 38902 0 2 0
+19 14 14 38808 2 4 5844
+20 47 52 107113 2 4 1592
+21 124 124 208276 10 13 3311
+22 17 17 46892 0 1 0
+23 15 15 41580 0 0 0
+END_TIME
+
+# Domain - Pages - Hits - Bandwidth
+# The 25 first Pages must be first (order not required for others)
+BEGIN_DOMAIN 12
+ro 371 371 1018150
+it 349 354 549906
+us 30 30 90613
+in 5 5 13130
+cn 4 4 10344
+se 3 3 7820
+ca 1 1 11447
+eu 1 1 2772
+jp 1 1 2772
+be 1 1 2772
+gb 1 1 2772
+rs 1 1 11447
+END_DOMAIN
+
+# Cluster ID - Pages - Hits - Bandwidth
+BEGIN_CLUSTER 0
+END_CLUSTER
+
+# Login - Pages - Hits - Bandwidth - Last visit
+# The 10 first Pages must be first (order not required for others)
+BEGIN_LOGIN 0
+END_LOGIN
+
+# Robot ID - Hits - Bandwidth - Last visit - Hits on robots.txt
+# The 25 first Hits must be first (order not required for others)
+BEGIN_ROBOT 3
+no_user_agent 9 2970 20251101014125 0
+Googlebot/ 4 10096 20251106211727 0
+bingbot/ 1 0 20251108105630 0
+END_ROBOT
+
+# Worm ID - Hits - Bandwidth - Last visit
+# The 5 first Hits must be first (order not required for others)
+BEGIN_WORMS 0
+END_WORMS
+
+# EMail - Hits - Bandwidth - Last visit
+# The 20 first Hits must be first (order not required for others)
+BEGIN_EMAILSENDER 0
+END_EMAILSENDER
+
+# EMail - Hits - Bandwidth - Last visit
+# The 20 first hits must be first (order not required for others)
+BEGIN_EMAILRECEIVER 0
+END_EMAILRECEIVER
+
+# Files type - Hits - Bandwidth - Bandwidth without compression - Bandwidth after compression
+BEGIN_FILETYPES 5
+svg 2 722 0 0
+php 350 537332 0 0
+js 2 2459 0 0
+css 1 1170 0 0
+html 418 1182262 0 0
+END_FILETYPES
+
+# Downloads - Hits - Bandwidth
+BEGIN_DOWNLOADS 0
+END_DOWNLOADS
+
+# OS ID - Hits
+BEGIN_OS ID - Hits - Pages 10
+linuxubuntu 1 1
+ios_iphone 1 1
+win10 372 367
+android 1 1
+Unknown 371 371
+android10 3 3
+macosx15 6 6
+linux 16 16
+macosx6 1 1
+androidoreo 1 1
+END_OS
+
+# Browser ID - Hits - Pages
+BEGIN_BROWSER 20
+chrome116.0.0.0 15 15
+chrome105.0.0.0 1 1
+edge126 1 1
+firefox134.0 1 1
+chrome139.0.0.0 4 4
+Unknown 369 369
+itunes 1 1
+firefox120.0 3 3
+safari 1 1
+chrome117.0.0.0 4 4
+chrome126.0.6264.129 2 2
+mozilla 2 2
+chrome58.0.3029.110 2 2
+chrome131.0.0.0 3 3
+opera120.0.0.0 6 6
+firefox139.0 4 4
+chrome137.0.0.0 3 3
+chrome141.0.0.0 348 343
+chrome126.0.6478.107 1 1
+chrome92.0.4515.107 2 2
+END_BROWSER
+
+# Screen size - Hits
+BEGIN_SCREENSIZE 0
+END_SCREENSIZE
+
+# Unknown referer OS - Last visit date
+BEGIN_UNKNOWNREFERER 4
+PI-Gemini/1.0 20251101004645
+Python/3.11_aiohttp/3.9.2 20251108134542
+Hello_from_Palo_Alto_Networks,_find_out_more_about_our_scans_in_https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity 20251105132042
+Mozilla/5.0_(compatible;_CensysInspect/1.1;__https://about.censys.io/) 20251102231033
+END_UNKNOWNREFERER
+
+# Unknown referer Browser - Last visit date
+BEGIN_UNKNOWNREFERERBROWSER 3
+PI-Gemini/1.0 20251101004645
+Python/3.11_aiohttp/3.9.2 20251108134542
+Hello_from_Palo_Alto_Networks,_find_out_more_about_our_scans_in_https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity 20251105132042
+END_UNKNOWNREFERERBROWSER
+
+# Origin - Pages - Hits 
+BEGIN_ORIGIN 6
+From0 424 424
+From1 0 0
+From2 0 0
+From3 0 0
+From4 344 349
+From5 0 0
+END_ORIGIN
+
+# Search engine referers ID - Pages - Hits
+BEGIN_SEREFERRALS 0
+END_SEREFERRALS
+
+# External page referers - Pages - Hits
+# The 25 first Pages must be first (order not required for others)
+BEGIN_PAGEREFS 0
+END_PAGEREFS
+
+# Search keyphrases - Number of search
+# The 10 first number of search must be first (order not required for others)
+BEGIN_SEARCHWORDS 0
+END_SEARCHWORDS
+
+# Search keywords - Number of search
+# The 25 first number of search must be first (order not required for others)
+BEGIN_KEYWORDS 0
+END_KEYWORDS
+
+# Errors - Hits - Bandwidth
+BEGIN_ERRORS 8
+302 4 0
+401 5 193
+500 6 0
+404 20 13392
+405 2 88
+400 1 52
+403 1 787
+502 5 986
+END_ERRORS
+
+# URL with 404 errors - Hits - Last URL referrer
+BEGIN_SIDER_404 6
+/https%3A/t.me/pariazainteligent 3 -
+/robots.txt 8 -
+/api/ai/gemini_analyze.php 4 https://pariazainteligent.ro/v1/dashboard-investitor.php
+/https%3A/t.me/Pariaza_Inteligent%3Ftext%3DSalut%21%20Am%20nevoie%20de%20asisten%C8%9B%C4%83 3 -
+/v2/index.php 1 -
+/v2/index.html 1 -
+END_SIDER_404
+
+# Host - Pages - Hits - Bandwidth - Last visit date - [Start date of last visit] - [Last page of last visit]
+# [Start date of last visit] and [Last page of last visit] are saved only if session is not finished
+# The 25 first Hits must be first (order not required for others)
+BEGIN_VISITOR 43
+85.9.45.213 368 368 1010066 20251108134542 20251108002415 /
+2.195.128.26 156 156 207478 20251108140824 20251108120549 /api/wallet/summary.php
+109.52.72.50 140 145 229953 20251107213552
+109.55.228.115 49 49 112334 20251101014108
+103.4.251.192 4 4 10606 20251102002738
+104.164.126.190 4 4 10609 20251102021115
+104.164.126.84 4 4 10608 20251106002746
+77.36.125.103 3 3 8084 20251104221654
+154.28.229.42 2 2 5048 20251102020533
+109.55.250.158 2 2 47 20251101131556
+34.238.126.90 2 2 5544 20251102165934
+47.115.90.194 2 2 5048 20251104210843
+185.65.134.195 2 2 5048 20251102152339
+149.57.180.191 1 1 2772 20251104055441
+147.182.196.149 1 1 2772 20251102094424
+157.245.15.120 1 1 2772 20251104102844
+159.203.105.46 1 1 2772 20251108094407
+167.94.138.191 1 1 2772 20251102231033
+104.252.191.159 1 1 2524 20251102002730
+154.28.229.115 1 1 2524 20251102021049
+205.210.31.33 1 1 11447 20251105132042
+47.100.198.18 1 1 2524 20251107063206
+68.183.144.87 1 1 2772 20251103084953
+93.158.91.24 1 1 2772 20251104111756
+149.57.180.184 1 1 2772 20251101045244
+217.201.4.59 1 1 47 20251104180734
+31.97.153.61 1 1 2772 20251102003027
+172.233.62.72 1 1 2772 20251102002731
+47.100.37.34 1 1 2772 20251107063204
+103.196.9.240 1 1 2524 20251102020525
+52.90.221.11 1 1 2772 20251102002732
+109.52.49.105 1 1 47 20251106185323
+68.183.94.77 1 1 2772 20251101102851
+147.93.155.10 1 1 2772 20251102021054
+167.94.146.61 1 1 2772 20251101212110
+209.38.156.175 1 1 12424 20251102114309
+133.242.174.119 1 1 2772 20251102032722
+178.62.229.181 1 1 2772 20251105075049
+91.231.89.17 1 1 11447 20251102004257
+34.228.26.189 1 1 2772 20251107055611
+45.55.33.170 1 1 2772 20251105083038
+104.252.191.137 1 1 2524 20251106002740
+149.57.180.131 1 1 2772 20251101083123
+END_VISITOR
+
+# Date - Pages - Hits - Bandwidth - Visits
+BEGIN_DAY 8
+20251101 107 107 257583 7
+20251102 74 74 220758 19
+20251103 49 49 135828 3
+20251104 57 57 154551 7
+20251105 51 51 150047 4
+20251106 54 54 146235 4
+20251107 191 196 371077 5
+20251108 185 185 287866 3
+END_DAY
+
+# Session range - Number of visits
+BEGIN_SESSION 3
+30mn-1h 1
+1h+ 9
+0s-30s 40
+END_SESSION
+
+# URL - Pages - Bandwidth - Entry - Exit
+# The 25 first Pages must be first (order not required for others)
+BEGIN_SIDER 21
+/ 412 1163362 46 45
+/api/user/summary.php 79 20316 0 1
+/api/user/goals_get.php 61 5368 0 1
+/api/user/withdrawals/processing_stats.php 54 2765 0 0
+/api/wallet/summary.php 47 5912 0 0
+/v1/dashboard-investitor.php 36 406623 0 0
+/api/platform/metrics.php 18 1122 0 0
+/api/session.php 15 705 5 3
+/api/user/payout_profile.php 9 621 0 0
+/api/user/transactions.php 9 2161 0 0
+/v1/retrageri.php 7 73815 0 0
+/api/login.php 5 301 0 0
+/contact.php 4 12143 0 0
+/admin/ 3 18271 0 0
+/api/withdrawals/create.php 2 281 0 0
+/api/ai/gemini_analyze.php 2 96 1 0
+/v2/ 1 629 0 0
+/v1/acasa.html 1 0 0 0
+/v1/login.html 1 0 0 0
+/api/ai/ping.php 1 68 0 0
+/v2/welcome-banca-comuna.php 1 5035 0 0
+END_SIDER
+
+# Payload Range - Payload Frequency
+BEGIN_FILESIZE 7
+44-100 143
+2K-5K 419
+500-1K 45
+1K-2K 1
+0-44 49
+100-500 154
+5K+ 49
+END_FILESIZE
+
+# Request Time Range - Request Time Frequency
+BEGIN_REQUESTTIME 0
+END_REQUESTTIME

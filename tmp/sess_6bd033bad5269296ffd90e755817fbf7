@@ -1,0 +1,174 @@
+ PMA_token |s:32:"64764333554a33507c5a2f4161343f75"; HMAC_secret |s:16:"'68:Hv}@|fPQN?($";auth_type|s:3:"env";browser_access_time|a:1:{s:7:"default";i:1761515156;}encryption_key|s:32:"�$ ��
+�q����M>4(�ۺG���c^";relation|a:1:{i:1;a:41:{s:7:"version";s:5:"5.2.2";s:4:"user";N;s:2:"db";N;s:8:"bookmark";N;s:15:"central_columns";N;s:11:"column_info";N;s:17:"designer_settings";N;s:16:"export_templates";N;s:8:"favorite";N;s:7:"history";N;s:16:"navigationhiding";N;s:9:"pdf_pages";N;s:6:"recent";N;s:8:"relation";N;s:13:"savedsearches";N;s:12:"table_coords";N;s:10:"table_info";N;s:13:"table_uiprefs";N;s:8:"tracking";N;s:10:"userconfig";N;s:10:"usergroups";N;s:5:"users";N;s:12:"bookmarkwork";b:0;s:8:"mimework";b:0;s:18:"centralcolumnswork";b:0;s:8:"commwork";b:0;s:9:"menuswork";b:0;s:20:"designersettingswork";b:0;s:11:"displaywork";b:0;s:19:"exporttemplateswork";b:0;s:12:"favoritework";b:0;s:7:"navwork";b:0;s:7:"pdfwork";b:0;s:10:"recentwork";b:0;s:7:"relwork";b:0;s:17:"savedsearcheswork";b:0;s:11:"historywork";b:0;s:12:"trackingwork";b:0;s:11:"uiprefswork";b:0;s:14:"userconfigwork";b:0;s:8:"allworks";b:0;}}userconfig|a:2:{s:2:"db";a:2:{s:4:"lang";s:2:"ro";s:12:"Console/Mode";s:8:"collapse";}s:2:"ts";i:1761515150;}two_factor_check|b:1;cache|a:2:{s:8:"server_1";a:4:{s:15:"userprefs_mtime";i:1761515150;s:14:"userprefs_type";s:7:"session";s:12:"config_mtime";i:1754361662;s:9:"userprefs";a:2:{s:4:"lang";s:2:"ro";s:7:"Console";a:1:{s:4:"Mode";s:8:"collapse";}}}s:19:"server_1_u45947pari";a:18:{s:17:"is_create_db_priv";b:0;s:14:"is_reload_priv";b:0;s:12:"db_to_create";s:0:"";s:30:"dbs_where_create_table_allowed";a:1:{i:0;s:31:"u45947pari\_pariaza\_inteligent";}s:11:"dbs_to_test";b:0;s:9:"proc_priv";b:0;s:10:"table_priv";b:0;s:8:"col_priv";b:0;s:7:"db_priv";b:0;s:11:"binary_logs";a:0:{}s:18:"menu-levels-server";a:13:{s:9:"databases";s:12:"Baze de date";s:3:"sql";s:3:"SQL";s:6:"status";s:5:"Stare";s:6:"rights";s:11:"Utilizatori";s:6:"export";s:8:"Exportă";s:6:"import";s:8:"Importă";s:8:"settings";s:7:"Setări";s:6:"binlog";s:12:"Jurnal binar";s:11:"replication";s:11:"Replication";s:4:"vars";s:9:"Variabile";s:7:"charset";s:19:"Seturi de caractere";s:7:"plugins";s:6:"Module";s:6:"engine";s:7:"Motoare";}s:14:"menu-levels-db";a:14:{s:9:"structure";s:10:"Structură";s:3:"sql";s:3:"SQL";s:6:"search";s:6:"Caută";s:5:"query";s:10:"Interogare";s:6:"export";s:8:"Exportă";s:6:"import";s:8:"Importă";s:9:"operation";s:9:"Operații";s:10:"privileges";s:10:"Privilegii";s:8:"routines";s:6:"Rutine";s:6:"events";s:10:"Evenimente";s:8:"triggers";s:13:"Declanșatori";s:8:"tracking";s:9:"Urmărire";s:8:"designer";s:8:"Designer";s:15:"central_columns";s:16:"Coloane centrale";}s:19:"profiling_supported";b:1;s:17:"menu-levels-table";a:11:{s:6:"browse";s:12:"Răsfoiește";s:9:"structure";s:10:"Structură";s:3:"sql";s:3:"SQL";s:6:"search";s:6:"Caută";s:6:"insert";s:10:"Inserează";s:6:"export";s:8:"Exportă";s:6:"import";s:8:"Importă";s:10:"privileges";s:10:"Privilegii";s:9:"operation";s:9:"Operații";s:8:"tracking";s:9:"Urmărire";s:8:"triggers";s:13:"Declanșatori";}s:12:"is_superuser";b:0;s:14:"mysql_cur_user";s:20:"u45947pari@localhost";s:12:"is_grantuser";b:0;s:13:"is_createuser";b:0;}}tmpval|a:16:{s:14:"favoriteTables";a:1:{i:1;a:0:{}}s:12:"recentTables";a:1:{i:1;a:3:{i:0;a:2:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:19:"withdrawal_requests";}i:1;a:2:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:11:"withdrawals";}i:2;a:2:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:10:"user_goals";}}}s:18:"table_limit_offset";i:0;s:21:"table_limit_offset_db";s:29:"u45947pari_pariaza_inteligent";s:5:"query";a:9:{s:32:"91f025356b529066c227a5f5fda72730";a:8:{s:3:"sql";s:767:"CREATE TABLE IF NOT EXISTS withdrawals (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id         BIGINT UNSIGNED NOT NULL,
+    amount_cents    INT NOT NULL,       -- suma pe care utilizatorul o cere efectiv să o primească
+    fee_cents       INT NOT NULL,       -- taxa pe care platforma o reține separat
+    status          ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    processed_at    TIMESTAMP NULL DEFAULT NULL,
+    INDEX (user_id),
+    CONSTRAINT fk_withdraw_user
+      FOREIGN KEY (user_id) REFERENCES users(id)
+      ON DELETE CASCADE
+      ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";s:12:"repeat_cells";i:100;s:8:"max_rows";i:25;s:3:"pos";i:0;s:6:"pftext";s:1:"P";s:18:"relational_display";s:1:"K";s:9:"geoOption";s:4:"GEOM";s:14:"display_binary";b:1;}s:32:"bf04b23956b338963f1a3aacdb8c895a";a:8:{s:3:"sql";s:938:"CREATE TABLE withdrawal_requests (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  amount_cents INT NOT NULL,           -- cât cere userul efectiv (suma care îi intră lui)
+  fee_cents INT NOT NULL DEFAULT 0,    -- taxa platformei aferentă cererii
+  fee_rate DECIMAL(6,4) DEFAULT NULL,  -- rata taxei estimată în momentul cererii (ex: 0.0123)
+  fee_mode ENUM('on_top','from_amount') DEFAULT 'on_top',
+  status ENUM('PENDING','APPROVED','REJECTED','CANCELLED') DEFAULT 'PENDING',
+  method VARCHAR(64) DEFAULT 'manual', -- wire / revolut / etc în viitor
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+              ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_wr_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_general_ci;";s:12:"repeat_cells";i:100;s:8:"max_rows";i:25;s:3:"pos";i:0;s:6:"pftext";s:1:"P";s:18:"relational_display";s:1:"K";s:9:"geoOption";s:4:"GEOM";s:14:"display_binary";b:1;}s:32:"b3a2be28dc5464b5844b87e7b2c74052";a:8:{s:3:"sql";s:713:"CREATE TABLE withdrawal_requests (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  amount_cents INT UNSIGNED NOT NULL,
+  fee_cents INT UNSIGNED NOT NULL DEFAULT 0,
+  status ENUM('pending','approved','rejected','canceled') NOT NULL DEFAULT 'pending',
+  method VARCHAR(64) DEFAULT 'bank-transfer',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX (user_id),
+  INDEX (status),
+  CONSTRAINT fk_wr_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_general_ci;";s:12:"repeat_cells";i:100;s:8:"max_rows";i:25;s:3:"pos";i:0;s:6:"pftext";s:1:"P";s:18:"relational_display";s:1:"K";s:9:"geoOption";s:4:"GEOM";s:14:"display_binary";b:1;}s:32:"b384d376cf6bff52e2c44379fb3eaaa6";a:8:{s:3:"sql";s:26:"SELECT * FROM `user_goals`";s:12:"repeat_cells";i:100;s:8:"max_rows";i:25;s:3:"pos";i:0;s:6:"pftext";s:1:"P";s:18:"relational_display";s:1:"K";s:9:"geoOption";s:4:"GEOM";s:14:"display_binary";b:1;}s:32:"bbab3c731b0579813a379f126855803f";a:8:{s:3:"sql";s:876:"-- creează tabelul dacă nu există
+CREATE TABLE IF NOT EXISTS withdrawal_requests (
+  id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id      BIGINT UNSIGNED NOT NULL,
+  amount_cents INT UNSIGNED NOT NULL,
+  fee_cents    INT UNSIGNED NOT NULL DEFAULT 0,
+  fee_rate     DECIMAL(6,4) NOT NULL DEFAULT 0.0000,  -- ex: 0.0125
+  fee_mode     ENUM('on_top','from_amount') NOT NULL DEFAULT 'on_top',
+  method       VARCHAR(32) NOT NULL DEFAULT 'bank-transfer',
+  status       ENUM('pending','approved','rejected','canceled') NOT NULL DEFAULT 'pending',
+  note         VARCHAR(255) DEFAULT NULL,
+  created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP NULL DEFAULT NULL,
+  KEY ix_user (user_id),
+  CONSTRAINT fk_wr_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";s:12:"repeat_cells";i:100;s:8:"max_rows";i:25;s:3:"pos";i:0;s:6:"pftext";s:1:"P";s:18:"relational_display";s:1:"K";s:9:"geoOption";s:4:"GEOM";s:14:"display_binary";b:1;}s:32:"64b49085aaec36952402ee00f2973509";a:8:{s:3:"sql";s:27:"SELECT * FROM `withdrawals`";s:12:"repeat_cells";i:100;s:8:"max_rows";i:25;s:3:"pos";i:0;s:6:"pftext";s:1:"P";s:18:"relational_display";s:1:"K";s:9:"geoOption";s:4:"GEOM";s:14:"display_binary";b:1;}s:32:"a039dcc46c8316df8ba8c97fc48d7f6c";a:8:{s:3:"sql";s:32:"DROP TABLE `withdrawal_requests`";s:12:"repeat_cells";i:100;s:8:"max_rows";i:25;s:3:"pos";i:0;s:6:"pftext";s:1:"P";s:18:"relational_display";s:1:"K";s:9:"geoOption";s:4:"GEOM";s:14:"display_binary";b:1;}s:32:"df05338a2bcb4705d358a7e421767e21";a:8:{s:3:"sql";s:833:"CREATE TABLE IF NOT EXISTS withdrawal_requests (
+  id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id      BIGINT UNSIGNED NOT NULL,
+  amount_cents INT UNSIGNED NOT NULL,
+  fee_cents    INT UNSIGNED NOT NULL DEFAULT 0,
+  fee_rate     DECIMAL(6,4) NOT NULL DEFAULT 0.0000,
+  fee_mode     ENUM('on_top','from_amount') NOT NULL DEFAULT 'on_top',
+  method       VARCHAR(32) NOT NULL DEFAULT 'bank-transfer',
+  status       ENUM('pending','approved','rejected','canceled') NOT NULL DEFAULT 'pending',
+  note         VARCHAR(255) DEFAULT NULL,
+  created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP NULL DEFAULT NULL,
+  KEY ix_user (user_id),
+  CONSTRAINT fk_wr_user FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";s:12:"repeat_cells";i:100;s:8:"max_rows";i:25;s:3:"pos";i:0;s:6:"pftext";s:1:"P";s:18:"relational_display";s:1:"K";s:9:"geoOption";s:4:"GEOM";s:14:"display_binary";b:1;}s:32:"bcf67a8b5044bc19d60f8ffcd6f95de7";a:8:{s:3:"sql";s:35:"SELECT * FROM `withdrawal_requests`";s:12:"repeat_cells";i:100;s:8:"max_rows";i:25;s:3:"pos";i:0;s:6:"pftext";s:1:"P";s:18:"relational_display";s:1:"K";s:9:"geoOption";s:4:"GEOM";s:14:"display_binary";b:1;}}s:6:"pftext";s:1:"P";s:18:"relational_display";s:1:"K";s:9:"geoOption";s:4:"GEOM";s:14:"display_binary";b:1;s:12:"display_blob";b:0;s:19:"hide_transformation";b:0;s:3:"pos";i:0;s:8:"max_rows";i:25;s:12:"repeat_cells";i:100;s:13:"table_uiprefs";a:1:{i:1;a:1:{s:29:"u45947pari_pariaza_inteligent";a:3:{s:11:"withdrawals";a:0:{}s:19:"withdrawal_requests";a:0:{}s:10:"user_goals";a:0:{}}}}s:20:"possible_as_geometry";b:1;}git_location|N;is_git_revision|b:0;ConfigFile1|a:4:{s:28:"PmaNoRelation_DisableWarning";b:1;s:12:"ShowCreateDb";b:0;s:7:"Console";a:1:{s:4:"Mode";s:8:"collapse";}s:7:"Servers";a:1:{i:1;a:2:{s:7:"only_db";s:0:"";s:7:"hide_db";s:0:"";}}}debug|a:0:{}flashMessages|a:0:{}Import_message|a:2:{s:7:"message";N;s:11:"go_back_url";s:68:"index.php?route=/database/structure&db=u45947pari_pariaza_inteligent";}is_multi_query|b:0;sql_history|a:17:{i:0;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:0:"";s:8:"sqlquery";s:767:"CREATE TABLE IF NOT EXISTS withdrawals (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id         BIGINT UNSIGNED NOT NULL,
+    amount_cents    INT NOT NULL,       -- suma pe care utilizatorul o cere efectiv să o primească
+    fee_cents       INT NOT NULL,       -- taxa pe care platforma o reține separat
+    status          ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    processed_at    TIMESTAMP NULL DEFAULT NULL,
+    INDEX (user_id),
+    CONSTRAINT fk_withdraw_user
+      FOREIGN KEY (user_id) REFERENCES users(id)
+      ON DELETE CASCADE
+      ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";}i:1;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:11:"withdrawals";s:8:"sqlquery";s:27:"SELECT * FROM `withdrawals`";}i:2;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:11:"withdrawals";s:8:"sqlquery";s:27:"SELECT * FROM `withdrawals`";}i:3;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:11:"withdrawals";s:8:"sqlquery";s:938:"CREATE TABLE withdrawal_requests (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  amount_cents INT NOT NULL,           -- cât cere userul efectiv (suma care îi intră lui)
+  fee_cents INT NOT NULL DEFAULT 0,    -- taxa platformei aferentă cererii
+  fee_rate DECIMAL(6,4) DEFAULT NULL,  -- rata taxei estimată în momentul cererii (ex: 0.0123)
+  fee_mode ENUM('on_top','from_amount') DEFAULT 'on_top',
+  status ENUM('PENDING','APPROVED','REJECTED','CANCELLED') DEFAULT 'PENDING',
+  method VARCHAR(64) DEFAULT 'manual', -- wire / revolut / etc în viitor
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+              ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_wr_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_general_ci;";}i:4;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:19:"withdrawal_requests";s:8:"sqlquery";s:35:"SELECT * FROM `withdrawal_requests`";}i:5;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:0:"";s:8:"sqlquery";s:713:"CREATE TABLE withdrawal_requests (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT UNSIGNED NOT NULL,
+  amount_cents INT UNSIGNED NOT NULL,
+  fee_cents INT UNSIGNED NOT NULL DEFAULT 0,
+  status ENUM('pending','approved','rejected','canceled') NOT NULL DEFAULT 'pending',
+  method VARCHAR(64) DEFAULT 'bank-transfer',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX (user_id),
+  INDEX (status),
+  CONSTRAINT fk_wr_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_general_ci;";}i:6;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:19:"withdrawal_requests";s:8:"sqlquery";s:35:"SELECT * FROM `withdrawal_requests`";}i:7;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:19:"withdrawal_requests";s:8:"sqlquery";s:35:"SELECT * FROM `withdrawal_requests`";}i:8;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:11:"withdrawals";s:8:"sqlquery";s:27:"SELECT * FROM `withdrawals`";}i:9;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:10:"user_goals";s:8:"sqlquery";s:26:"SELECT * FROM `user_goals`";}i:10;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:0:"";s:8:"sqlquery";s:876:"-- creează tabelul dacă nu există
+CREATE TABLE IF NOT EXISTS withdrawal_requests (
+  id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id      BIGINT UNSIGNED NOT NULL,
+  amount_cents INT UNSIGNED NOT NULL,
+  fee_cents    INT UNSIGNED NOT NULL DEFAULT 0,
+  fee_rate     DECIMAL(6,4) NOT NULL DEFAULT 0.0000,  -- ex: 0.0125
+  fee_mode     ENUM('on_top','from_amount') NOT NULL DEFAULT 'on_top',
+  method       VARCHAR(32) NOT NULL DEFAULT 'bank-transfer',
+  status       ENUM('pending','approved','rejected','canceled') NOT NULL DEFAULT 'pending',
+  note         VARCHAR(255) DEFAULT NULL,
+  created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP NULL DEFAULT NULL,
+  KEY ix_user (user_id),
+  CONSTRAINT fk_wr_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";}i:11;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:11:"withdrawals";s:8:"sqlquery";s:27:"SELECT * FROM `withdrawals`";}i:12;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:19:"withdrawal_requests";s:8:"sqlquery";s:35:"SELECT * FROM `withdrawal_requests`";}i:13;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:19:"withdrawal_requests";s:8:"sqlquery";s:833:"CREATE TABLE IF NOT EXISTS withdrawal_requests (
+  id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id      BIGINT UNSIGNED NOT NULL,
+  amount_cents INT UNSIGNED NOT NULL,
+  fee_cents    INT UNSIGNED NOT NULL DEFAULT 0,
+  fee_rate     DECIMAL(6,4) NOT NULL DEFAULT 0.0000,
+  fee_mode     ENUM('on_top','from_amount') NOT NULL DEFAULT 'on_top',
+  method       VARCHAR(32) NOT NULL DEFAULT 'bank-transfer',
+  status       ENUM('pending','approved','rejected','canceled') NOT NULL DEFAULT 'pending',
+  note         VARCHAR(255) DEFAULT NULL,
+  created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP NULL DEFAULT NULL,
+  KEY ix_user (user_id),
+  CONSTRAINT fk_wr_user FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";}i:14;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:0:"";s:8:"sqlquery";s:833:"CREATE TABLE IF NOT EXISTS withdrawal_requests (
+  id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id      BIGINT UNSIGNED NOT NULL,
+  amount_cents INT UNSIGNED NOT NULL,
+  fee_cents    INT UNSIGNED NOT NULL DEFAULT 0,
+  fee_rate     DECIMAL(6,4) NOT NULL DEFAULT 0.0000,
+  fee_mode     ENUM('on_top','from_amount') NOT NULL DEFAULT 'on_top',
+  method       VARCHAR(32) NOT NULL DEFAULT 'bank-transfer',
+  status       ENUM('pending','approved','rejected','canceled') NOT NULL DEFAULT 'pending',
+  note         VARCHAR(255) DEFAULT NULL,
+  created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at   TIMESTAMP NULL DEFAULT NULL,
+  KEY ix_user (user_id),
+  CONSTRAINT fk_wr_user FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";}i:15;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:19:"withdrawal_requests";s:8:"sqlquery";s:35:"SELECT * FROM `withdrawal_requests`";}i:16;a:3:{s:2:"db";s:29:"u45947pari_pariaza_inteligent";s:5:"table";s:19:"withdrawal_requests";s:8:"sqlquery";s:35:"SELECT * FROM `withdrawal_requests`";}}errors|a:0:{}
