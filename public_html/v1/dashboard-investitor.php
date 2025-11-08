@@ -224,7 +224,10 @@ if ($name === '') $name = 'Investitor';
                 placeholder="Scrie un mesaj (max 500 caractere)…" />
           <button id="chatSend" type="submit"
                 class="rounded-xl px-3 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 text-sm font-semibold">
-            Trimite
+             <span class="inline-flex items-center gap-2">
+              <i class="fa-solid fa-circle-notch fa-spin hidden" aria-hidden="true" data-spin></i>
+              <span data-label>Trimite</span>
+            </span>
           </button>
         </form>
 
@@ -1009,25 +1012,92 @@ if ($name === '') $name = 'Investitor';
     if(!feed || !form) return;
 
     const meName = document.body.dataset.userName || 'Investitor';
+    const meRole = (document.body.dataset.role || 'USER').toUpperCase();
     let lastId = +(sessionStorage.getItem('chat:lastId') || 0);
     let sse = null;
     let pollTimer = null;
     const POLL_MS = 4000;
     const SEEN = new Set();            // dedup sigur
+    const pendingByClient = new Map();
+    const pendingByServer = new Map();
     const NF_TIME = new Intl.DateTimeFormat('ro-RO',{hour:'2-digit',minute:'2-digit'});
+    const btnSpin  = btn?.querySelector('[data-spin]');
+    const btnLabel = btn?.querySelector('[data-label]');
 
     function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
     function atBottom(){ return Math.abs(feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 6; }
     function scrollBottom(){ feed.scrollTo({top:feed.scrollHeight, behavior:'smooth'}); }
 
-    function appendMsg(m){
+    function setSeen(id){
+      if (!id) return;
+      if (SEEN.has(id)) return;
+      SEEN.add(id);
+      if (SEEN.size > 5000) {
+        let n = 0;
+        for (const x of SEEN){ SEEN.delete(x); if(++n>=1000) break; }
+      }
+    }
+
+    function matchPending(m){
+      if (!m) return null;
+      const mid = m.id|0;
+      if (mid && pendingByServer.has(mid)) {
+        const entry = pendingByServer.get(mid);
+        if (entry && !entry.resolved) return entry;
+      }
+      for (const entry of pendingByClient.values()) {
+        if (entry.resolved) continue;
+        if ((entry.data.body || '') === (m.body || '') && (entry.data.user_name || '') === (m.user_name || '')) {
+          if (mid) {
+            entry.serverId = mid;
+            pendingByServer.set(mid, entry);
+          }
+          return entry;
+        }
+      }
+      return null;
+    }
+
+    function finalizePending(entry, official){
+      if (!entry) return;
+      entry.resolved = true;
+      entry.data = official || entry.data;
+      entry.el.dataset.pending = '0';
+      if (official && official.id) {
+        entry.el.dataset.msgId = String(official.id);
+      }
+      if (entry.bubble) {
+        entry.bubble.classList.remove('border-amber-400/40','bg-amber-500/10');
+      }
+      if (entry.pendingEl) {
+        entry.pendingEl.remove();
+        entry.pendingEl = null;
+      }
+      if (entry.timeEl) {
+        const ts = official && Number(official.ts) ? Number(official.ts) : (entry.timeEl.dataset.localTs ? Number(entry.timeEl.dataset.localTs) : Date.now()/1000);
+        entry.timeEl.textContent = NF_TIME.format(new Date(ts*1000));
+      }
+      if (entry.bodyEl && official) {
+        entry.bodyEl.textContent = official.body || '';
+      }
+      if (official && official.id) {
+        pendingByServer.delete(official.id);
+      }
+      pendingByClient.delete(entry.clientId);
+    }
+
+    function appendMsg(m={}, opts={}){
+      const pendingMode = opts.pending === true;
+      const clientId = opts.clientId || m.client_id || null;
       const id = m.id|0;
-      if (id && SEEN.has(id)) return;
-      if (id) {
-        SEEN.add(id);
-        if (SEEN.size > 5000) { // protecție memorie
-          let n = 0;
-          for (const x of SEEN){ SEEN.delete(x); if(++n>=1000) break; }
+     if (!pendingMode && id && SEEN.has(id)) return null;
+
+      if (!pendingMode) {
+        const entry = matchPending(m);
+        if (entry) {
+          finalizePending(entry, m);
+          if (id) setSeen(id);
+          return entry.el;
         }
         lastId = Math.max(lastId, id);
         sessionStorage.setItem('chat:lastId', String(lastId));
@@ -1035,25 +1105,100 @@ if ($name === '') $name = 'Investitor';
       const mine = (m.user_name === meName);
       const row = document.createElement('div');
       row.className = 'w-full flex ' + (mine ? 'justify-end' : 'justify-start');
+       if (clientId) row.dataset.clientId = clientId;
+      if (pendingMode) row.dataset.pending = '1';
+      if (id) row.dataset.msgId = String(id);
 
-      const badge = m.role === 'ADMIN'
-        ? '<span class="badge bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 ml-2">Admin</span>'
-        : '';
+      const bubble = document.createElement('div');
+      bubble.dataset.bubble = '1';
+      bubble.className = 'max-w-[85%] rounded-2xl px-3 py-2 text-sm border bg-white/5 border-white/10';
+      if (pendingMode) {
+        bubble.className += ' border-amber-400/40 bg-amber-500/10';
+      }
+      row.appendChild(bubble);
 
-      row.innerHTML = `
-        <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm border bg-white/5 border-white/10">
-          <div class="text-[11px] opacity-80 mb-1">
-            <i class="fa-regular fa-user"></i> ${esc(m.user_name||'—')} ${badge}
-            <span class="ml-2 text-slate-500">${NF_TIME.format(new Date((m.ts||0)*1000))}</span>
-          </div>
-          <div>${esc(m.body||'')}</div>
-        </div>`;
+     const header = document.createElement('div');
+      header.className = 'text-[11px] opacity-80 mb-1 flex flex-wrap items-center gap-2';
+      bubble.appendChild(header);
+
+      const userSpan = document.createElement('span');
+      userSpan.innerHTML = `<i class="fa-regular fa-user"></i> ${esc(m.user_name||'—')}`;
+      header.appendChild(userSpan);
+
+      if ((m.role||'').toUpperCase() === 'ADMIN') {
+        const badge = document.createElement('span');
+        badge.className = 'badge bg-cyan-500/20 text-cyan-200 border border-cyan-400/30';
+        badge.textContent = 'Admin';
+        header.appendChild(badge);
+      }
+
+      const timeSpan = document.createElement('span');
+      timeSpan.dataset.time = '1';
+      const stamp = Number(m.ts) ? Number(m.ts) : (Date.now()/1000);
+      timeSpan.dataset.localTs = String(stamp);
+      timeSpan.className = 'text-slate-500';
+      timeSpan.textContent = NF_TIME.format(new Date(stamp*1000));
+      header.appendChild(timeSpan);
+
+      let pendingEl = null;
+      if (pendingMode) {
+        pendingEl = document.createElement('span');
+        pendingEl.dataset.pending = '1';
+        pendingEl.className = 'flex items-center gap-1 text-amber-300';
+        const clock = document.createElement('i');
+        clock.className = 'fa-regular fa-clock';
+        pendingEl.appendChild(clock);
+        const txt = document.createElement('span');
+        txt.textContent = 'Se trimite…';
+        pendingEl.appendChild(txt);
+        header.appendChild(pendingEl);
+      }
+
+      const bodyDiv = document.createElement('div');
+      bodyDiv.dataset.body = '1';
+      bodyDiv.textContent = typeof m.body === 'string' ? m.body : '';
+      bubble.appendChild(bodyDiv);
       const stick = atBottom();
       feed.appendChild(row);
       if (stick) scrollBottom();
+       if (pendingMode && clientId) {
+        pendingByClient.set(clientId, {
+          clientId,
+          el: row,
+          bubble,
+          pendingEl,
+          timeEl: timeSpan,
+          bodyEl: bodyDiv,
+          data: { ...m },
+          resolved: false,
+          serverId: null
+        });
+      } else if (id) {
+        setSeen(id);
+      }
+
+      return row;
     }
 
-function stopPoll(){
+    function removePending(clientId){
+      if (!clientId) return;
+      const entry = pendingByClient.get(clientId);
+      if (!entry) return;
+      entry.el.remove();
+      pendingByClient.delete(clientId);
+      if (entry.serverId) pendingByServer.delete(entry.serverId);
+    }
+
+function setSending(state){
+      if (!btn) return;
+      btn.disabled = !!state;
+      btn.classList.toggle('opacity-70', !!state);
+      btn.classList.toggle('cursor-not-allowed', !!state);
+      if (btnSpin) btnSpin.classList[state ? 'remove' : 'add']('hidden');
+      if (btnLabel) btnLabel.textContent = state ? 'Se trimite…' : 'Trimite';
+    }
+
+    function stopPoll(){
       if (!pollTimer) return;
       clearInterval(pollTimer);
       pollTimer = null;
@@ -1063,7 +1208,7 @@ function stopPoll(){
       try{
         const r = await fetch(`/api/chat/fetch.php?since_id=${encodeURIComponent(lastId||0)}`, {credentials:'include'});
         const j = await r.json();
-        (j.items||[]).forEach(appendMsg);
+         (j.items||[]).forEach(m => appendMsg(m || {}));
       }catch(_){/* fallback silent */}
     }
 
@@ -1077,7 +1222,7 @@ function stopPoll(){
       try{
         const r = await fetch('/api/chat/fetch.php?limit=50', {credentials:'include'});
         const j = await r.json();
-        (j.items||[]).forEach(appendMsg);
+        (j.items||[]).forEach(m => appendMsg(m || {}));
         scrollBottom();
         if ('EventSource' in window) {
           openSSE();
@@ -1111,14 +1256,14 @@ function stopPoll(){
             lastId = Math.max(lastId, d.last_id|0);
             sessionStorage.setItem('chat:lastId', String(lastId));
           }
-        }catch(_){}
+        }catch(_){ }
       });
 
       sse.addEventListener('message', (e)=>{
         try{
           const m = JSON.parse(e.data);
           appendMsg(m); // <- nu renderMsg
-        }catch(_){}
+        }catch(_){ }
       });
 
 
@@ -1137,12 +1282,20 @@ document.addEventListener('visibilitychange', ()=>{
   if (!document.hidden && sse && sse.readyState === 2) openSSE();
 });
 
-
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const txt = (input.value||'').trim();
       if(!txt) return;
-      btn.disabled = true;
+       const clientId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      appendMsg({
+        client_id: clientId,
+        user_name: meName,
+        role: meRole,
+        body: txt,
+        ts: Date.now()/1000
+      }, { pending: true, clientId });
+      input.value='';
+      setSending(true);
 
       try{
         const r = await fetch('/api/chat/send.php', {
@@ -1153,17 +1306,28 @@ document.addEventListener('visibilitychange', ()=>{
         if(!r.ok || !j || !j.ok){
           const err = (j && j.error) || 'error';
           const t = { throttled:'Anti-spam: așteaptă 3s.', too_long:'Max 500 caractere.', duplicate:'Mesaj duplicat (30s).', unauthorized:'Nu ești autentificat.' }[err] || 'Eroare. Încearcă din nou.';
+          removePending(clientId);
+          input.value = txt;
           alert(t);
         } else {
-          input.value=''; // mesajul va veni prin SSE
-           if (!sse || sse.readyState !== 1) {
+          if (j.id) {
+            const entry = pendingByClient.get(clientId);
+            if (entry) {
+              entry.serverId = j.id;
+              entry.el.dataset.msgId = String(j.id);
+              pendingByServer.set(j.id, entry);
+            }
+          }
+          if (!sse || sse.readyState !== 1) {
             await pullLatest();
           }
         }
       }catch{
+           removePending(clientId);
+        input.value = txt;
         alert('Conexiune indisponibilă.');
       }finally{
-        btn.disabled=false;
+        setSending(false);
         input.focus();
       }
     });
