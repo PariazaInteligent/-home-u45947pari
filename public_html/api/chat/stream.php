@@ -36,16 +36,34 @@ $lastId   = max(0, $lastIdQ, $lastIdH);
 
 // —— Detectăm coloana room (opțional) ——
 $hasRoom = false;
+$hasBody = false;
+$hasMessage = false;
 try {
   $q = $pdo->query("
-    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE()
       AND TABLE_NAME   = 'chat_messages'
-      AND COLUMN_NAME  = 'room'
+      AND COLUMN_NAME IN ('room','body','message')
   ");
-  $hasRoom = (bool)$q->fetchColumn();
+ foreach ($q ?: [] as $row) {
+    if (!isset($row['COLUMN_NAME'])) continue;
+    $col = strtolower((string)$row['COLUMN_NAME']);
+    if ($col === 'room') $hasRoom = true;
+    elseif ($col === 'body') $hasBody = true;
+    elseif ($col === 'message') $hasMessage = true;
+  }
 } catch (Throwable $e) {
-  $hasRoom = false;
+  // ignorați — păstrăm valorile implicite
+}
+
+if (!$hasBody && !$hasMessage) {
+  $bodyExpr = "''";
+} elseif ($hasBody && $hasMessage) {
+  $bodyExpr = "COALESCE(NULLIF(body,''), message)";
+} elseif ($hasBody) {
+  $bodyExpr = 'body';
+} else {
+  $bodyExpr = 'message';
 }
 
 // —— Comunică browserului strategia de retry + padding anti-proxy ——
@@ -70,7 +88,7 @@ $send = function (string $event, array $data, ?int $id = null) {
 
 // ——— Backlog inițial ———
 try {
-  $sql = "SELECT id,user_id,user_name,role,COALESCE(message,body) AS body,
+  $sql = "SELECT id,user_id,user_name,role,{$bodyExpr} AS body,
                  UNIX_TIMESTAMP(created_at) AS ts
           FROM chat_messages
           WHERE id > :last_id";
@@ -111,7 +129,7 @@ while (true) {
 
   // Mesaje noi după ultimul id
   try {
-    $sql = "SELECT id,user_id,user_name,role,COALESCE(message,body) AS body,
+    $sql = "SELECT id,user_id,user_name,role,{$bodyExpr} AS body,
                    UNIX_TIMESTAMP(created_at) AS ts
             FROM chat_messages
             WHERE id > :last_id";
