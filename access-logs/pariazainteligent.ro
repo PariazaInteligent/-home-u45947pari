@@ -1,0 +1,2 @@
+213.180.203.17 - - [08/Nov/2025:20:39:10 +0200] "GET /robots.txt HTTP/1.1" 404 796 "-" "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)"
+5.255.231.84 - - [08/Nov/2025:20:39:10 +0200] "GET / HTTP/1.1" 200 2772 "-" "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)"

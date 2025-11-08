@@ -35,4 +35,12 @@ $stmt->execute();
 echo json_encode([
   'ok' => true,
   'items' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+<<<<<<< ours
+<<<<<<< ours
 ]);
+=======
+]);
+>>>>>>> theirs
+=======
+]);
+>>>>>>> theirs
