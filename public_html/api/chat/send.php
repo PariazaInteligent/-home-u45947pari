@@ -45,6 +45,10 @@ if (!$csrfExpected || $csrfTokenIn === '' || !hash_equals((string)$csrfExpected,
 // text & client_id
 $text = trim((string)($in['text'] ?? $in['message'] ?? $in['body'] ?? ''));
 $cid  = trim((string)($in['client_id'] ?? ''));
+
+// id-ul mesajului la care răspundem (reply_to)
+$replyToIn = isset($in['reply_to']) ? (int)$in['reply_to'] : 0;
+
 // atașamente (array sau string JSON)
 $attachmentsIn = $in['attachments'] ?? [];
 if (is_string($attachmentsIn)) {
@@ -55,6 +59,7 @@ if (is_string($attachmentsIn)) {
 $attachments = [];
 $replyTo     = $replyToIn > 0 ? $replyToIn : 0;
 $preview     = null;
+
 
 try {
   require __DIR__ . '/../db.php'; // $pdo
