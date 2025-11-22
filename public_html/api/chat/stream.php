@@ -43,6 +43,10 @@ $has = [
   'body'        => false,
   'client_id'   => false,
   'created_at'  => false,
+  
+  'edited_at'   => false,
+  'updated_at'  => false,
+  
   'mentions_js' => false, // mentions_json
 ];
 try {
@@ -57,6 +61,10 @@ try {
     if ($c === 'body') $has['body'] = true;
     if ($c === 'client_id') $has['client_id'] = true;
     if ($c === 'created_at') $has['created_at'] = true;
+    
+    if ($c === 'edited_at') $has['edited_at'] = true;
+    if ($c === 'updated_at') $has['updated_at'] = true;
+    
     if ($c === 'mentions_json') $has['mentions_js'] = true;
   }
 } catch (Throwable $e) {
@@ -71,6 +79,10 @@ $roomVal = $has['room'] ? 'global' : null;
 
 $selCols = "id,user_id,user_name,role,$textCol AS body,$tsExpr AS ts";
 if ($has['client_id']) $selCols .= ", client_id";
+
+if ($has['edited_at']) $selCols .= ", UNIX_TIMESTAMP(edited_at) AS edited_at";
+if ($has['updated_at']) $selCols .= ", UNIX_TIMESTAMP(updated_at) AS updated_at";
+
 if ($has['mentions_js']) $selCols .= ", mentions_json";
 
 // ——— util: encoder SSE ———
@@ -114,6 +126,17 @@ $normalize = function(array $m) use ($has): array {
       }
     }
   }
+  
+  // marchează mesajele editate dacă avem coloana în schemă
+  $m['edited'] = false;
+  if ($has['edited_at'] && array_key_exists('edited_at', $m)) {
+    $m['edited_at'] = $m['edited_at'] ? (int)$m['edited_at'] : null;
+    $m['edited']    = $m['edited_at'] !== null;
+  } elseif ($has['updated_at'] && array_key_exists('updated_at', $m)) {
+    $m['updated_at'] = $m['updated_at'] ? (int)$m['updated_at'] : null;
+    $m['edited']     = $m['updated_at'] !== null && ($has['created_at'] ? $m['updated_at'] > (int)$m['ts'] : true);
+  }
+  
   return $m;
 };
 

@@ -27,6 +27,10 @@ try {
   $hasBody       = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'body'")->fetch();
   $hasCli        = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'client_id'")->fetch();
   $hasCreatedAt  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'created_at'")->fetch();
+  
+  $hasEditedAt   = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'edited_at'")->fetch();
+  $hasUpdatedAt  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'updated_at'")->fetch();
+  
   $hasMentionsJ  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'mentions_json'")->fetch();
 
   $textCol = $hasMsg ? 'message' : ($hasBody ? 'body' : null);
@@ -37,6 +41,10 @@ try {
   // coloană SELECT comună
   $selCols = "id,user_id,user_name,role,$textCol AS body,$tsExpr AS ts";
   if ($hasCli)       $selCols .= ", client_id";
+  
+  if ($hasEditedAt)  $selCols .= ", UNIX_TIMESTAMP(edited_at) AS edited_at";
+  if ($hasUpdatedAt) $selCols .= ", UNIX_TIMESTAMP(updated_at) AS updated_at";
+  
   if ($hasMentionsJ) $selCols .= ", mentions_json";
 
   $roomWhere = $hasRoom ? " AND room='global'" : "";
@@ -117,33 +125,46 @@ try {
   }
 
   // ——— normalizează mențiunile (doar dacă avem mentions_json în schemă) ———
-  if ($hasMentionsJ && $items) {
+  if ($items) {
     foreach ($items as &$m) {
-      if (!array_key_exists('mentions_json', $m)) continue;
-      $raw = $m['mentions_json'];
-      unset($m['mentions_json']);
-      if ($raw === null || $raw === '') continue;
+      // mențiuni normalizate
+      if ($hasMentionsJ && array_key_exists('mentions_json', $m)) {
+        $raw = $m['mentions_json'];
+        unset($m['mentions_json']);
+        if ($raw !== null && $raw !== '') {
+          $mj = json_decode((string)$raw, true);
+          if (is_array($mj)) {
+            $ids   = array_values(array_map('intval', (array)($mj['ids']   ?? [])));
+            $names = array_values(array_map(function($x){ return trim((string)$x); }, (array)($mj['names'] ?? [])));
 
-      $mj = json_decode((string)$raw, true);
-      if (!is_array($mj)) continue;
-
-      $ids   = array_values(array_map('intval', (array)($mj['ids']   ?? [])));
-      $names = array_values(array_map(function($x){ return trim((string)$x); }, (array)($mj['names'] ?? [])));
-
-      // mapare 1:1 pe index, dacă există
-      $out = [];
-      $n = max(count($ids), count($names));
-      for ($i=0; $i<$n; $i++){
-        $out[] = [
-          'user_id' => $ids[$i]   ?? null,
-          'name'    => $names[$i] ?? null,
-        ];
+            // mapare 1:1 pe index, dacă există
+            $out = [];
+            $n = max(count($ids), count($names));
+            for ($i=0; $i<$n; $i++){
+              $out[] = [
+                'user_id' => $ids[$i]   ?? null,
+                'name'    => $names[$i] ?? null,
+              ];
+            }
+            // elimină intrările complet goale
+            $out = array_values(array_filter($out, function($r){
+              return !($r['user_id']===null && ($r['name']===null || $r['name']===''));
+            }));
+            if ($out) $m['mentions'] = $out;
+          }
+        }
       }
-      // elimină intrările complet goale
-      $out = array_values(array_filter($out, function($r){
-        return !($r['user_id']===null && ($r['name']===null || $r['name']===''));
-      }));
-      if ($out) $m['mentions'] = $out;
+
+      // flag „editat” dacă avem coloana în schemă
+      $m['edited'] = false;
+      if ($hasEditedAt && array_key_exists('edited_at', $m)) {
+        $m['edited_at'] = $m['edited_at'] ? (int)$m['edited_at'] : null;
+        $m['edited']    = $m['edited_at'] !== null;
+      } elseif ($hasUpdatedAt && array_key_exists('updated_at', $m)) {
+        $m['updated_at'] = $m['updated_at'] ? (int)$m['updated_at'] : null;
+        $m['edited']     = $m['updated_at'] !== null && ($hasCreatedAt ? $m['updated_at'] > (int)$m['ts'] : true);
+      }
+      
     }
     unset($m);
   }

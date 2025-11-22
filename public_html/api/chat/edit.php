@@ -149,6 +149,8 @@ try {
         'success' => true,
         'message_id' => $messageId,
         'text' => $newText,
+        'edited' => true,
+        'edited_at' => $has['edited_at'] ? time() : null,
     ]);
 } catch (Throwable $e) {
     http_response_code(500);
