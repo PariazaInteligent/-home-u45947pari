@@ -45,38 +45,27 @@ if (!$csrfExpected || $csrfTokenIn === '' || !hash_equals((string)$csrfExpected,
 // text & client_id
 $text = trim((string)($in['text'] ?? $in['message'] ?? $in['body'] ?? ''));
 $cid  = trim((string)($in['client_id'] ?? ''));
-
-// mențiuni (opțional): ids + names (fallback)
-$mentionsIdsIn   = $in['mentions']       ?? [];
-$mentionNamesIn  = $in['mention_names']  ?? [];
-
-$replyToIn       = isset($in['reply_to']) ? (int)$in['reply_to'] : 0;
-
-// Validări de bază (aliniate cu UI: maxlength=500)
-if ($text === '') { echo json_encode(['ok'=>false,'error'=>'empty']); exit; }
-if (mb_strlen($text, 'UTF-8') > 500) { echo json_encode(['ok'=>false,'error'=>'too_long']); exit; }
-
-// validare minimală pentru client_id (evităm gunoi în coloana unică)
-if ($cid !== '' && !preg_match('~^[A-Za-z0-9_-]{5,64}$~', $cid)) {
-  echo json_encode(['ok'=>false,'error'=>'bad_client_id']); exit;
+// atașamente (array sau string JSON)
+$attachmentsIn = $in['attachments'] ?? [];
+if (is_string($attachmentsIn)) {
+  $attachmentsIn = json_decode($attachmentsIn, true) ?: [];
 }
 
-// Normalizează mențiunile
-$mentionsIds = array_values(array_unique(array_filter(array_map('intval', (array)$mentionsIdsIn))));
-$mentionNames = array_values(array_unique(array_filter(array_map(function($x){
-  $s = trim((string)$x);
-  // curăță caractere nepotrivite pentru @username
-  $s = preg_replace('~[^A-Za-z0-9._-]+~u', '', $s);
-  return mb_substr($s, 0, 64);
-}, (array)$mentionNamesIn))));
-
-$replyTo = $replyToIn > 0 ? $replyToIn : 0;
+// le inițializăm simplu aici, fără funcții helper
+$attachments = [];
+$replyTo     = $replyToIn > 0 ? $replyToIn : 0;
+$preview     = null;
 
 try {
   require __DIR__ . '/../db.php'; // $pdo
   require __DIR__ . '/notifications_lib.php';
+  require __DIR__ . '/meta_lib.php';
+
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+  // acum funcțiile există (vin din meta_lib.php)
+  $attachments = chat_filter_attachments($attachmentsIn);
+  $preview     = $text !== '' ? chat_preview_from_text($text) : null;
 
   // Rezolvă numele pentru IDs dacă lipsesc
   if ($mentionsIds && count($mentionNames) < count($mentionsIds)) {
@@ -368,6 +357,33 @@ try {
       insertChatNotifications($pdo, $notifRows);
     }
   }
+// salvăm meta (atașamente + preview link + reply snapshot) pe disc
+if ($id > 0) {
+  $metaPayload = [];
+
+  if ($attachments) {
+    $metaPayload['attachments'] = $attachments;
+  }
+
+  if ($preview) {
+    $metaPayload['link_preview'] = $preview;
+  }
+
+  // snapshot de reply, ca să îl vadă toată lumea, nu doar cel care trimite
+  if ($replyPreview && $replyTo) {
+    $metaPayload['reply_to'] = (int)$replyTo;
+    $metaPayload['reply'] = [
+      'id'        => (int)($replyPreview['id'] ?? $replyTo),
+      'user_id'   => isset($replyPreview['user_id']) ? (int)$replyPreview['user_id'] : null,
+      'user_name' => (string)($replyPreview['user_name'] ?? ''),
+      'body'      => (string)($replyPreview['body'] ?? ''),
+    ];
+  }
+
+  if ($metaPayload) {
+    chat_save_meta($id, $metaPayload);
+  }
+}
 
   // răspuns: includem și mențiunile (clientul le poate folosi pentru confirmPending)
   $respMentions = [];
@@ -398,6 +414,8 @@ try {
           'body'      => (string)($replyPreview['body'] ?? ''),
         ]
       : null,
+      'attachments' => $attachments,
+    'link_preview'=> $preview,
   ]);
 } catch (Throwable $e) {
   http_response_code(200);

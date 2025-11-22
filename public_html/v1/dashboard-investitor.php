@@ -465,7 +465,15 @@ $uid = (int)($me['id'] ?? 0);
                 </button>
               </div>
             </div>
-            
+            <div class="mt-2 flex items-center gap-2 text-[12px] text-slate-400">
+              <label for="chatFile" class="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 hover:border-white/20 cursor-pointer">
+                <i class="fa-solid fa-paperclip"></i> Atașează fișiere
+              </label>
+              <div id="attachHint" class="text-[11px] text-slate-500">poze, clipuri, muzică (max 20MB)</div>
+              <input id="chatFile" type="file" class="hidden" accept="image/*,video/*,audio/*" multiple />
+            </div>
+
+            <div id="attachList" class="hidden mt-2 flex flex-wrap gap-2"></div>
 
         <form id="chatForm" class="mt-3 flex items-center gap-2">
               <input id="chatInput" maxlength="1000" autocomplete="off"
@@ -1355,6 +1363,10 @@ $uid = (int)($me['id'] ?? 0);
 
   /* ——— limite & contor caractere ——— */
   const MAX_CHARS = 1000;
+  const attachInput = document.getElementById('chatFile');
+  const attachListEl = document.getElementById('attachList');
+  const attachHintEl = document.getElementById('attachHint');
+  const ATTACHMENTS = [];
 
   // overlay contor + hint „enter trimite”
   function ensureCharCounter(){
@@ -1407,7 +1419,78 @@ $uid = (int)($me['id'] ?? 0);
       btn.disabled = busy || over || !(/\S/.test(input.value||''));
     }
   }
+/* ——— atașamente: listă + încărcare ——— */
+  function renderAttachList(){
+    if (!attachListEl) return;
+    attachListEl.innerHTML = '';
+    if (!ATTACHMENTS.length){
+      attachListEl.classList.add('hidden');
+      return;
+    }
+    attachListEl.classList.remove('hidden');
+    ATTACHMENTS.forEach((att, idx)=>{
+      const card = document.createElement('div');
+      card.className = 'flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-sm min-w-[220px]';
+      const icon = att.kind === 'image' ? '🖼️' : att.kind === 'video' ? '🎬' : att.kind === 'audio' ? '🎵' : '📎';
+      card.innerHTML = `
+        <span class="text-lg">${icon}</span>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-slate-100 text-[13px] truncate">${esc(att.name||'fișier')}</div>
+          <div class="text-[11px] text-slate-500 truncate">${esc(att.mime || att.kind || '')}</div>
+        </div>
+        <button type="button" data-remove="${idx}" class="text-slate-500 hover:text-rose-300">
+          <i class="fa-regular fa-circle-xmark"></i>
+        </button>`;
+      card.querySelector('[data-remove]')?.addEventListener('click', ()=>{
+        ATTACHMENTS.splice(idx,1);
+        renderAttachList();
+      });
+      attachListEl.appendChild(card);
+    });
+  }
 
+  function clearAttachments(){
+    ATTACHMENTS.splice(0, ATTACHMENTS.length);
+    renderAttachList();
+  }
+
+  async function uploadAttachment(file){
+    try{
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('csrf_token', csrfToken || '');
+      attachHintEl?.classList.add('text-cyan-400');
+      const r = await fetch('/api/chat/upload.php', {
+        method:'POST',
+        body: fd,
+        credentials:'include'
+      });
+      const j = await r.json().catch(()=>null);
+      if (j && j.ok && j.attachment){
+        if (ATTACHMENTS.length >= 5){
+          showChatToast('maxim 5 atașamente per mesaj.', 'info');
+          return;
+        }
+        ATTACHMENTS.push(j.attachment);
+        renderAttachList();
+      } else {
+        const msg = j?.hint || j?.error || 'eroare la încărcare.';
+        showChatToast(msg, 'error');
+      }
+    }catch(e){
+      showChatToast('nu am putut încărca fișierul. verifică conexiunea.', 'error');
+    } finally {
+      attachHintEl?.classList.remove('text-cyan-400');
+    }
+  }
+
+  attachInput?.addEventListener('change', async ()=>{
+    const files = Array.from(attachInput.files || []);
+    for (const f of files){
+      await uploadAttachment(f);
+    }
+    attachInput.value = '';
+  });
   /* ——— auto-resize textarea (max ~32% viewport sau 280px) ——— */
   function autoGrow(){
     const stick = Math.abs(feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 6;
@@ -1750,7 +1833,8 @@ $uid = (int)($me['id'] ?? 0);
       mentions: payload.mentionsPayload || [],
       mention_names: payload.mentionsNames || [],
       reply_to: payload.reply_to || null,
-      reply_preview: payload.reply_preview || null
+      reply_preview: payload.reply_preview || null,
+      attachments: Array.isArray(payload.attachments) ? payload.attachments : []
     });
 
     saveOfflineQueue();
@@ -1766,8 +1850,9 @@ $uid = (int)($me['id'] ?? 0);
 
     const items = [...OFFLINE_QUEUE];
     for (const item of items){
-      const { cid, text, ts, mentions, mention_names, reply_to, reply_preview } = item;
-      if (!cid || !text) continue;
+      const { cid, text, ts, mentions, mention_names, reply_to, reply_preview, attachments } = item;
+      const hasAtt = Array.isArray(attachments) && attachments.length > 0;
+      if (!cid || (!text && !hasAtt)) continue;
 
       // dacă nu mai avem pending în memorie (ex: refresh), recreăm bulele
       if (!PENDING.has(cid)){
@@ -1778,7 +1863,8 @@ $uid = (int)($me['id'] ?? 0);
           Array.isArray(mention_names)
             ? mention_names.map(n => ({ user_id:null, name:n }))
             : [],
-          reply_preview || (reply_to ? { id: reply_to } : null)
+          reply_preview || (reply_to ? { id: reply_to } : null),
+          Array.isArray(attachments) ? attachments : []
         );
       } else {
         markPendingSending(cid);
@@ -1797,6 +1883,7 @@ $uid = (int)($me['id'] ?? 0);
             client_id: cid,
             mentions: Array.isArray(mentions) ? mentions : [],
             mention_names: Array.isArray(mention_names) ? mention_names : [],
+            attachments: Array.isArray(attachments) ? attachments : [],
              reply_to: reply_to || null,
             reply_preview: reply_preview || null,
             csrf_token: csrfToken || ''
@@ -2094,7 +2181,55 @@ document.getElementById('btnMentionsReadAll')?.addEventListener('click', ()=> ma
     }
     return html;
   }
+function renderAttachments(list){
+    if (!Array.isArray(list) || !list.length) return '';
+    const parts = [];
+    for (const att of list){
+      if (!att || !att.url) continue;
+      const url  = esc(att.url);
+      const name = esc(att.name || 'fișier');
+      const mime = esc(att.mime || '');
+      const kind = att.kind || 'file';
+      if (kind === 'image') {
+        parts.push(`<a href="${url}" target="_blank" rel="noreferrer" class="block"><img src="${url}" alt="${name}" class="max-h-48 rounded-xl border border-white/10" loading="lazy"/></a>`);
+      } else if (kind === 'video') {
+        parts.push(`<video controls class="max-h-56 rounded-xl w-full border border-white/10 bg-black/40"><source src="${url}" type="${mime}"></video>`);
+      } else if (kind === 'audio') {
+        parts.push(`<audio controls class="w-full mt-1"><source src="${url}" type="${mime}"></audio>`);
+      } else {
+        parts.push(`<a href="${url}" target="_blank" rel="noreferrer" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 hover:border-white/20 bg-white/5"><i class="fa-solid fa-paperclip"></i> ${name}</a>`);
+      }
+    }
+    if (!parts.length) return '';
+    return `<div class="mt-2 space-y-2">${parts.join('')}</div>`;
+  }
 
+  function renderLinkPreview(preview){
+    if (!preview || typeof preview !== 'object') return '';
+    const url = esc(preview.url || '');
+    if (!url) return '';
+    const title = esc(preview.title || preview.url || 'Previzualizare link');
+    const desc  = preview.description ? `<div class="text-[12px] text-slate-300" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${esc(preview.description)}</div>` : '';
+    const site  = preview.site_name || preview.provider || '';
+    const siteHtml = site ? `<div class="text-[11px] text-slate-500 mt-1">${esc(site)}</div>` : '';
+    const badge = preview.provider ? `<span class="text-[11px] text-cyan-300 font-semibold uppercase">${esc(preview.provider)}</span>` : '';
+    const imgHtml = preview.image ? `<div class="shrink-0 w-24 h-24 overflow-hidden rounded-lg border border-white/10 bg-white/5"><img src="${esc(preview.image)}" alt="" class="object-cover w-full h-full" loading="lazy"/></div>` : '';
+    const embedHtml = (preview.provider === 'youtube' && preview.embed)
+      ? `<div class="mt-2 aspect-video"><iframe src="${esc(preview.embed)}" class="w-full h-full rounded-xl border border-white/10" allowfullscreen loading="lazy"></iframe></div>`
+      : '';
+    return `<a href="${url}" target="_blank" rel="noreferrer" class="block mt-2 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 p-3">
+      <div class="flex gap-3 items-center">
+        ${imgHtml}
+        <div class="min-w-0">
+          ${badge}
+          <div class="font-semibold text-slate-100 text-sm" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${title}</div>
+          ${desc}
+          ${siteHtml}
+        </div>
+      </div>
+      ${embedHtml}
+    </a>`;
+  }
     function buildRow(m, mine = false, pending = false) {
     const row = document.createElement('div');
     row.className = 'msg w-full flex ' + (mine ? 'justify-end' : 'justify-start');
@@ -2118,6 +2253,7 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
     const bodyHTML = isDeleted
       ? '<span class="text-slate-500 italic">mesaj șters</span>'
       : renderMentions(m.body || '', m.mentions || null);
+      const bodyBlock = bodyHTML ? `<div data-body class="body text-sm leading-relaxed">${bodyHTML}</div>` : '';
       const replyMeta = !isDeleted ? resolveReplyMeta(m) : null;
     let replyHTML = '';
     if (replyMeta && replyMeta.id){
@@ -2144,6 +2280,8 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
     const canEditNow = mine && !pending && !isDeleted && canEditNowTs(tsSec);
     const editedLabel  = m.edited ? '<span data-edited-flag="1" class="ml-1 text-[10px] text-slate-500 italic">(editat)</span>' : '';
     const deletedLabel = isDeleted ? '<span data-deleted-flag="1" class="ml-2 text-[11px] text-rose-400">[mesaj șters]</span>' : '';
+    const attachHTML = !isDeleted ? renderAttachments(m.attachments || []) : '';
+    const previewHTML = !isDeleted ? renderLinkPreview(m.link_preview || null) : '';
 
     let actionsHtml = '';
     if (!isDeleted) {
@@ -2185,7 +2323,9 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
           ${pending ? '<i class="fa-regular fa-clock ml-2" data-status title="se trimite…"></i>' : ''}
           ${actionsHtml}
         </div>
-        <div data-body>${bodyHTML}</div>
+        ${bodyBlock}
+        ${attachHTML}
+        ${previewHTML}
         ${reactBar}
       </div>`;
 
@@ -2292,7 +2432,7 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
 
   }
 
-  function renderPending(cid, body, ts, mentionsArr, replyMeta){
+  function renderPending(cid, body, ts, mentionsArr, replyMeta, attList){
     ensureDaySepAppend(ts||Math.floor(Date.now()/1000));
     const m = {
       id: 0,
@@ -2302,7 +2442,8 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
       ts,
       mentions: Array.isArray(mentionsArr)?mentionsArr:[],
       reply_to: replyMeta?.id || null,
-      reply: replyMeta || null
+      reply: replyMeta || null,
+      attachments: Array.isArray(attList) ? attList : [],
     };
     const row = buildRow(m, true, true);
     row.dataset.cid = cid;
@@ -2311,7 +2452,7 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
     if (canGroup(prev, m, true)) joinWithPrev(prev, row);
     feed.appendChild(row);
     if (wasBottom) scrollBottomNow();
-    PENDING.set(cid, { row, body, ts, mentions: m.mentions, reply: replyMeta || null });
+    PENDING.set(cid, { row, body, ts, mentions: m.mentions, reply: replyMeta || null, attachments: m.attachments });
   }
 
     function confirmPending(cid, m) {
@@ -2325,7 +2466,7 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
       || (m.reply_to ? { id: m.reply_to } : null)
       || p.reply
       || null;
-
+const attachments = Array.isArray(m.attachments) ? m.attachments : (p.attachments || []);
     // scoatem iconul de pending
     row.querySelector('[data-status]')?.remove();
     row.querySelector('.opacity-80')?.classList.remove('opacity-80');
@@ -2345,7 +2486,7 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
 
     const bubble = row.querySelector('.bubble');
     const meta = Array.isArray(m.mentions) ? m.mentions : (p.mentions || []);
-    const tmp = buildRow({ ...m, mentions: meta, reply: replyMeta, reply_to: m.reply_to || replyMeta?.id || null }, true, false);
+    const tmp = buildRow({ ...m, mentions: meta, reply: replyMeta, reply_to: m.reply_to || replyMeta?.id || null, attachments }, true, false);
     const bubbleNew = tmp.querySelector('.bubble');
     if (bubble && bubbleNew) {
       const cls = bubble.className;
@@ -3208,7 +3349,8 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
     e.preventDefault();
     const raw = (input.value||'');
     const txt = raw.trim();
-    if(!txt){ updateCounter(); return; }
+    const hasAttach = ATTACHMENTS.length > 0;
+    if(!txt && !hasAttach){ updateCounter(); showChatToast('Adaugă un mesaj sau un atașament.', 'info'); return; }
        if (raw.length > MAX_CHARS){
       showChatToast(
         `Mesajul depășește limita de ${MAX_CHARS} caractere.`,
@@ -3223,17 +3365,20 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
     const replyMeta = replyTarget && replyTarget.id ? { ...replyTarget, id: replyTarget.id } : null;
 
     const cid = genCID(), ts = Math.floor(Date.now()/1000);
-    const offlinePayload = { cid, txt, ts, mentionsPayload, mentionsNames, reply_to: replyMeta?.id || null, reply_preview: replyMeta };
+    const attachmentsCopy = ATTACHMENTS.map(a => ({ ...a }));
+    const offlinePayload = { cid, txt, ts, mentionsPayload, mentionsNames, reply_to: replyMeta?.id || null, reply_preview: replyMeta, attachments: attachmentsCopy };
 
     renderPending(
       cid,
       txt,
       ts,
       mentionsNames.map(n=>({ user_id: null, name: n })),
-      replyMeta
+      replyMeta,
+      attachmentsCopy
     );
 
     input.value=''; autoGrow(); updateCounter();
+    clearAttachments();
     setBtnBusy(true);
     clearReplyTarget();
 
@@ -3260,6 +3405,7 @@ const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menți
           client_id: cid,
           mentions: mentionsPayload,
           mention_names: mentionsNames,
+          attachments: attachmentsCopy,
           
           reply_to: replyMeta?.id || null,
           reply_preview: replyMeta || null,

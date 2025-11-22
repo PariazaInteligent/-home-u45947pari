@@ -18,6 +18,7 @@ $window   = max(1, min(200, (int)($_GET['window'] ?? 30)));
 
 try {
   require __DIR__ . '/../db.php'; // $pdo
+  require __DIR__ . '/meta_lib.php';
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
@@ -217,6 +218,19 @@ try {
       $rid = (int)($m['reply_to'] ?? 0);
       if ($rid > 0 && isset($replyMap[$rid])) {
         $m['reply'] = $replyMap[$rid];
+      }
+    }
+    unset($m);
+  }
+  // atașăm meta (atașamente + preview link) din fișiere
+  if ($items) {
+    foreach ($items as &$m) {
+      $mid = (int)($m['id'] ?? 0);
+      if ($mid <= 0) continue;
+      $meta = chat_load_meta($mid);
+      if ($meta) {
+        if (isset($meta['attachments'])) $m['attachments'] = $meta['attachments'];
+        if (isset($meta['link_preview'])) $m['link_preview'] = $meta['link_preview'];
       }
     }
     unset($m);

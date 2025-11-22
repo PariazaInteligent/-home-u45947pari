@@ -27,6 +27,7 @@ header('Connection: keep-alive');
 header('X-Accel-Buffering: no'); // nginx
 
 require __DIR__ . '/../db.php';
+require __DIR__ . '/meta_lib.php';
 $pdo = $pdo ?? null;
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
@@ -201,7 +202,17 @@ $attachReply = function(array $row) use (&$replyCache, $pdo, $has, $textCol, $ro
 
   return $row;
 };
-
+// ——— helper: atașează meta din fișiere (atașamente + preview link) ———
+$attachMeta = function(array $row): array {
+  $mid = (int)($row['id'] ?? 0);
+  if ($mid <= 0) return $row;
+  $meta = chat_load_meta($mid);
+  if ($meta) {
+    if (isset($meta['attachments'])) $row['attachments'] = $meta['attachments'];
+    if (isset($meta['link_preview'])) $row['link_preview'] = $meta['link_preview'];
+  }
+  return $row;
+};
 // ——— handshake SSE ———
 echo "retry: 3000\n";
 echo ':' . str_repeat(' ', 2048) . "\n\n"; // kickstart buffer
@@ -229,6 +240,7 @@ try {
   while ($row = $st->fetch()) {
     $row = $normalize($row);
     $row = $attachReply($row);
+    $row = $attachMeta($row);
     $mid = (int)$row['id'];
     $send('message', $row, $mid);
     $lastId = $mid;
@@ -342,6 +354,7 @@ while (true) {
     while ($row = $st->fetch()) {
       $row = $normalize($row);
       $row = $attachReply($row);
+      $row = $attachMeta($row);
       $mid = (int)$row['id'];
       $send('message', $row, $mid);
       $lastId = $mid;
