@@ -1776,6 +1776,7 @@ $uid = (int)($me['id'] ?? 0);
             mentions: Array.isArray(mentions) ? mentions : [],
             mention_names: Array.isArray(mention_names) ? mention_names : [],
              reply_to: reply_to || null,
+            reply_preview: reply_preview || null,
             csrf_token: csrfToken || ''
           })
         });
@@ -2224,7 +2225,7 @@ $uid = (int)($me['id'] ?? 0);
     if (canGroup(prev, m, true)) joinWithPrev(prev, row);
     feed.appendChild(row);
     if (wasBottom) scrollBottomNow();
-    PENDING.set(cid, { row, body, ts, mentions: m.mentions });
+    PENDING.set(cid, { row, body, ts, mentions: m.mentions, reply: replyMeta || null });
   }
 
     function confirmPending(cid, m) {
@@ -2232,6 +2233,12 @@ $uid = (int)($me['id'] ?? 0);
     if (!p) return appendMsg(m);
 
     const { row } = p;
+    
+    // completăm meta de reply dacă serverul nu a trimis-o
+    const replyMeta = m.reply
+      || (m.reply_to ? { id: m.reply_to } : null)
+      || p.reply
+      || null;
 
     // scoatem iconul de pending
     row.querySelector('[data-status]')?.remove();
@@ -2240,7 +2247,7 @@ $uid = (int)($me['id'] ?? 0);
     const tsSec = (m.ts || p.ts || Math.floor(Date.now() / 1000));
     row.dataset.ts = String(tsSec);
     row.dataset.bodyRaw = m.body || p.body || row.dataset.bodyRaw || '';
-    const replyId = m.reply_to || (m.reply && m.reply.id) || null;
+   const replyId = m.reply_to || (replyMeta && replyMeta.id) || null;
     if (replyId) row.dataset.replyId = String(replyId); else delete row.dataset.replyId;
 
     const t = row.querySelector('[data-time]');
@@ -2252,7 +2259,7 @@ $uid = (int)($me['id'] ?? 0);
 
     const bubble = row.querySelector('.bubble');
     const meta = Array.isArray(m.mentions) ? m.mentions : (p.mentions || []);
-    const tmp = buildRow({ ...m, mentions: meta }, true, false);
+    const tmp = buildRow({ ...m, mentions: meta, reply: replyMeta, reply_to: m.reply_to || replyMeta?.id || null }, true, false);
     const bubbleNew = tmp.querySelector('.bubble');
     if (bubble && bubbleNew) {
       const cls = bubble.className;
@@ -3167,6 +3174,9 @@ $uid = (int)($me['id'] ?? 0);
           client_id: cid,
           mentions: mentionsPayload,
           mention_names: mentionsNames,
+          
+          reply_to: replyMeta?.id || null,
+          reply_preview: replyMeta || null,
           csrf_token: csrfToken || ''
         })
       });
