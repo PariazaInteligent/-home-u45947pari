@@ -449,31 +449,49 @@ $uid = (int)($me['id'] ?? 0);
           </div>
         </div>
 
-        <div id="chatFeed" class="h-[51vh] overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
-        <div id="mentionToast" aria-live="polite"></div>
-        <div id="replyContext" class="hidden mt-2 px-3 py-2 rounded-xl border border-cyan-500/30 bg-cyan-500/5 text-xs">
-          <div class="flex items-start justify-between gap-3">
-            <div class="flex-1 min-w-0">
-              <div class="text-[13px] font-semibold text-cyan-100">Răspunzi la <span id="replyUser">mesaj</span></div>
-              <div id="replyPreview" class="mt-1 text-slate-300 leading-snug max-h-12 overflow-hidden"></div>
+         <div class="grid lg:grid-cols-[2fr,1fr] gap-4">
+          <div class="space-y-2">
+            <div id="chatFeed" class="h-[51vh] overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
+            <div id="mentionToast" aria-live="polite"></div>
+            <div id="replyContext" class="hidden mt-2 px-3 py-2 rounded-xl border border-cyan-500/30 bg-cyan-500/5 text-xs">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex-1 min-w-0">
+                  <div class="text-[13px] font-semibold text-cyan-100">Răspunzi la <span id="replyUser">mesaj</span></div>
+                  <div id="replyPreview" class="mt-1 text-slate-300 leading-snug max-h-12 overflow-hidden"></div>
+                </div>
+                <button id="replyCancel" type="button" class="text-slate-400 hover:text-rose-300" title="anulează răspunsul">
+                  <i class="fa-regular fa-circle-xmark"></i>
+                </button>
+              </div>
             </div>
-            <button id="replyCancel" type="button" class="text-slate-400 hover:text-rose-300" title="anulează răspunsul">
-              <i class="fa-regular fa-circle-xmark"></i>
-            </button>
-          </div>
-        </div>
+            
 
         <form id="chatForm" class="mt-3 flex items-center gap-2">
-          <input id="chatInput" maxlength="1000" autocomplete="off"
-                class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
-                placeholder="Scrie un mesaj (max 1000 caractere)…" />
-          <button id="chatSend" type="submit"
-                class="rounded-xl px-3 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 text-sm font-semibold">
-            Trimite
-          </button>
-        </form>
+              <input id="chatInput" maxlength="1000" autocomplete="off"
+                    class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
+                    placeholder="Scrie un mesaj (max 1000 caractere)…" />
+              <button id="chatSend" type="submit"
+                    class="rounded-xl px-3 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 text-sm font-semibold">
+                Trimite
+              </button>
+            </form>
 
-        <div id="chatHint" class="mt-2 text-[11px] text-slate-500">Respectă comunitatea. Anti-spam activ (3s între mesaje).</div>
+            <div id="chatHint" class="mt-2 text-[11px] text-slate-500">Respectă comunitatea. Anti-spam activ (3s între mesaje).</div>
+          </div>
+
+        <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="font-semibold text-sm">Răspunsuri &amp; mențiuni</div>
+                <div class="text-[11px] text-slate-400">Mesaje necitite care te vizează direct.</div>
+              </div>
+              <button id="btnMentionsReadAll" type="button" class="text-[11px] px-2 py-1 rounded-lg border border-white/10 hover:border-white/20">
+                marchează citit
+              </button>
+            </div>
+            <div id="mentionInbox" class="mt-3 space-y-2 text-sm"></div>
+          </div>
+        </div>
       </section>
 
       <!-- Grafice -->
@@ -1490,9 +1508,9 @@ $uid = (int)($me['id'] ?? 0);
     }catch{}
   }
 
-  const KEY_LAST_SEEN = `pi:mentions:lastSeen:${meId||0}`;
-
-  let lastMentionSeen = parseInt(localStorage.getItem(KEY_LAST_SEEN)||'0',10) || 0;
+  let mentionUnreadCount = 0;
+  let mentionNotifications = [];
+  let mentionRefreshTimer = null;
   let VIEW_MENTIONS = false;
 
   // scroll control: blocăm lazy-load la boot și forțăm „stick to bottom”
@@ -1548,6 +1566,7 @@ $uid = (int)($me['id'] ?? 0);
     if (!m || !m.id) return;
     const entry = {
       id: m.id|0,
+       user_id: m.user_id || null,
       user_name: m.user_name || '',
       body: m.body || '',
       ts: m.ts || Math.floor(Date.now()/1000)
@@ -1569,10 +1588,12 @@ $uid = (int)($me['id'] ?? 0);
     const cached = MSG_INDEX.get(rid) || {};
     const fallback = m.reply || {};
     const user = cached.user_name || fallback.user_name || fallback.user || '';
+     const uid  = cached.user_id || fallback.user_id || null;
     const body = cached.body || fallback.body || '';
 
     return {
       id: rid,
+       user_id: uid,
       user_name: user,
       body
     };
@@ -1948,30 +1969,91 @@ $uid = (int)($me['id'] ?? 0);
     }
     return false;
   }
-  function latestMentionIdInDOM(){
-    let maxId = 0;
-    feed.querySelectorAll('.msg.has-mention').forEach(el=>{
-      const id = parseInt(el.dataset.msgId||'0',10); if (id>maxId) maxId=id;
-    });
-    return maxId;
+  function isReplyToMe(m){
+    const meta = resolveReplyMeta(m);
+    if (!meta || !meId) return false;
+    const targetId = meta.user_id || (MSG_INDEX.get(meta.id||0)?.user_id) || null;
+    return !!targetId && targetId === meId;
   }
   function updateMentionDot(){
-    let count = 0;
-    feed.querySelectorAll('.msg.has-mention').forEach(el=>{
-      const id = parseInt(el.dataset.msgId||'0',10); if (id>lastMentionSeen) count++;
-    });
+    
     const dot = document.getElementById('mentionDot');
     if (!dot) return;
-    if (count>0){ dot.textContent = String(count); dot.classList.remove('hidden'); }
+    if (mentionUnreadCount>0){ dot.textContent = String(mentionUnreadCount); dot.classList.remove('hidden'); }
     else { dot.classList.add('hidden'); }
   }
-  function markMentionsSeen(){
-    const maxId = latestMentionIdInDOM();
-    if (maxId > lastMentionSeen){
-      lastMentionSeen = maxId;
-      localStorage.setItem(KEY_LAST_SEEN, String(lastMentionSeen));
-      updateMentionDot();
+  function renderMentionInbox(){
+    const host = document.getElementById('mentionInbox');
+    if (!host) return;
+    host.innerHTML = '';
+    if (!mentionNotifications.length){
+      host.innerHTML = '<div class="text-[13px] text-slate-400">Nu ai notificări necitite.</div>';
+      return;
     }
+    mentionNotifications.forEach(n=>{
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'w-full text-left px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:border-cyan-400/40 hover:bg-cyan-500/5';
+      const kindLabel = n.kind === 'reply' ? 'ți-a răspuns' : 'te-a menționat';
+      const tsRel = formatRelativeTime(n.ts||0);
+      row.innerHTML = `
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span>${esc(kindLabel)}</span>
+          <span>${esc(tsRel)}</span>
+        </div>
+        <div class="text-[13px] text-slate-300 mt-1">${esc(n.user_name||'—')}</div>
+        <div class="text-sm text-slate-200 mt-1 leading-snug">${esc(n.body||'')}</div>
+      `;
+      row.addEventListener('click', ()=>{
+        if (n.message_id) jumpToAround(n.message_id);
+        if (n.notif_id) markMentionNotifications([n.notif_id]);
+      });
+      host.appendChild(row);
+    });
+  }
+
+  async function markMentionNotifications(ids){
+    if (!ids || !ids.length) return;
+    try {
+      const r = await fetch('/api/chat/mentions_mark_read.php', {
+        method:'POST',
+        credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ids })
+      });
+      const j = await r.json();
+      if (j && j.ok){
+        mentionUnreadCount = j.unread_count || 0;
+        updateMentionDot();
+        await loadMentionInbox(false);
+      }
+    } catch{}
+  }
+
+  async function markAllMentionsRead(){
+    const ids = mentionNotifications.map(n=>n.notif_id).filter(Boolean);
+    if (!ids.length) return;
+    await markMentionNotifications(ids);
+  }
+
+  async function loadMentionInbox(markRead){
+    try{
+      const r = await fetch('/api/chat/mentions_unread.php', { credentials:'include' });
+      const j = await r.json();
+      if (!j || !j.ok) return;
+      mentionUnreadCount = j.unread_count || 0;
+      mentionNotifications = Array.isArray(j.items) ? j.items : [];
+      renderMentionInbox();
+      updateMentionDot();
+      if (markRead && mentionNotifications.length){
+        await markAllMentionsRead();
+      }
+    }catch{}
+  }
+
+  function scheduleMentionRefresh(){
+    if (mentionRefreshTimer) clearTimeout(mentionRefreshTimer);
+    mentionRefreshTimer = setTimeout(()=> loadMentionInbox(false), 400);
   }
   function setView(mentionsMode){
     VIEW_MENTIONS = !!mentionsMode;
@@ -1979,15 +2061,16 @@ $uid = (int)($me['id'] ?? 0);
     if (chatCard){ chatCard.classList.toggle('view-mentions', VIEW_MENTIONS); }
     document.getElementById('tabAll')?.classList.toggle('bg-white/5', !VIEW_MENTIONS);
     document.getElementById('tabMent')?.classList.toggle('bg-white/5',  VIEW_MENTIONS);
-    if (VIEW_MENTIONS) markMentionsSeen();
+   if (VIEW_MENTIONS) loadMentionInbox(true);
   }
   document.getElementById('tabAll')?.addEventListener('click', ()=> setView(false));
   document.getElementById('tabMent')?.addEventListener('click',()=> setView(true));
     document.getElementById('mentionBell')?.addEventListener('click', async ()=> {
     setView(true); // păstrăm comportamentul actual (tab mențiuni)
     await ensureMentionPushEnabledViaClick(); // la click cerem / activăm notificările
+     await loadMentionInbox(true);
   });
-
+document.getElementById('btnMentionsReadAll')?.addEventListener('click', ()=> markAllMentionsRead());
 
   /* ——— build row + mentions render ——— */
   function renderMentions(body, meta){
@@ -2027,9 +2110,10 @@ $uid = (int)($me['id'] ?? 0);
     const tsRel = formatRelativeTime(tsSec);
     const tsAbs = NF_TIME.format(new Date(tsSec * 1000));
 
-    const mentioned = !isDeleted && isMention(m);
+    const replyToMe = !isDeleted && isReplyToMe(m);
+    const mentioned = !isDeleted && (isMention(m) || replyToMe);
     if (mentioned) row.classList.add('has-mention');
-
+const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menționat' : '');
     const bodyHTML = isDeleted
       ? '<span class="text-slate-500 italic">mesaj șters</span>'
       : renderMentions(m.body || '', m.mentions || null);
@@ -2096,7 +2180,7 @@ $uid = (int)($me['id'] ?? 0);
                 title="${esc(tsAbs)}">${esc(tsRel)}</span>
           ${editedLabel}
           ${deletedLabel}
-          ${mentioned ? '<span class="mention-chip ml-2">te-a menționat</span>' : ''}
+          ${mentionLabel ? `<span class="mention-chip ml-2">${esc(mentionLabel)}</span>` : ''}
           ${pending ? '<i class="fa-regular fa-clock ml-2" data-status title="se trimite…"></i>' : ''}
           ${actionsHtml}
         </div>
@@ -2153,6 +2237,7 @@ $uid = (int)($me['id'] ?? 0);
       // notificare browser pentru @mențiuni, doar dacă nu e mesajul tău
       if (!mine) {
         fireMentionNotification(m);
+        scheduleMentionRefresh();
       }
     }
     updateMentionDot();
@@ -3354,7 +3439,7 @@ $uid = (int)($me['id'] ?? 0);
     if (pollTimer) clearInterval(pollTimer);
     try{ navigator.sendBeacon && navigator.sendBeacon('/api/chat/typing.php', JSON.stringify({stop:true})); }catch{}
   });
-
+loadMentionInbox(false);
   bootstrap();
 })();
 </script>

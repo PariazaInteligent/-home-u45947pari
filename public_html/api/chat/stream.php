@@ -44,6 +44,7 @@ $has = [
   'client_id'   => false,
   'created_at'  => false,
   'reply_to'    => false,
+  'user_id'     => false,
   
   'edited_at'   => false,
   'updated_at'  => false,
@@ -65,6 +66,7 @@ try {
     if ($c === 'client_id') $has['client_id'] = true;
     if ($c === 'created_at') $has['created_at'] = true;
     if ($c === 'reply_to') $has['reply_to'] = true;
+    if ($c === 'user_id') $has['user_id'] = true;
     
     if ($c === 'edited_at') $has['edited_at'] = true;
     if ($c === 'updated_at') $has['updated_at'] = true;
@@ -173,7 +175,7 @@ $attachReply = function(array $row) use (&$replyCache, $pdo, $has, $textCol, $ro
   }
 
   try {
-    $sql = "SELECT id,user_name,$textCol AS body FROM chat_messages WHERE id = :rid";
+   $sql = "SELECT id" . ($has['user_id'] ? ',user_id' : '') . ",user_name,$textCol AS body FROM chat_messages WHERE id = :rid";
     if ($has['room']) $sql .= " AND room = :room";
     $sql .= " LIMIT 1";
 
@@ -185,6 +187,7 @@ $attachReply = function(array $row) use (&$replyCache, $pdo, $has, $textCol, $ro
     if ($snap) {
       $replyCache[$rid] = [
         'id'        => (int)($snap['id'] ?? $rid),
+        'user_id'   => $has['user_id'] && isset($snap['user_id']) ? (int)$snap['user_id'] : null,
         'user_name' => (string)($snap['user_name'] ?? ''),
         'body'      => (string)($snap['body'] ?? ''),
       ];

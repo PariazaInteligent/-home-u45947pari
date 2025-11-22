@@ -74,6 +74,7 @@ $replyTo = $replyToIn > 0 ? $replyToIn : 0;
 
 try {
   require __DIR__ . '/../db.php'; // $pdo
+  require __DIR__ . '/notifications_lib.php';
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
@@ -136,7 +137,7 @@ try {
   $replyPreview = null;
   if ($replyTo > 0 && $has['reply_to']) {
     try {
-      $sqlReply = "SELECT id,user_name,$textCol AS body FROM chat_messages WHERE id = :rid";
+       $sqlReply = "SELECT id,user_id,user_name,$textCol AS body FROM chat_messages WHERE id = :rid";
       if ($has['room']) $sqlReply .= " AND room = :room";
       $sqlReply .= " LIMIT 1";
 
@@ -149,6 +150,7 @@ try {
         $replyTo = 0; // mesajul nu există în cameră
       } else {
         $replyPreview['body'] = mb_substr(trim((string)($replyPreview['body'] ?? '')), 0, 240);
+        $replyPreview['user_id'] = isset($replyPreview['user_id']) ? (int)$replyPreview['user_id'] : null;
       }
     } catch (Throwable $e) {
       $replyTo = 0; // nu blocăm trimiterea dacă lookup-ul eșuează
@@ -339,6 +341,33 @@ try {
   $st->execute($bind);
 
   $id = (int)$pdo->lastInsertId();
+  
+  // notificări pentru mențiuni + răspuns direct
+  $notifRows = [];
+  if ($id > 0) {
+    foreach ($mentionsIds as $mid) {
+      if ($mid > 0 && $mid !== $uid) {
+        $notifRows[] = [
+          'user_id'    => $mid,
+          'message_id' => $id,
+          'kind'       => 'mention',
+        ];
+      }
+    }
+
+    $replyAuthorId = (int)($replyPreview['user_id'] ?? 0);
+    if ($replyAuthorId > 0 && $replyAuthorId !== $uid) {
+      $notifRows[] = [
+        'user_id'    => $replyAuthorId,
+        'message_id' => $id,
+        'kind'       => 'reply',
+      ];
+    }
+
+    if ($notifRows) {
+      insertChatNotifications($pdo, $notifRows);
+    }
+  }
 
   // răspuns: includem și mențiunile (clientul le poate folosi pentru confirmPending)
   $respMentions = [];
@@ -364,6 +393,7 @@ try {
     'reply'     => ($replyPreview && $replyTo)
       ? [
           'id'        => (int)($replyPreview['id'] ?? $replyTo),
+           'user_id'   => isset($replyPreview['user_id']) ? (int)$replyPreview['user_id'] : null,
           'user_name' => (string)($replyPreview['user_name'] ?? ''),
           'body'      => (string)($replyPreview['body'] ?? ''),
         ]

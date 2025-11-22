@@ -34,6 +34,7 @@ try {
   $hasMentionsJ  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'mentions_json'")->fetch();
   
   $hasReplyTo    = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'reply_to'")->fetch();
+  $hasUserId     = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'user_id'")->fetch();
 
   $textCol = $hasMsg ? 'message' : ($hasBody ? 'body' : null);
   if (!$textCol) { echo json_encode(['ok'=>false,'error'=>'no_text_column']); exit; }
@@ -192,7 +193,7 @@ try {
     $replyMap = [];
     if ($replyIds) {
       $in = implode(',', array_fill(0, count($replyIds), '?'));
-      $sqlReply = "SELECT id,user_name,$textCol AS body FROM chat_messages WHERE id IN ($in)";
+      $sqlReply = "SELECT id" . ($hasUserId ? ',user_id' : '') . ",user_name,$textCol AS body FROM chat_messages WHERE id IN ($in)";
       if ($hasRoom) $sqlReply .= " AND room = 'global'";
 
       $stR = $pdo->prepare($sqlReply);
@@ -205,6 +206,7 @@ try {
       foreach ($rows as $r) {
         $replyMap[(int)$r['id']] = [
           'id'        => (int)$r['id'],
+          'user_id'   => $hasUserId && isset($r['user_id']) ? (int)$r['user_id'] : null,
           'user_name' => (string)($r['user_name'] ?? ''),
           'body'      => (string)($r['body'] ?? ''),
         ];
