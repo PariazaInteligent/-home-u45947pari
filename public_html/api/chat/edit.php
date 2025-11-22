@@ -90,6 +90,14 @@ try {
         }
     }
 
+    // fallback pentru persistat „edited” dacă nu avem coloană dedicată
+    $hasEditTable = false;
+    try {
+        $hasEditTable = (bool)$pdo->query("SHOW TABLES LIKE 'chat_message_edits'")->fetch();
+    } catch (Throwable $e) {
+        $hasEditTable = false;
+    }
+
     // alege coloana de text disponibilă
     if ($has['message']) {
         $textColumn = 'message';
@@ -144,13 +152,52 @@ try {
         exit;
     }
 
+    $editedAtTs = time();
+
+    // dacă nu avem coloană edited_at, folosim un tabel helper pentru a marca editările
+    if (!$has['edited_at']) {
+        if (!$hasEditTable) {
+            try {
+                $pdo->exec(
+                    "CREATE TABLE IF NOT EXISTS chat_message_edits (
+                        message_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+                        edited_at DATETIME NOT NULL,
+                        editor_id BIGINT NULL,
+                        editor_name VARCHAR(255) NULL,
+                        KEY edited_at_idx (edited_at)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                );
+                $hasEditTable = true;
+            } catch (Throwable $e) {
+                // dacă nu putem crea tabelul, nu blocăm răspunsul
+            }
+        }
+
+        if ($hasEditTable) {
+            try {
+                $up = $pdo->prepare(
+                    "INSERT INTO chat_message_edits (message_id, edited_at, editor_id, editor_name)
+                     VALUES (:mid, FROM_UNIXTIME(:ts), :uid, :uname)
+                     ON DUPLICATE KEY UPDATE edited_at=VALUES(edited_at), editor_id=VALUES(editor_id), editor_name=VALUES(editor_name)"
+                );
+                $up->bindValue(':mid', $messageId, PDO::PARAM_INT);
+                $up->bindValue(':ts', $editedAtTs, PDO::PARAM_INT);
+                $up->bindValue(':uid', $userId, PDO::PARAM_INT);
+                $up->bindValue(':uname', $userName, PDO::PARAM_STR);
+                $up->execute();
+            } catch (Throwable $e) {
+                // fallback silențios dacă nu reușim să marcăm editarea
+            }
+        }
+    }
+
     echo json_encode([
         'ok' => true,
         'success' => true,
         'message_id' => $messageId,
         'text' => $newText,
         'edited' => true,
-        'edited_at' => $has['edited_at'] ? time() : null,
+        'edited_at' => $editedAtTs,
     ]);
 } catch (Throwable $e) {
     http_response_code(500);

@@ -48,6 +48,8 @@ $has = [
   'updated_at'  => false,
   
   'mentions_js' => false, // mentions_json
+  
+  'edit_table'  => false,
 ];
 try {
   $cols = $pdo->query("
@@ -67,6 +69,9 @@ try {
     
     if ($c === 'mentions_json') $has['mentions_js'] = true;
   }
+  
+  $has['edit_table'] = (bool)$pdo->query("SHOW TABLES LIKE 'chat_message_edits'")->fetch();
+  
 } catch (Throwable $e) {
   // fallback minimal
   $has['message'] = true;
@@ -80,10 +85,16 @@ $roomVal = $has['room'] ? 'global' : null;
 $selCols = "id,user_id,user_name,role,$textCol AS body,$tsExpr AS ts";
 if ($has['client_id']) $selCols .= ", client_id";
 
-if ($has['edited_at']) $selCols .= ", UNIX_TIMESTAMP(edited_at) AS edited_at";
+if ($has['edited_at']) {
+  $selCols .= ", UNIX_TIMESTAMP(edited_at) AS edited_at";
+} elseif ($has['edit_table']) {
+  $selCols .= ", UNIX_TIMESTAMP(e.edited_at) AS edited_at";
+}
 if ($has['updated_at']) $selCols .= ", UNIX_TIMESTAMP(updated_at) AS updated_at";
 
 if ($has['mentions_js']) $selCols .= ", mentions_json";
+
+$editedJoin = (!$has['edited_at'] && $has['edit_table']) ? " LEFT JOIN chat_message_edits e ON e.message_id = chat_messages.id" : "";
 
 // ——— util: encoder SSE ———
 $send = function(string $event, array $data, ?int $id=null) {
@@ -157,7 +168,7 @@ $lastPres = time() - $PRES_EVERY + 1;
 
 // ——— backlog inițial ———
 try {
-  $sql = "SELECT $selCols FROM chat_messages WHERE id > :last_id";
+  $sql = "SELECT $selCols FROM chat_messages$editedJoin WHERE id > :last_id";
   if ($has['room']) $sql .= " AND room = :room";
   $sql .= " ORDER BY id ASC LIMIT 200";
   $st = $pdo->prepare($sql);
@@ -267,7 +278,7 @@ while (true) {
   // mesaje noi (ASC)
   try {
     $sql = "SELECT $selCols
-            FROM chat_messages
+            FROM chat_messages$editedJoin
             WHERE id > :last_id";
     if ($has['room']) $sql .= " AND room = :room";
     $sql .= " ORDER BY id ASC LIMIT 200";

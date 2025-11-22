@@ -32,6 +32,8 @@ try {
   $hasUpdatedAt  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'updated_at'")->fetch();
   
   $hasMentionsJ  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'mentions_json'")->fetch();
+  
+  $hasMentionsJ  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'mentions_json'")->fetch();
 
   $textCol = $hasMsg ? 'message' : ($hasBody ? 'body' : null);
   if (!$textCol) { echo json_encode(['ok'=>false,'error'=>'no_text_column']); exit; }
@@ -42,10 +44,16 @@ try {
   $selCols = "id,user_id,user_name,role,$textCol AS body,$tsExpr AS ts";
   if ($hasCli)       $selCols .= ", client_id";
   
-  if ($hasEditedAt)  $selCols .= ", UNIX_TIMESTAMP(edited_at) AS edited_at";
+  if ($hasEditedAt) {
+    $selCols .= ", UNIX_TIMESTAMP(edited_at) AS edited_at";
+  } elseif ($hasEditTable) {
+    $selCols .= ", UNIX_TIMESTAMP(e.edited_at) AS edited_at";
+  }
   if ($hasUpdatedAt) $selCols .= ", UNIX_TIMESTAMP(updated_at) AS updated_at";
   
   if ($hasMentionsJ) $selCols .= ", mentions_json";
+  
+  $editedJoin = (!$hasEditedAt && $hasEditTable) ? " LEFT JOIN chat_message_edits e ON e.message_id = chat_messages.id" : "";
 
   $roomWhere = $hasRoom ? " AND room='global'" : "";
 
@@ -54,7 +62,7 @@ try {
   if ($sinceId > 0) {
     // mesaje mai noi decât since_id (ASC)
     $sql = "SELECT $selCols
-            FROM chat_messages
+            FROM chat_messages$editedJoin
             WHERE id > :id$roomWhere
             ORDER BY id ASC
             LIMIT :lim";
@@ -67,7 +75,7 @@ try {
     // mesaje mai vechi decât before_id, întoarse ASC
     $sql = "SELECT * FROM (
               SELECT $selCols
-              FROM chat_messages
+              FROM chat_messages$editedJoin
               WHERE id < :bid$roomWhere
               ORDER BY id DESC
               LIMIT :lim
@@ -80,7 +88,7 @@ try {
   } elseif ($aroundId > 0) {
     // fereastră în jurul unui ID (±window), totul ASC
     $olderSql = "SELECT $selCols
-                 FROM chat_messages
+                 FROM chat_messages$editedJoin
                  WHERE id < :aid$roomWhere
                  ORDER BY id DESC
                  LIMIT :win";
@@ -97,7 +105,7 @@ try {
     $older = $stO->fetchAll();
     $older = array_reverse($older); // înapoi la ASC
 
-    $stC = $pdo->prepare("SELECT $selCols FROM chat_messages WHERE id=:aid".($hasRoom?" AND room='global'":"")." LIMIT 1");
+    $stC = $pdo->prepare("SELECT $selCols FROM chat_messages$editedJoin WHERE id=:aid".($hasRoom?" AND room='global'":"")." LIMIT 1");
     $stC->bindValue(':aid', $aroundId, PDO::PARAM_INT);
     $stC->execute();
     $center = $stC->fetchAll();
@@ -113,7 +121,7 @@ try {
     // ultimele „limit” mesaje (ASC)
     $sql = "SELECT * FROM (
               SELECT $selCols
-              FROM chat_messages
+              FROM chat_messages$editedJoin
               ".($hasRoom ? "WHERE room='global'" : "")."
               ORDER BY id DESC
               LIMIT :lim
