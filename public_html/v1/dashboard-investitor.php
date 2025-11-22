@@ -90,6 +90,7 @@ $uid = (int)($me['id'] ?? 0);
   .chat-sep{display:flex;align-items:center;justify-content:center;margin:.5rem 0}
   .chat-sep>span{font-size:11px;padding:2px 10px;border-radius:9999px;
     border:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.85);color:#94a3b8}
+    .chat-stack{grid-template-columns:1fr!important}
 
   .msg-compact .meta{display:none}              /* ascunde headerul repetitiv */
   .msg .bubble{border-radius:1rem}
@@ -449,7 +450,7 @@ $uid = (int)($me['id'] ?? 0);
           </div>
         </div>
 
-         <div class="grid lg:grid-cols-[2fr,1fr] gap-4">
+         <div class="grid lg:grid-cols-[2fr,1fr] gap-4 chat-stack">
           <div class="space-y-2">
             <div id="chatFeed" class="h-[51vh] overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
             <div id="mentionToast" aria-live="polite"></div>
