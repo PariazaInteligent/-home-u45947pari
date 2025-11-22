@@ -9,3 +9,18 @@
 [08-Nov-2025 20:11:42 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/u45947pari/public_html/v1/dashboard-investitor.php:1) in /home/u45947pari/public_html/v1/dashboard-investitor.php on line 511
 [08-Nov-2025 20:11:42 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/u45947pari/public_html/v1/dashboard-investitor.php:1) in /home/u45947pari/public_html/v1/dashboard-investitor.php on line 512
 [08-Nov-2025 20:11:42 UTC] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/u45947pari/public_html/v1/dashboard-investitor.php:1) in /home/u45947pari/public_html/v1/dashboard-investitor.php on line 518
+[22-Nov-2025 12:32:54 UTC] PHP Warning:  require(/home/u45947pari/public_html/v1/../_redis.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/v1/dashboard-investitor.php on line 3
+[22-Nov-2025 12:32:54 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/v1/../_redis.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/v1/dashboard-investitor.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/v1/dashboard-investitor.php on line 3
+[22-Nov-2025 12:32:59 UTC] PHP Warning:  require(/home/u45947pari/public_html/v1/../_redis.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/v1/dashboard-investitor.php on line 3
+[22-Nov-2025 12:32:59 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/v1/../_redis.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/v1/dashboard-investitor.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/v1/dashboard-investitor.php on line 3
+[22-Nov-2025 12:39:46 UTC] PHP Warning:  require(/home/u45947pari/public_html/v1/../_redis.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/v1/dashboard-investitor.php on line 3
+[22-Nov-2025 12:39:46 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/v1/../_redis.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/v1/dashboard-investitor.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/v1/dashboard-investitor.php on line 3

@@ -37,3 +37,4 @@ messages_*=/home/u45947pari/public_html/api/messages_*
 utils.1=/home/u45947pari/public_html/utils
 Base64Url.php=/home/u45947pari/public_html/lib/webauthn/Binary/Base64Url.php
 user=/home/u45947pari/public_html/api/user
+.cagefs.zip=/home/u45947pari/.cagefs.zip

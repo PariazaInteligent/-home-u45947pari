@@ -1,30 +1,155 @@
 <?php
 // /api/chat/fetch.php
+// GET: limit?, since_id?, before_id?, around_id?, window?
+// Răspuns: { ok:bool, items:[{id,user_id,user_name,role,body,ts(,client_id)?,(mentions)?}] }
 declare(strict_types=1);
-session_start();
 header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
-require __DIR__.'/../db.php'; // $pdo
-$sinceId  = max(0, (int)($_GET['since_id'] ?? 0));
-$beforeId = max(0, (int)($_GET['before_id'] ?? 0));
-$limit    = min(200, max(1, (int)($_GET['limit'] ?? 50)));
+session_start();
+$me = $_SESSION['user'] ?? null;
+if (!$me) { http_response_code(401); echo json_encode(['ok'=>false,'error'=>'auth']); exit; }
+session_write_close();
 
-if ($beforeId > 0) {
-  // Încărcare lazy (mesaje mai vechi decât before_id)
-  $stmt = $pdo->prepare('SELECT id,user_id,user_name,role,body,UNIX_TIMESTAMP(created_at) AS ts FROM (
-      SELECT * FROM chat_messages WHERE id < ? ORDER BY id DESC LIMIT ?
-    ) t ORDER BY id ASC');
-  $stmt->execute([$beforeId, $limit]);
-} elseif ($sinceId > 0) {
-  $stmt = $pdo->prepare('SELECT id,user_id,user_name,role,body,UNIX_TIMESTAMP(created_at) AS ts FROM chat_messages WHERE id>? ORDER BY id ASC LIMIT ?');
-  $stmt->execute([$sinceId, $limit]);
-} else {
-  // ultimele N pentru bootstrap
-  $stmt = $pdo->prepare('SELECT id,user_id,user_name,role,body,UNIX_TIMESTAMP(created_at) AS ts FROM (
-      SELECT * FROM chat_messages ORDER BY id DESC LIMIT ?
-    ) t ORDER BY id ASC');
-  $stmt->execute([$limit]);
+$limit    = max(1, min(100, (int)($_GET['limit'] ?? 50)));
+$sinceId  = (int)($_GET['since_id']  ?? 0);
+$beforeId = (int)($_GET['before_id'] ?? 0);
+$aroundId = (int)($_GET['around_id'] ?? 0);
+$window   = max(1, min(200, (int)($_GET['window'] ?? 30)));
+
+try {
+  require __DIR__ . '/../db.php'; // $pdo
+  $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+  $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+  // ——— detectăm coloane dinamice ———
+  $hasRoom       = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'room'")->fetch();
+  $hasMsg        = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'message'")->fetch();
+  $hasBody       = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'body'")->fetch();
+  $hasCli        = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'client_id'")->fetch();
+  $hasCreatedAt  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'created_at'")->fetch();
+  $hasMentionsJ  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'mentions_json'")->fetch();
+
+  $textCol = $hasMsg ? 'message' : ($hasBody ? 'body' : null);
+  if (!$textCol) { echo json_encode(['ok'=>false,'error'=>'no_text_column']); exit; }
+
+  $tsExpr = $hasCreatedAt ? "UNIX_TIMESTAMP(created_at)" : "UNIX_TIMESTAMP(NOW())";
+
+  // coloană SELECT comună
+  $selCols = "id,user_id,user_name,role,$textCol AS body,$tsExpr AS ts";
+  if ($hasCli)       $selCols .= ", client_id";
+  if ($hasMentionsJ) $selCols .= ", mentions_json";
+
+  $roomWhere = $hasRoom ? " AND room='global'" : "";
+
+  $items = [];
+
+  if ($sinceId > 0) {
+    // mesaje mai noi decât since_id (ASC)
+    $sql = "SELECT $selCols
+            FROM chat_messages
+            WHERE id > :id$roomWhere
+            ORDER BY id ASC
+            LIMIT :lim";
+    $st = $pdo->prepare($sql);
+    $st->bindValue(':id',  $sinceId, PDO::PARAM_INT);
+    $st->bindValue(':lim', $limit,   PDO::PARAM_INT);
+    $st->execute();
+    $items = $st->fetchAll();
+  } elseif ($beforeId > 0) {
+    // mesaje mai vechi decât before_id, întoarse ASC
+    $sql = "SELECT * FROM (
+              SELECT $selCols
+              FROM chat_messages
+              WHERE id < :bid$roomWhere
+              ORDER BY id DESC
+              LIMIT :lim
+            ) t ORDER BY t.id ASC";
+    $st = $pdo->prepare($sql);
+    $st->bindValue(':bid', $beforeId, PDO::PARAM_INT);
+    $st->bindValue(':lim', $limit,    PDO::PARAM_INT);
+    $st->execute();
+    $items = $st->fetchAll();
+  } elseif ($aroundId > 0) {
+    // fereastră în jurul unui ID (±window), totul ASC
+    $olderSql = "SELECT $selCols
+                 FROM chat_messages
+                 WHERE id < :aid$roomWhere
+                 ORDER BY id DESC
+                 LIMIT :win";
+    $newerSql = "SELECT $selCols
+                 FROM chat_messages
+                 WHERE id > :aid$roomWhere
+                 ORDER BY id ASC
+                 LIMIT :win";
+
+    $stO = $pdo->prepare($olderSql);
+    $stO->bindValue(':aid', $aroundId, PDO::PARAM_INT);
+    $stO->bindValue(':win', $window,   PDO::PARAM_INT);
+    $stO->execute();
+    $older = $stO->fetchAll();
+    $older = array_reverse($older); // înapoi la ASC
+
+    $stC = $pdo->prepare("SELECT $selCols FROM chat_messages WHERE id=:aid".($hasRoom?" AND room='global'":"")." LIMIT 1");
+    $stC->bindValue(':aid', $aroundId, PDO::PARAM_INT);
+    $stC->execute();
+    $center = $stC->fetchAll();
+
+    $stN = $pdo->prepare($newerSql);
+    $stN->bindValue(':aid', $aroundId, PDO::PARAM_INT);
+    $stN->bindValue(':win', $window,   PDO::PARAM_INT);
+    $stN->execute();
+    $newer = $stN->fetchAll();
+
+    $items = array_values(array_merge($older, $center, $newer));
+  } else {
+    // ultimele „limit” mesaje (ASC)
+    $sql = "SELECT * FROM (
+              SELECT $selCols
+              FROM chat_messages
+              ".($hasRoom ? "WHERE room='global'" : "")."
+              ORDER BY id DESC
+              LIMIT :lim
+            ) t ORDER BY t.id ASC";
+    $st = $pdo->prepare($sql);
+    $st->bindValue(':lim', $limit, PDO::PARAM_INT);
+    $st->execute();
+    $items = $st->fetchAll();
+  }
+
+  // ——— normalizează mențiunile (doar dacă avem mentions_json în schemă) ———
+  if ($hasMentionsJ && $items) {
+    foreach ($items as &$m) {
+      if (!array_key_exists('mentions_json', $m)) continue;
+      $raw = $m['mentions_json'];
+      unset($m['mentions_json']);
+      if ($raw === null || $raw === '') continue;
+
+      $mj = json_decode((string)$raw, true);
+      if (!is_array($mj)) continue;
+
+      $ids   = array_values(array_map('intval', (array)($mj['ids']   ?? [])));
+      $names = array_values(array_map(function($x){ return trim((string)$x); }, (array)($mj['names'] ?? [])));
+
+      // mapare 1:1 pe index, dacă există
+      $out = [];
+      $n = max(count($ids), count($names));
+      for ($i=0; $i<$n; $i++){
+        $out[] = [
+          'user_id' => $ids[$i]   ?? null,
+          'name'    => $names[$i] ?? null,
+        ];
+      }
+      // elimină intrările complet goale
+      $out = array_values(array_filter($out, function($r){
+        return !($r['user_id']===null && ($r['name']===null || $r['name']===''));
+      }));
+      if ($out) $m['mentions'] = $out;
+    }
+    unset($m);
+  }
+
+  echo json_encode(['ok'=>true,'items'=>$items]);
+} catch (Throwable $e) {
+  http_response_code(200);
+  echo json_encode(['ok'=>false,'error'=>'server_error','hint'=>$e->getMessage()]);
 }
-
-echo json_encode(['ok'=>true,'items'=>$stmt->fetchAll(PDO::FETCH_ASSOC)]);

@@ -6,6 +6,13 @@ session_start();
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
+// CSRF token pentru Chat Comunitate
+if (empty($_SESSION['csrf_token_chat'])) {
+  $_SESSION['csrf_token_chat'] = bin2hex(random_bytes(32));
+}
+$csrfChat = $_SESSION['csrf_token_chat'];
+
+
 $me   = $_SESSION['user'] ?? null;
 $role = strtoupper($me['role'] ?? 'GUEST');
 
@@ -33,6 +40,8 @@ if ($name === '') {
   }
 }
 if ($name === '') $name = 'Investitor';
+
+$uid = (int)($me['id'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="ro" data-theme="dark">
@@ -64,11 +73,216 @@ if ($name === '') $name = 'Investitor';
     #dateRange option:checked{ background-color: rgba(56,189,248,.25); color: #e2e8f0; }
     #dateRange:focus{ outline: none; box-shadow: 0 0 0 3px rgba(34,211,238,.25); border-color: rgba(34,211,238,.6); }
     .modal{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(2,6,23,.7); backdrop-filter: blur(6px) }
+    
+    /* Chat optimistic */
+    .msg-pending { opacity: .75; }
+    .msg-failed  { border-color: rgba(244,63,94,.35) !important; }
+    .msg-status  { font-size: 11px; color: #94a3b8; }
+
+    .btn-spin{ width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
+      border-top-color:#06b6d4;border-radius:9999px;display:inline-inline;vertical-align:-2px;
+      margin-right:.5rem; animation: btnspin .8s linear infinite; }
+    @keyframes btnspin { to { transform: rotate(360deg); } }
   </style>
+  
+  <style>
+  /* chat — separatoare pe zile + colțuri „lipite” și meta ascunsă la grupare */
+  .chat-sep{display:flex;align-items:center;justify-content:center;margin:.5rem 0}
+  .chat-sep>span{font-size:11px;padding:2px 10px;border-radius:9999px;
+    border:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.85);color:#94a3b8}
+
+  .msg-compact .meta{display:none}              /* ascunde headerul repetitiv */
+  .msg .bubble{border-radius:1rem}
+  .bubble-join-top{border-top-left-radius:.5rem!important;border-top-right-radius:.5rem!important}
+  .bubble-join-bottom{border-bottom-left-radius:.5rem!important;border-bottom-right-radius:.5rem!important}
+  </style>
+
+  <style>
+  /* --- mentions highlight + tab/filtru + clopoțel + toast --- */
+  .mention{display:inline-block;padding:0 6px;border-radius:8px;border:1px solid rgba(56,189,248,.28);
+    background:rgba(56,189,248,.14);color:#e6f9ff}
+  .mention-me{border-color:rgba(16,185,129,.42);background:rgba(16,185,129,.18);color:#d1fae5}
+
+  .mention-chip{
+    display:inline-block;padding:0 .35rem;border-radius:.5rem;
+    background:linear-gradient(135deg,#22d3ee66,#60a5fa33);
+    border:1px solid rgba(255,255,255,.12); font-weight:600;
+  }
+  /* filtrare vizuală pe tab-ul „mențiuni” */
+  .view-mentions .msg:not(.has-mention){ display:none }
+  .view-mentions .chat-sep{ display:none }
+
+  /* clopoțel mențiuni */
+  #mentionBell{ position:relative }
+  #mentionBell .dot{
+    position:absolute; top:-6px; right:-6px; min-width:22px; height:22px;
+    padding:0 6px; border-radius:9999px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,#2563eb,#06b6d4); color:#0b1220; font-size:12px; font-weight:800;
+    box-shadow:0 8px 24px rgba(14,165,233,.25), inset 0 0 0 1px rgba(255,255,255,.6);
+  }
+
+  /* toast */
+    /* container toasts – coloană bottom-right, crește în sus */
+  #mentionToast{
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    z-index: 40;
+    pointer-events: none;
+
+    display: flex;
+    flex-direction: column;   /* cardurile sunt una sub alta */
+    align-items: flex-end;    /* toate aliniate la dreapta */
+    gap: 8px;                 /* distanță între carduri */
+  }
+
+  /* card toast – fără margin, ca să lăsăm flex-gap-ul să lucreze */
+  .toast-card{
+    backdrop-filter: blur(6px);
+    background: linear-gradient(135deg, rgba(2,6,23,.85), rgba(2,6,23,.75));
+    border: 1px solid rgba(255,255,255,.1);
+    color: #e5e7eb;
+    border-radius: 16px;
+    padding: 10px 12px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.04);
+
+    margin: 0;                      /* important pentru stacking curat */
+    transform-origin: bottom right; /* animația pare să vină din colț */
+    animation: toastIn .25s ease-out;
+  }
+
+  .toast-card .icon{
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg,#2563eb,#06b6d4,#14b8a6);
+    color: #0b1220;
+    font-weight: 900;
+  }
+
+  /* animație puțin mai „smooth” pentru stacking */
+  @keyframes toastIn{
+    from{
+      transform: translateY(8px) scale(.97);
+      opacity: 0;
+    }
+    to{
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+
+  .toast-card .icon{
+    width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,#2563eb,#06b6d4,#14b8a6); color:#0b1220; font-weight:900;
+  }
+  
+    /* variante vizuale pentru tipurile de toast */
+  .toast-card.toast-info{
+    border-color: rgba(56,189,248,.45);
+    background: linear-gradient(135deg, rgba(15,23,42,.96), rgba(8,47,73,.96));
+  }
+  .toast-card.toast-info .icon{
+    background: linear-gradient(135deg,#0ea5e9,#22c55e);
+    color:#0b1120;
+  }
+
+  .toast-card.toast-error{
+    border-color: rgba(248,113,113,.6);
+    background: linear-gradient(135deg, rgba(127,29,29,.96), rgba(15,23,42,.96));
+  }
+  .toast-card.toast-error .icon{
+    background: linear-gradient(135deg,#fb7185,#f97373);
+    color:#111827;
+  }
+
+  .toast-card.toast-success{
+    border-color: rgba(34,197,94,.6);
+    background: linear-gradient(135deg, rgba(5,46,22,.96), rgba(6,78,59,.96));
+  }
+  .toast-card.toast-success .icon{
+    background: linear-gradient(135deg,#22c55e,#14b8a6);
+    color:#022c22;
+  }
+
+
+  /* floating suggestions panel (fixed, ancorat la input via getBoundingClientRect) */
+  #piMentionPanel{position:fixed;z-index:70;min-width:240px;max-width:420px;max-height:40vh;overflow:auto;
+    background:rgba(2,6,23,.96);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:6px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
+  .pi-mention-item{width:100%;text-align:left;border:1px solid transparent;border-radius:10px;padding:8px 10px;
+    color:#e5e7eb}
+  .pi-mention-item:hover,.pi-mention-item[aria-selected="true"]{background:rgba(56,189,248,.10);
+    border-color:rgba(56,189,248,.20)}
+  .pi-mention-meta{font-size:11px;color:#94a3b8}
+  </style>
+  
+  <style>
+/* — reactions — */
+.rx-summary{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.35rem}
+.rx-pill{display:inline-flex;align-items:center;gap:.35rem;padding:.15rem .45rem;border-radius:9999px;
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;line-height:1;
+  cursor:pointer;user-select:none}
+.rx-pill[data-mine="1"]{border-color:rgba(56,189,248,.45);background:rgba(56,189,248,.10)}
+.rx-picker{position:absolute;z-index:60;display:flex;gap:.35rem;padding:.35rem .45rem;border-radius:14px;
+  background:rgba(2,6,23,.96);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.rx-picker button{font-size:18px;line-height:1;border-radius:10px;padding:.25rem .35rem}
+.rx-picker button:hover{background:rgba(255,255,255,.08)}
+.rx-trigger{opacity:.0;transition:opacity .15s ease; font-size:12px; margin-left:.25rem; cursor:pointer}
+.msg:hover .rx-trigger{opacity:.8}
+@media (hover:none){ .rx-trigger{opacity:.8} }
+</style>
+
+<style>
+  /* chat: păstrează liniile noi din mesaj */
+  #chatFeed .bubble [data-body]{
+    white-space: pre-wrap;   /* respectă \n ca line-break */
+    overflow-wrap: anywhere; /* rupe cuvinte foarte lungi */
+  }
+</style>
+
+<style>
+  /* composer aerisit */
+  .composer-wrap{
+    position: sticky; bottom: 0; z-index: 10;
+    padding-top: .5rem;
+    background: linear-gradient(180deg, rgba(2,6,23,0) 0%, rgba(2,6,23,.65) 30%, rgba(2,6,23,.85) 100%);
+    backdrop-filter: blur(6px);
+  }
+  #chatInput{
+    white-space: pre-wrap;           /* păstrează \n */
+    line-height: 1.5;
+    min-height: 44px;                /* confort minim */
+    max-height: 30vh;                /* nu depășește 30% din ecran */
+    resize: none;                    /* controlăm din js */
+    overflow-y: auto;                /* apare scroll doar când trebuie */
+  }
+  #charCount{
+    font-size: 11px; color:#94a3b8;
+  }
+  /* un pic mai „pufos” pentru accesibilitate */
+  .btn-send{ height: 44px; }
+  @media (min-width: 768px){
+    #chatInput{ min-height: 48px }
+    .btn-send{ height: 48px }
+  }
+</style>
+
 </head>
+
 <body class="min-h-screen bg-slate-950 text-slate-100"
       data-role="<?= e($role) ?>"
-      data-user-name="<?= e($name) ?>">
+      data-user-id="<?= e((string)$uid) ?>"
+      data-user-name="<?= e($name) ?>"
+      data-csrf-chat="<?= e($csrfChat) ?>">
+
 
   <!-- Gate client-side (fallback) -->
   <script>
@@ -212,45 +426,40 @@ if ($name === '') $name = 'Investitor';
       <!-- Chat Comunitate -->
       <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" data-widget-id="chat">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold">Chat Comunitate</h2>
-          <span id="chatLive" class="badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30">live</span>
-        </div>
-        
-         <form id="chatSearchForm" class="mb-2 flex items-center gap-2 text-xs">
-          <input id="chatSearchInput" autocomplete="off" maxlength="120"
-                 class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus:border-cyan-400/60 focus:outline-none"
-                 placeholder="Caută în arhivă (minim 2 caractere)…" />
-          <button type="submit"
-                  class="rounded-xl px-3 py-2 border border-white/10 hover:border-cyan-400/40 text-[11px] uppercase tracking-wide text-slate-300">Caută</button>
-        </form>
-
-        <div id="chatSearchResults" class="hidden rounded-xl border border-white/10 bg-slate-900/60 p-3 text-xs space-y-2">
-          <div class="flex items-center justify-between gap-3 text-[11px] uppercase tracking-wide text-slate-400">
-            <span id="chatSearchMeta"></span>
-            <button type="button" id="chatSearchClose" class="text-slate-500 hover:text-slate-200 transition"><i class="fa-solid fa-xmark"></i></button>
+          <div class="flex items-center gap-3">
+            <h2 class="font-semibold">Chat Comunitate</h2>
+            <div class="hidden md:flex items-center gap-1 text-xs border border-white/10 rounded-xl p-1">
+              <button id="tabAll"  type="button" class="px-2 py-1 rounded-lg bg-white/5">toate</button>
+              <button id="tabMent" type="button" class="px-2 py-1 rounded-lg hover:bg-white/5">mențiuni</button>
+            </div>
           </div>
-          <div id="chatSearchItems" class="max-h-36 overflow-y-auto nice-scroll space-y-2"></div>
+          <div class="flex items-center gap-2">
+            <button id="mentionBell" type="button" class="rounded-xl px-2 py-1 border border-white/10 hover:border-white/20" title="mențiunile tale">
+              <i class="fa-solid fa-bell"></i>
+
+              <span class="dot hidden" id="mentionDot">0</span>
+            </button>
+            <span id="chatLive" class="badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30">live</span>
+          </div>
         </div>
 
-        <div id="chatFeed" class="h-48 overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
+        <div id="chatFeed" class="h-[51vh] overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
+        <div id="mentionToast" aria-live="polite"></div>
 
         <form id="chatForm" class="mt-3 flex items-center gap-2">
-          <input id="chatInput" maxlength="500" autocomplete="off"
+          <input id="chatInput" maxlength="1000" autocomplete="off"
                 class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
-                placeholder="Scrie un mesaj (max 500 caractere)…" />
+                placeholder="Scrie un mesaj (max 1000 caractere)…" />
           <button id="chatSend" type="submit"
                 class="rounded-xl px-3 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 text-sm font-semibold">
-             <span class="inline-flex items-center gap-2">
-              <i class="fa-solid fa-circle-notch fa-spin hidden" aria-hidden="true" data-spin></i>
-              <span data-label>Trimite</span>
-            </span>
+            Trimite
           </button>
         </form>
 
         <div id="chatHint" class="mt-2 text-[11px] text-slate-500">Respectă comunitatea. Anti-spam activ (3s între mesaje).</div>
       </section>
 
-      <!-- Grafice (mock pentru vizual) -->
+      <!-- Grafice -->
       <section class="xl:col-span-2 card-hover rounded-2xl border border-white/10 bg-white/5 p-5" data-widget-id="profitChart">
         <div class="flex items-center justify-between mb-3">
           <h2 class="font-semibold">Evoluție Profit</h2>
@@ -269,7 +478,7 @@ if ($name === '') $name = 'Investitor';
         <div id="chartFundEmpty" class="hidden text-sm text-slate-400 mt-3">Nu există date pentru perioada selectată.</div>
       </section>
 
-      <!-- Tranzacții (mock) -->
+      <!-- Tranzacții -->
       <section class="xl:col-span-2 card-hover rounded-2xl border border-white/10 bg-white/5 p-5" data-widget-id="tx">
         <div class="flex items-center justify-between mb-3">
           <h2 class="font-semibold">Tranzacții recente</h2>
@@ -956,7 +1165,6 @@ if ($name === '') $name = 'Investitor';
       const sel = document.getElementById('dateRange');
       if (sel) sel.value = 'all';
       refreshAll();
-      document.getElementById('chatFeed').innerHTML = ''; // fără mesaje demo
     });
   </script>
 
@@ -1017,806 +1225,2222 @@ if ($name === '') $name = 'Investitor';
   </script>
   <!-- /PI — Procesare medie (Widget) -->
 
-   <!-- Chat Comunitate (SSE single-instance + dedup + lazy history + search) -->
   <script>
-  (function(){
-    const feed  = document.getElementById('chatFeed');
-    const form  = document.getElementById('chatForm');
-    const input = document.getElementById('chatInput');
-    const btn   = document.getElementById('chatSend');
-    const liveB = document.getElementById('chatLive');
-    const searchForm   = document.getElementById('chatSearchForm');
-    const searchInput  = document.getElementById('chatSearchInput');
-    const searchResults = document.getElementById('chatSearchResults');
-    const searchMeta   = document.getElementById('chatSearchMeta');
-    const searchItems  = document.getElementById('chatSearchItems');
-    const searchClose  = document.getElementById('chatSearchClose');
-    const searchSubmit = searchForm ? searchForm.querySelector('button[type="submit"]') : null;
-    if(!feed || !form) return;
+(function () {
+  const host = document.getElementById('mentionToast');
+  if (!host) return;
 
-    const meName = document.body.dataset.userName || 'Investitor';
-    const meRole = (document.body.dataset.role || 'USER').toUpperCase();
-    let lastId = +(sessionStorage.getItem('chat:lastId') || 0);
-    let oldestId = null;
-    let loadingOlder = false;
-    let olderEnd = false;
-    let sse = null;
-    let pollTimer = null;
-    let searchAbort = null;
-    const POLL_MS = 4000;
-     const PAGE_LIMIT = 50;
-    const SEEN = new Set();            // dedup sigur
-    const pendingByClient = new Map();
-    const pendingByServer = new Map();
-    const NF_TIME = new Intl.DateTimeFormat('ro-RO',{hour:'2-digit',minute:'2-digit'});
-    const NF_DATE = new Intl.DateTimeFormat('ro-RO',{dateStyle:'short',timeStyle:'short'});
-    const btnSpin  = btn?.querySelector('[data-spin]');
-    const btnLabel = btn?.querySelector('[data-label]');
+  const TOAST_STATE = {
+    max: 3,          // nr. maxim de toast-uri simultane
+    items: []        // { elem }
+  };
 
-    function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
-    function atBottom(){ return Math.abs(feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 6; }
-    function scrollBottom(){ feed.scrollTo({top:feed.scrollHeight, behavior:'smooth'}); }
+  window.showToast = function showToast(kind, text, opts) {
+    kind = kind || 'info';
+    const cfg = opts || {};
+    const ttl = cfg.ttl || (kind === 'error' ? 5000 : 3000);
 
-    function setSeen(id){
-      if (!id) return;
-      if (SEEN.has(id)) return;
-      SEEN.add(id);
-      if (SEEN.size > 5000) {
-        let n = 0;
-        for (const x of SEEN){ SEEN.delete(x); if(++n>=1000) break; }
-      }
+    if (!text) return;
+
+    // dacă sunt prea multe, ștergem cele mai vechi
+    while (TOAST_STATE.items.length >= TOAST_STATE.max) {
+      const old = TOAST_STATE.items.shift();
+      if (old && old.elem) old.elem.remove();
     }
 
-    function matchPending(m){
-      if (!m) return null;
-      const mid = m.id|0;
-      if (mid && pendingByServer.has(mid)) {
-        const entry = pendingByServer.get(mid);
-        if (entry && !entry.resolved) return entry;
-      }
-      for (const entry of pendingByClient.values()) {
-        if (entry.resolved) continue;
-        if ((entry.data.body || '') === (m.body || '') && (entry.data.user_name || '') === (m.user_name || '')) {
-          if (mid) {
-            entry.serverId = mid;
-            pendingByServer.set(mid, entry);
-          }
-          return entry;
-        }
-      }
-      return null;
+    const card = document.createElement('div');
+    card.className = 'toast-card';
+    card.dataset.kind = kind;
+    card.innerHTML = `
+      <div class="icon">${kind === 'error' ? '⚠️' : kind === 'success' ? '✔️' : 'ℹ️'}</div>
+      <div class="text-sm">${text}</div>
+    `;
+
+    host.appendChild(card);
+    TOAST_STATE.items.push({ elem: card });
+
+    setTimeout(() => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(8px)';
+      setTimeout(() => {
+        card.remove();
+        TOAST_STATE.items = TOAST_STATE.items.filter(x => x.elem !== card);
+      }, 220);
+    }, ttl);
+  };
+})();
+</script>
+
+
+<!-- Chat Comunitate (SSE + dedup + optimistic + lazy-load gated + search + presence + typing + day-seps + grouping + mentions + reactions + shift+enter + char-counter, fără buton Trimite) -->
+<script>
+(function(){
+  // împiedică browserul să păstreze poziția de scroll la refresh
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch(_) {}
+
+  const feed  = document.getElementById('chatFeed');
+  const form  = document.getElementById('chatForm');
+  let   input = document.getElementById('chatInput');   // poate fi input sau textarea
+  let   btn   = document.getElementById('chatSend');     // poate lipsi (îl eliminăm)
+  const liveB = document.getElementById('chatLive');
+  if (!feed || !form) return;
+    const csrfToken = document.body.dataset.csrfChat || '';
+      // expunem csrf-ul și global, dacă vrei să-l folosești în alte scripturi
+  window.PI_CSRF = csrfToken;
+
+
+
+  // fără buton: dacă există în markup, îl eliminăm ca să economisim spațiu
+  if (btn) { btn.remove(); btn = null; }
+
+  /* ——— upgrade: transformă input text în textarea pentru suport linii noi ——— */
+  function upgradeToTextarea(el){
+    if (!el || el.tagName === 'TEXTAREA') return el;
+    const ta = document.createElement('textarea');
+    ta.id = el.id;
+    ta.name = el.name || 'message';
+    ta.className = el.className || '';
+    ta.placeholder = el.placeholder || '';
+    ta.rows = 1;
+    ta.autocomplete = 'off';
+    ta.spellcheck = el.spellcheck ?? true;
+    ta.value = el.value || '';
+    // stil minim pt auto-resize
+    ta.style.resize = 'none';
+    ta.style.overflowY = 'auto';
+    ta.style.maxHeight = '9rem';
+    el.replaceWith(ta);
+    return ta;
+  }
+  input = upgradeToTextarea(input);
+
+  /* ——— feature flags ——— */
+  const FLAGS = { reactions: true };
+
+  /* ——— limite & contor caractere ——— */
+  const MAX_CHARS = 1000;
+
+  // overlay contor + hint „enter trimite”
+  function ensureCharCounter(){
+    // wrapper relativ pt overlay
+    if (!input.parentElement.classList.contains('pi-input-wrap')){
+      const wrap = document.createElement('div');
+      wrap.className = 'pi-input-wrap';
+      wrap.style.position = 'relative';
+      wrap.style.width = '100%';
+      input.parentNode.insertBefore(wrap, input);
+      wrap.appendChild(input);
     }
+    // confort vizual
+    input.style.lineHeight    = '1.4';
+    input.style.paddingTop    = '10px';
+    input.style.paddingBottom = '10px';
+    input.style.paddingRight  = '9.5rem'; // loc pt overlay
 
-    function finalizePending(entry, official){
-      if (!entry) return;
-      entry.resolved = true;
-      entry.data = official || entry.data;
-      entry.el.dataset.pending = '0';
-      if (official && official.id) {
-        entry.el.dataset.msgId = String(official.id);
-      }
-      if (entry.bubble) {
-        entry.bubble.classList.remove('border-amber-400/40','bg-amber-500/10');
-      }
-      if (entry.pendingEl) {
-        entry.pendingEl.remove();
-        entry.pendingEl = null;
-      }
-      if (entry.timeEl) {
-        const ts = official && Number(official.ts) ? Number(official.ts) : (entry.timeEl.dataset.localTs ? Number(entry.timeEl.dataset.localTs) : Date.now()/1000);
-        entry.timeEl.textContent = NF_TIME.format(new Date(ts*1000));
-      }
-      if (entry.bodyEl && official) {
-        entry.bodyEl.textContent = official.body || '';
-      }
-      if (official && official.id) {
-        pendingByServer.delete(official.id);
-      }
-      pendingByClient.delete(entry.clientId);
+    let c = document.getElementById('chatCharCounter');
+    if (!c){
+      c = document.createElement('div');
+      c.id = 'chatCharCounter';
+      c.className = 'pi-char-counter text-xs text-slate-400';
+      c.style.position = 'absolute';
+      c.style.right    = '12px';
+      c.style.bottom   = '8px';
+      c.style.display  = 'flex';
+      c.style.gap      = '10px';
+      c.style.fontSize = '11px';
+      c.style.color    = '#94a3b8';
+      c.style.pointerEvents = 'none';
+      c.innerHTML = `
+        <span id="charCountVal">0</span>/<span>${MAX_CHARS}</span>
+        <span>enter = trimite</span><span>shift+enter = linie nouă</span>`;
+      input.parentElement.appendChild(c);
     }
+    return c;
+  }
+  const counterEl = ensureCharCounter();
+  const countVal  = counterEl.querySelector('#charCountVal');
 
-    function buildRow(m){
-      const id = m.id|0;
-      if (id && SEEN.has(id)) return null;
-      if (id) {
-        SEEN.add(id);
-        if (SEEN.size > 5000) {
-          let n = 0;
-          for (const x of SEEN){ SEEN.delete(x); if(++n>=1000) break; }
-        }
-        if (oldestId === null || id < oldestId) oldestId = id;
-        if (id > lastId) {
-          lastId = id;
-          sessionStorage.setItem('chat:lastId', String(lastId));
-        }
-      }
-      const mine = (m.user_name === meName);
-      const row = document.createElement('div');
-      row.className = 'w-full flex ' + (mine ? 'justify-end' : 'justify-start');
-      if (id) row.dataset.chatId = String(id);
-        const badge = m.role === 'ADMIN'
-        ? '<span class="badge bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 ml-2">Admin</span>'
-        : '';
+  function updateCounter(){
+    const len = (input.value || '').length;
+    countVal.textContent = String(len);
+    const over = len > MAX_CHARS;
+    counterEl.classList.toggle('text-rose-400', over);
+    // fără buton: nimic de dezactivat; validăm la submit
+    if (btn){
+      const busy = btn.dataset.busy === '1';
+      btn.disabled = busy || over || !(/\S/.test(input.value||''));
+    }
+  }
 
-      row.innerHTML = `
-        <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm border bg-white/5 border-white/10">
-          <div class="text-[11px] opacity-80 mb-1">
-            <i class="fa-regular fa-user"></i> ${esc(m.user_name||'—')} ${badge}
-            <span class="ml-2 text-slate-500">${NF_TIME.format(new Date((m.ts||0)*1000))}</span>
-          </div>
-          <div>${esc(m.body||'')}</div>
+  /* ——— auto-resize textarea (max ~32% viewport sau 280px) ——— */
+  function autoGrow(){
+    const stick = Math.abs(feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 6;
+    const max = Math.min(Math.round(window.innerHeight * 0.32), 280);
+    input.style.maxHeight = max + 'px';
+    input.style.height = 'auto';
+    const h = Math.min(input.scrollHeight, max);
+    input.style.height = h + 'px';
+    input.style.overflowY = (input.scrollHeight > max) ? 'auto' : 'hidden';
+    if (stick) feed.scrollTop = feed.scrollHeight;
+  }
+  window.addEventListener('resize', autoGrow, { passive:true });
+
+  // hint în placeholder
+  if (input && !/shift\+enter/i.test(input.placeholder||'')){
+    input.placeholder = (input.placeholder||'scrie un mesaj…') + ' · enter = trimite · shift+enter = linie nouă';
+  }
+
+  /* ——— util probe endpoint (pt reacții) ——— */
+  async function probeHEAD(path){
+    try{ const r = await fetch(path, { method:'HEAD', credentials:'include' }); return r.ok; }catch{ return false; }
+  }
+  function disableReactions(reason){
+    FLAGS.reactions = false;
+    document.querySelectorAll('.react-bar, .react-btn').forEach(el => el.remove());
+    console.info('[chat] reactions disabled:', reason||'probe-failed');
+  }
+
+  /* ——— UI: căutare ——— */
+  (()=> {
+    const host = feed.parentElement;
+    if (!host.querySelector('#chatSearchBox')) {
+      const box = document.createElement('div');
+      box.id = 'chatSearchBox';
+      box.className = 'mb-2';
+      box.innerHTML = `
+        <div class="relative">
+          <input id="chatSearchInput" maxlength="120" autocomplete="off"
+                 class="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
+                 placeholder="caută în arhivă (enter)…" />
+          <div id="chatSearchResults"
+               class="hidden absolute top-full mt-2 left-0 right-0 max-h-64 overflow-y-auto rounded-xl border border-white/10 bg-slate-900/95 p-2 space-y-2 z-30"></div>
         </div>`;
-      return row;
-    }
-
-    function appendMsg(m){
-      const row = buildRow(m);
-      if (!row) return;
-      
-      const stick = atBottom();
-      feed.appendChild(row);
-      if (stick) scrollBottom();
-       if (pendingMode && clientId) {
-        pendingByClient.set(clientId, {
-          clientId,
-          el: row,
-          bubble,
-          pendingEl,
-          timeEl: timeSpan,
-          bodyEl: bodyDiv,
-          data: { ...m },
-          resolved: false,
-          serverId: null
-        });
-      } else if (id) {
-        setSeen(id);
-      }
-
-      return row;
-    }
-
-    function removePending(clientId){
-      if (!clientId) return;
-      const entry = pendingByClient.get(clientId);
-      if (!entry) return;
-      entry.el.remove();
-      pendingByClient.delete(clientId);
-      if (entry.serverId) pendingByServer.delete(entry.serverId);
-    }
-
-function setSending(state){
-      if (!btn) return;
-      btn.disabled = !!state;
-      btn.classList.toggle('opacity-70', !!state);
-      btn.classList.toggle('cursor-not-allowed', !!state);
-      if (btnSpin) btnSpin.classList[state ? 'remove' : 'add']('hidden');
-      if (btnLabel) btnLabel.textContent = state ? 'Se trimite…' : 'Trimite';
-    }
-
-    
-@@ -194,50 +194,66 @@ if ($name === '') $name = 'Investitor';
-        </div></br>
-        </div></br>
-        <div class="pi-avgproc-widget" data-endpoint="/api/user/withdrawals/processing_stats.php"></div>
-        <div class="pi-avgproc-widget" data-endpoint="/api/user/withdrawals/processing_stats.php"></div>
-      </section>
-      </section>
-
-
-      <!-- Lumen AI -->
-      <!-- Lumen AI -->
-      <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" data-widget-id="lumen">
-      <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" data-widget-id="lumen">
-        <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold">Lumen AI</h2>
-          <h2 class="font-semibold">Lumen AI</h2>
-          <i class="fa-solid fa-grip-lines drag-handle text-slate-400"></i>
-          <i class="fa-solid fa-grip-lines drag-handle text-slate-400"></i>
-        </div>
-        </div>
-        <p class="text-sm text-slate-300">Un scurt insight pe baza datelor recente.</p>
-        <p class="text-sm text-slate-300">Un scurt insight pe baza datelor recente.</p>
-        <div id="lumenOut" class="mt-3 text-sm text-slate-200 space-y-3"></div>
-        <div id="lumenOut" class="mt-3 text-sm text-slate-200 space-y-3"></div>
-        <div class="mt-3 flex gap-3">
-        <div class="mt-3 flex gap-3">
-          <button id="btnLumen" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 font-semibold"><i class="fa-solid fa-wand-magic-sparkles"></i> Generează insight</button>
-          <button id="btnLumen" class="inline-flex items-center gap-2 rounded-xl px-3 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 font-semibold"><i class="fa-solid fa-wand-magic-sparkles"></i> Generează insight</button>
-          <span id="lumenErr" class="hidden text-xs text-rose-300">A apărut o eroare. Încearcă mai târziu.</span>
-          <span id="lumenErr" class="hidden text-xs text-rose-300">A apărut o eroare. Încearcă mai târziu.</span>
-        </div>
-        </div>
-      </section>
-      </section>
-
-
-      <!-- Chat Comunitate -->
-      <!-- Chat Comunitate -->
-      <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" data-widget-id="chat">
-      <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" data-widget-id="chat">
-        <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold">Chat Comunitate</h2>
-          <h2 class="font-semibold">Chat Comunitate</h2>
-          <span id="chatLive" class="badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30">live</span>
-          <span id="chatLive" class="badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30">live</span>
-        </div>
-        </div>
-
-
-        <form id="chatSearchForm" class="mb-2 flex items-center gap-2 text-xs">
-          <input id="chatSearchInput" autocomplete="off" maxlength="120"
-                 class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus:border-cyan-400/60 focus:outline-none"
-                 placeholder="Caută în arhivă (minim 2 caractere)…" />
-          <button type="submit"
-                  class="rounded-xl px-3 py-2 border border-white/10 hover:border-cyan-400/40 text-[11px] uppercase tracking-wide text-slate-300">Caută</button>
-        </form>
-
-        <div id="chatSearchResults" class="hidden rounded-xl border border-white/10 bg-slate-900/60 p-3 text-xs space-y-2">
-          <div class="flex items-center justify-between gap-3 text-[11px] uppercase tracking-wide text-slate-400">
-            <span id="chatSearchMeta"></span>
-            <button type="button" id="chatSearchClose" class="text-slate-500 hover:text-slate-200 transition"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-          <div id="chatSearchItems" class="max-h-36 overflow-y-auto nice-scroll space-y-2"></div>
-        </div>
-
-        <div id="chatFeed" class="h-48 overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
-        <div id="chatFeed" class="h-48 overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
-
-
-        <form id="chatForm" class="mt-3 flex items-center gap-2">
-        <form id="chatForm" class="mt-3 flex items-center gap-2">
-          <input id="chatInput" maxlength="500" autocomplete="off"
-          <input id="chatInput" maxlength="500" autocomplete="off"
-                class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
-                class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
-                placeholder="Scrie un mesaj (max 500 caractere)…" />
-                placeholder="Scrie un mesaj (max 500 caractere)…" />
-          <button id="chatSend" type="submit"
-          <button id="chatSend" type="submit"
-                class="rounded-xl px-3 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 text-sm font-semibold">
-                class="rounded-xl px-3 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 text-sm font-semibold">
-            Trimite
-            Trimite
-          </button>
-          </button>
-        </form>
-        </form>
-
-
-        <div id="chatHint" class="mt-2 text-[11px] text-slate-500">Respectă comunitatea. Anti-spam activ (3s între mesaje).</div>
-        <div id="chatHint" class="mt-2 text-[11px] text-slate-500">Respectă comunitatea. Anti-spam activ (3s între mesaje).</div>
-      </section>
-      </section>
-
-
-      <!-- Grafice (mock pentru vizual) -->
-      <!-- Grafice (mock pentru vizual) -->
-      <section class="xl:col-span-2 card-hover rounded-2xl border border-white/10 bg-white/5 p-5" data-widget-id="profitChart">
-      <section class="xl:col-span-2 card-hover rounded-2xl border border-white/10 bg-white/5 p-5" data-widget-id="profitChart">
-        <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold">Evoluție Profit</h2>
-          <h2 class="font-semibold">Evoluție Profit</h2>
-          <i class="fa-solid fa-grip-lines drag-handle text-slate-400"></i>
-          <i class="fa-solid fa-grip-lines drag-handle text-slate-400"></i>
-        </div>
-        </div>
-        <canvas id="chartProfit" height="120"></canvas>
-        <canvas id="chartProfit" height="120"></canvas>
-        <div id="chartProfitEmpty" class="hidden text-sm text-slate-400 mt-3">Nu există date pentru perioada selectată.</div>
-        <div id="chartProfitEmpty" class="hidden text-sm text-slate-400 mt-3">Nu există date pentru perioada selectată.</div>
-      </section>
-      </section>
-
-
-@@ -976,207 +992,406 @@ if ($name === '') $name = 'Investitor';
-
-
-      fetch(endpoint, { credentials: 'include' })
-      fetch(endpoint, { credentials: 'include' })
-        .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP '+r.status)))
-        .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP '+r.status)))
-        .then(j => {
-        .then(j => {
-          const avg = (j && j.ok && Number.isFinite(j.avg_seconds) && j.avg_seconds>0) ? j.avg_seconds : 0;
-          const avg = (j && j.ok && Number.isFinite(j.avg_seconds) && j.avg_seconds>0) ? j.avg_seconds : 0;
-          elVal.textContent = avg ? humanizeAvg(avg) : '—';
-          elVal.textContent = avg ? humanizeAvg(avg) : '—';
-          elSub.textContent = avg ? 'din ultimele 12 luni' : 'insuficiente date';
-          elSub.textContent = avg ? 'din ultimele 12 luni' : 'insuficiente date';
-        })
-        })
-        .catch(() => {
-        .catch(() => {
-          elVal.textContent = '—';
-          elVal.textContent = '—';
-          elSub.textContent = 'indisponibil momentan';
-          elSub.textContent = 'indisponibil momentan';
-        });
-        });
-
-
-      function humanizeAvg(seconds){
-      function humanizeAvg(seconds){
-        if(!Number.isFinite(seconds) || seconds<=0) return '—';
-        if(!Number.isFinite(seconds) || seconds<=0) return '—';
-        const h = Math.round(seconds/3600);
-        const h = Math.round(seconds/3600);
-        if (h < 48) return `~${h}h`;
-        if (h < 48) return `~${h}h`;
-        const d = Math.round((seconds/86400)*10)/10;
-        const d = Math.round((seconds/86400)*10)/10;
-        return (d % 1 === 0) ? `~${d} zile` : `~${d.toFixed(1)} zile`;
-        return (d % 1 === 0) ? `~${d} zile` : `~${d.toFixed(1)} zile`;
-      }
-      }
-    }
+      host.insertBefore(box, feed);
     }
   })();
-  })();
-  </script>
-  </script>
-  <!-- /PI — Procesare medie (Widget) -->
-  <!-- /PI — Procesare medie (Widget) -->
 
+  /* ——— UI: presence + typing ——— */
+  const host = feed.parentElement;
+  if (!host.querySelector('#chatPresenceBar')) {
+    const bar = document.createElement('div');
+    bar.id = 'chatPresenceBar';
+    bar.className = 'mb-2 flex flex-wrap gap-1 text-xs text-slate-400';
+    host.insertBefore(bar, feed);
+  }
+  if (!host.querySelector('#chatTypingBar')) {
+    const t = document.createElement('div');
+    t.id = 'chatTypingBar';
+    t.className = 'mt-1 h-4 text-xs text-slate-400';
+    host.insertBefore(t, form);
+  }
+  const presBar   = document.getElementById('chatPresenceBar');
+  const typingBar = document.getElementById('chatTypingBar');
 
-  <!-- Chat Comunitate (SSE single-instance + dedup) -->
-  <!-- Chat Comunitate (SSE single-instance + dedup + lazy history + search) -->
-  <script>
-  <script>
-  (function(){
-  (function(){
-    const feed  = document.getElementById('chatFeed');
-    const feed  = document.getElementById('chatFeed');
-    const form  = document.getElementById('chatForm');
-    const form  = document.getElementById('chatForm');
-    const input = document.getElementById('chatInput');
-    const input = document.getElementById('chatInput');
-    const btn   = document.getElementById('chatSend');
-    const btn   = document.getElementById('chatSend');
-    const liveB = document.getElementById('chatLive');
-    const liveB = document.getElementById('chatLive');
-    const searchForm   = document.getElementById('chatSearchForm');
-    const searchInput  = document.getElementById('chatSearchInput');
-    const searchResults = document.getElementById('chatSearchResults');
-    const searchMeta   = document.getElementById('chatSearchMeta');
-    const searchItems  = document.getElementById('chatSearchItems');
-    const searchClose  = document.getElementById('chatSearchClose');
-    const searchSubmit = searchForm ? searchForm.querySelector('button[type="submit"]') : null;
-    if(!feed || !form) return;
-    if(!feed || !form) return;
+    /* ——— State & utilitare ——— */
+  const meName  = (document.body.dataset.userName || 'Investitor').trim();
+  const meId    = parseInt(document.body.dataset.userId||'0',10) || 0;
 
+  // coadă offline per user
+  const OFFLINE_KEY = `pi:chat:offlineQueue:${meId||0}`;
+  let OFFLINE_QUEUE = [];
+  let offlineWarned = false;
 
-    const meName = document.body.dataset.userName || 'Investitor';
-    const meName = document.body.dataset.userName || 'Investitor';
-    let lastId = +(sessionStorage.getItem('chat:lastId') || 0);
-    let lastId = +(sessionStorage.getItem('chat:lastId') || 0);
-    let oldestId = null;
-    let loadingOlder = false;
-    let olderEnd = false;
-    let sse = null;
-    let sse = null;
-    let pollTimer = null;
-    let pollTimer = null;
-    let searchAbort = null;
-    const POLL_MS = 4000;
-    const POLL_MS = 4000;
-    const PAGE_LIMIT = 50;
-    const SEEN = new Set();            // dedup sigur
-    const SEEN = new Set();            // dedup sigur
-    const NF_TIME = new Intl.DateTimeFormat('ro-RO',{hour:'2-digit',minute:'2-digit'});
-    const NF_TIME = new Intl.DateTimeFormat('ro-RO',{hour:'2-digit',minute:'2-digit'});
-    const NF_DATE = new Intl.DateTimeFormat('ro-RO',{dateStyle:'short',timeStyle:'short'});
+  function loadOfflineQueue(){
+    try{
+      const raw = localStorage.getItem(OFFLINE_KEY);
+      if (!raw) return;
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) OFFLINE_QUEUE = arr;
+    }catch{}
+  }
 
-
-    function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
-    function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
-    function atBottom(){ return Math.abs(feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 6; }
-    function atBottom(){ return Math.abs(feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 6; }
-    function scrollBottom(){ feed.scrollTo({top:feed.scrollHeight, behavior:'smooth'}); }
-    function scrollBottom(){ feed.scrollTo({top:feed.scrollHeight, behavior:'smooth'}); }
-
-
-    function appendMsg(m){
-    function buildRow(m){
-      const id = m.id|0;
-      const id = m.id|0;
-      if (id && SEEN.has(id)) return;
-      if (id && SEEN.has(id)) return null;
-      if (id) {
-      if (id) {
-        SEEN.add(id);
-        SEEN.add(id);
-        if (SEEN.size > 5000) { // protecție memorie
-        if (SEEN.size > 5000) {
-          let n = 0;
-          let n = 0;
-          for (const x of SEEN){ SEEN.delete(x); if(++n>=1000) break; }
-          for (const x of SEEN){ SEEN.delete(x); if(++n>=1000) break; }
-        }
-        }
-        lastId = Math.max(lastId, id);
-        if (oldestId === null || id < oldestId) oldestId = id;
-        sessionStorage.setItem('chat:lastId', String(lastId));
-        if (id > lastId) {
-          lastId = id;
-          sessionStorage.setItem('chat:lastId', String(lastId));
-        }
+  function saveOfflineQueue(){
+    try{
+      if (!OFFLINE_QUEUE || !OFFLINE_QUEUE.length){
+        localStorage.removeItem(OFFLINE_KEY);
+        return;
       }
+      // păstrăm doar ultimele 50 de mesaje offline
+      const slim = OFFLINE_QUEUE.slice(-50);
+      localStorage.setItem(OFFLINE_KEY, JSON.stringify(slim));
+    }catch{}
+  }
+
+  const KEY_LAST_SEEN = `pi:mentions:lastSeen:${meId||0}`;
+
+  let lastMentionSeen = parseInt(localStorage.getItem(KEY_LAST_SEEN)||'0',10) || 0;
+  let VIEW_MENTIONS = false;
+
+  // scroll control: blocăm lazy-load la boot și forțăm „stick to bottom”
+  let BOOTING = true;
+  let ALLOW_LAZY = false;
+
+    const NF_TIME = new Intl.DateTimeFormat('ro-RO', { hour: '2-digit', minute: '2-digit' });
+  const NF_DAY_SHORT = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'short' });
+
+  const esc = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+
+  function formatRelativeTime(tsSec) {
+    if (!tsSec) return 'acum';
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    let diff = nowSec - tsSec;      // secunde în urmă (+) sau în viitor (-)
+    const past = diff >= 0;
+    diff = Math.abs(diff);
+
+    // sub 10 secunde
+    if (diff < 10) return past ? 'acum' : 'în câteva secunde';
+
+    // sub 1 minut
+    if (diff < 60) return past ? 'acum câteva secunde' : 'în câteva secunde';
+
+    const min = Math.round(diff / 60);
+    if (min === 1) return past ? 'acum 1 min' : 'în 1 min';
+    if (min < 60)  return past ? `acum ${min} min` : `în ${min} min`;
+
+    const h = Math.round(min / 60);
+    if (h === 1) return past ? 'acum 1 oră' : 'în 1 oră';
+    if (h < 24)  return past ? `acum ${h} ore` : `în ${h} ore`;
+
+    const d = Math.round(h / 24);
+    if (d === 1 && past) return 'ieri';
+    if (d < 7)           return past ? `acum ${d} zile` : `în ${d} zile`;
+
+    // pentru mesaje vechi: dată + oră, localizate ro-RO
+    const dObj = new Date(tsSec * 1000);
+    return NF_DAY_SHORT.format(dObj) + ', ' + NF_TIME.format(dObj);
+  }
+
+  function refreshRelativeTimes() {
+    const root = document.getElementById('chatFeed');
+    if (!root) return;
+
+    root.querySelectorAll('[data-time][data-ts]').forEach(el => {
+      const tsSec = parseInt(el.dataset.ts || '0', 10) || 0;
+      el.textContent = formatRelativeTime(tsSec);
+    });
+  }
+  
+    const EDIT_WINDOW_SEC = 120; // 2 minute
+
+  function canEditNowTs(tsSec) {
+    if (!tsSec) return false;
+    const nowSec = Math.floor(Date.now() / 1000);
+    const diff = nowSec - tsSec;
+    return diff >= 0 && diff <= EDIT_WINDOW_SEC;
+  }
+
+  function canEditNowForRow(row) {
+    if (!row || row.dataset.mine !== '1') return false;
+    if (row.classList.contains('msg-deleted')) return false;
+    const tsSec = parseInt(row.dataset.ts || '0', 10) || 0;
+    return canEditNowTs(tsSec);
+  }
+
+  function refreshEditControls() {
+    const feedEl = document.getElementById('chatFeed');
+    if (!feedEl) return;
+
+    const nowSec = Math.floor(Date.now() / 1000);
+
+    feedEl.querySelectorAll('.msg[data-mine="1"]').forEach(row => {
+      const tsSec = parseInt(row.dataset.ts || '0', 10) || 0;
+      const diff = tsSec ? nowSec - tsSec : EDIT_WINDOW_SEC + 1;
+      const editBtns = row.querySelectorAll('.edit-msg-btn, .delete-msg-btn');
+
+      if (!editBtns.length) return;
+
+      // dacă a trecut fereastra de 2 minute, scoatem butoanele
+      if (diff > EDIT_WINDOW_SEC || diff < 0) {
+        editBtns.forEach(btn => btn.remove());
       }
-      const mine = (m.user_name === meName);
-      const mine = (m.user_name === meName);
-      const row = document.createElement('div');
-      const row = document.createElement('div');
-      row.className = 'w-full flex ' + (mine ? 'justify-end' : 'justify-start');
-      row.className = 'w-full flex ' + (mine ? 'justify-end' : 'justify-start');
-      if (id) row.dataset.chatId = String(id);
+    });
+  }
+
+  function tickTimeUI() {
+    refreshRelativeTimes();   // „acum / acum 2 min”
+    refreshEditControls();    // enable/disable edit/șterge
+  }
 
 
-      const badge = m.role === 'ADMIN'
-      const badge = m.role === 'ADMIN'
-        ? '<span class="badge bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 ml-2">Admin</span>'
-        ? '<span class="badge bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 ml-2">Admin</span>'
-        : '';
-        : '';
+  const atBottom = () => Math.abs(feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 6;
+  const scrollBottomNow = () => { feed.scrollTop = feed.scrollHeight; };
+  const scrollBottomSmooth = () => feed.scrollTo({ top: feed.scrollHeight, behavior: 'smooth' });
+
+  const genCID = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+
+  let lastId = +(sessionStorage.getItem('chat:lastId') || 0);
+  let oldestIdLoaded = null;
+  let sse = null, pollTimer = null, loadingOlder = false, noMoreOlder = false;
+  const POLL_MS=4000, PAGE_LIMIT=50, MAX_SEEN=6000;
+    // notificări browser pentru @mențiuni
+  let mentionPushEnabled = false;
+  let mentionPushLastTs = 0;
+  const MENTION_PUSH_COOLDOWN_MS = 15000; // min. 15s între notificări
+
+    // câtă „fereastră” ținem în dom (mesaje vizibile)
+  const MAX_DOM_MSG = 400; // poți urca la 600–800 dacă vrei
 
 
-      row.innerHTML = `
-      row.innerHTML = `
-        <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm border bg-white/5 border-white/10">
-        <div class="max-w-[85%] rounded-2xl px-3 py-2 text-sm border bg-white/5 border-white/10">
-          <div class="text-[11px] opacity-80 mb-1">
-          <div class="text-[11px] opacity-80 mb-1">
-            <i class="fa-regular fa-user"></i> ${esc(m.user_name||'—')} ${badge}
-            <i class="fa-regular fa-user"></i> ${esc(m.user_name||'—')} ${badge}
-            <span class="ml-2 text-slate-500">${NF_TIME.format(new Date((m.ts||0)*1000))}</span>
-            <span class="ml-2 text-slate-500">${NF_TIME.format(new Date((m.ts||0)*1000))}</span>
-          </div>
-          </div>
-          <div>${esc(m.body||'')}</div>
-          <div>${esc(m.body||'')}</div>
-        </div>`;
-        </div>`;
-      return row;
+  const SEEN    = new Set();
+  const PENDING = new Map();
+    function markPendingOffline(cid){
+    const p = PENDING.get(cid);
+    if (!p?.row) return;
+    const ic = p.row.querySelector('[data-status]');
+    if (ic){
+      ic.className = 'fa-solid fa-circle-exclamation ml-2 text-amber-300';
+      ic.title = 'fără conexiune. mesaj în coadă offline.';
     }
+    const bubble = p.row.querySelector('.bubble');
+    if (bubble) bubble.classList.add('msg-pending');
+  }
 
-    function appendMsg(m){
-      const row = buildRow(m);
-      if (!row) return;
-      const stick = atBottom();
-      const stick = atBottom();
-      feed.appendChild(row);
-      feed.appendChild(row);
-      if (stick) scrollBottom();
-      if (stick) scrollBottom();
+  function markPendingSending(cid){
+    const p = PENDING.get(cid);
+    if (!p?.row) return;
+    const ic = p.row.querySelector('[data-status]');
+    if (ic){
+      ic.className = 'fa-regular fa-clock ml-2 text-slate-400';
+      ic.title = 'se trimite…';
     }
-    }
+    const bubble = p.row.querySelector('.bubble');
+    if (bubble) bubble.classList.remove('msg-pending');
+  }
+
+    function notifyOfflineOnce(){
+    if (offlineWarned) return;
+    offlineWarned = true;
+    showChatToast(
+      'Nu ai conexiune la internet. mesajele tale rămân în coadă și se trimit automat când revine conexiunea.',
+      'info'
+    );
+  }
 
 
-function stopPoll(){
-    function prependBatch(items){
-      if (!items || !items.length) return false;
-      const frag = document.createDocumentFragment();
-      let appended = false;
-      for (const m of items) {
-        const row = buildRow(m);
-        if (!row) continue;
-        frag.appendChild(row);
-        appended = true;
-      }
-      if (!appended) return false;
-      feed.insertBefore(frag, feed.firstChild);
-      return true;
-    }
+  function queueOffline(payload){
+    if (!payload || !payload.cid) return;
+    // nu dublăm același cid
+    if (OFFLINE_QUEUE.some(x => x.cid === payload.cid)) return;
 
-    async function loadOlder(){
-      if (loadingOlder || olderEnd || !oldestId) return false;
-      loadingOlder = true;
-      feed.setAttribute('aria-busy','true');
-      feed.dataset.loadingOlder = '1';
-      const prevHeight = feed.scrollHeight;
-      const prevTop = feed.scrollTop;
-      let inserted = false;
-      try{
-        const r = await fetch(`/api/chat/fetch.php?before_id=${encodeURIComponent(oldestId)}&limit=${PAGE_LIMIT}`, {credentials:'include'});
-        const j = await r.json();
-        const items = Array.isArray(j.items) ? j.items : [];
-        if (!items.length) {
-          olderEnd = true;
-        } else {
-          inserted = prependBatch(items);
-          if (items.length < PAGE_LIMIT) olderEnd = true;
-          if (inserted) {
-            const diff = feed.scrollHeight - prevHeight;
-            if (diff > 0) feed.scrollTop = diff + prevTop;
-          }
-        }
-      }catch(_){
-        // silent fallback
-      }finally{
-        delete feed.dataset.loadingOlder;
-        feed.removeAttribute('aria-busy');
-        loadingOlder = false;
-      }
-      return inserted;
-    }
-
-    feed.addEventListener('scroll', ()=>{
-      if (feed.scrollTop <= 12) loadOlder();
+    OFFLINE_QUEUE.push({
+      cid: payload.cid,
+      text: payload.txt,
+      ts: payload.ts,
+      mentions: payload.mentionsPayload || [],
+      mention_names: payload.mentionsNames || []
     });
 
-    function stopPoll(){
-      if (!pollTimer) return;
-      clearInterval(pollTimer);
-      pollTimer = null;
-    }
+    saveOfflineQueue();
+    markPendingOffline(payload.cid);
+    notifyOfflineOnce();
+  }
 
-    async function pullLatest(){
-      try{
-        const r = await fetch(`/api/chat/fetch.php?since_id=${encodeURIComponent(lastId||0)}`, {credentials:'include'});
-        const j = await r.json();
-         (j.items||[]).forEach(m => appendMsg(m || {}));
-      }catch(_){/* fallback silent */}
-    }
+  async function flushOfflineQueue(){
+    if (!OFFLINE_QUEUE.length || !navigator.onLine) return;
 
-    function startPoll(immediate=false){
-      if (pollTimer) return;
-      if (immediate) pullLatest();
-      pollTimer = setInterval(pullLatest, POLL_MS);
-    }
+    // am net, resetăm flag-ul de alert
+    offlineWarned = false;
 
-    async function bootstrap(){
-      try{
-         const r = await fetch(`/api/chat/fetch.php?limit=${PAGE_LIMIT}`, {credentials:'include'});
-        const j = await r.json();
-        const items = Array.isArray(j.items) ? j.items : [];
-        items.forEach(appendMsg);
-        if (!items.length || items.length < PAGE_LIMIT) olderEnd = true;
-        scrollBottom();
-        if ('EventSource' in window) {
-          openSSE();
-        } else {
-          liveB.textContent='sync';
-          liveB.className='badge bg-amber-500/15 text-amber-200 border border-amber-400/30';
-          startPoll(true);
-        }
-      }catch{
-        liveB.textContent='offline';
-        liveB.className='badge bg-rose-500/15 text-rose-200 border border-rose-400/30';
-         startPoll(true);
-      }
-    }
+    const items = [...OFFLINE_QUEUE];
+    for (const item of items){
+      const { cid, text, ts, mentions, mention_names } = item;
+      if (!cid || !text) continue;
 
-    function openSSE(){
-   if (sse) { try{sse.close();}catch{}; sse=null; }
-      const url = `/api/chat/stream.php?last_id=${encodeURIComponent(lastId||0)}`;
-      sse = new EventSource(url); // same-origin -> fără withCredentials
-
-      sse.addEventListener('open', ()=>{
-        liveB.textContent='live';
-        liveB.className='badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30';
-        stopPoll();
-      });
-      
-      sse.addEventListener('hello', (e)=>{
-        try{
-          const d = JSON.parse(e.data);
-          if (d && d.last_id) {
-            const lid = d.last_id|0;
-            if (lid > lastId) {
-              lastId = lid;
-              sessionStorage.setItem('chat:lastId', String(lastId));
-            }
-          }
-        }catch(_){ }
-      });
-
-      sse.addEventListener('message', (e)=>{
-        try{
-          const m = JSON.parse(e.data);
-          appendMsg(m);
-        }catch(_){ }
-      });
-
-
-      sse.addEventListener('ping', ()=>{ /* keepalive */ });
-
-   sse.addEventListener('error', ()=>{
-        liveB.textContent='sync';
-        liveB.className='badge bg-amber-500/15 text-amber-200 border border-amber-400/30';
-
-        startPoll(true);
-      });
-    }
-
-document.addEventListener('visibilitychange', ()=>{
-      if (!document.hidden && sse && sse.readyState === 2) openSSE();
-    });
-
-    function clearSearchResults(){
-      if (searchAbort) { searchAbort.abort(); searchAbort = null; }
-      if (searchItems) searchItems.innerHTML = '';
-      if (searchMeta) searchMeta.textContent = '';
-      if (searchResults) searchResults.classList.add('hidden');
-    }
-
-    function setSearchLoading(state){
-      if (!searchForm) return;
-      searchForm.classList.toggle('opacity-60', state);
-      if (searchSubmit) searchSubmit.disabled = state;
-    }
-
-    function renderSearch(term, items, hint){
-      if (!searchResults || !searchItems || !searchMeta) return;
-      searchItems.innerHTML = '';
-
-      if (hint === 'too_short') {
-        const row = document.createElement('div');
-        row.className = 'text-slate-500';
-        row.textContent = 'Introdu minim 2 caractere pentru a căuta.';
-        searchItems.appendChild(row);
-      } else if (hint === 'auth') {
-        const row = document.createElement('div');
-        row.className = 'text-slate-500';
-        row.textContent = 'Sesiunea a expirat. Reautentifică-te pentru a căuta în arhivă.';
-        searchItems.appendChild(row);
-      } else if (!items.length) {
-        const row = document.createElement('div');
-        row.className = 'text-slate-500';
-        row.textContent = hint === 'error' ? 'Căutarea nu este disponibilă momentan.' : 'Nicio potrivire găsită.';
-        searchItems.appendChild(row);
+      // dacă nu mai avem pending în memorie (ex: refresh), recreăm bulele
+      if (!PENDING.has(cid)){
+        renderPending(
+          cid,
+          text,
+          ts || Math.floor(Date.now()/1000),
+          Array.isArray(mention_names)
+            ? mention_names.map(n => ({ user_id:null, name:n }))
+            : []
+        );
       } else {
-        for (const item of items) {
-          const id = item.id|0;
-          const entry = document.createElement('button');
-          entry.type = 'button';
-          entry.dataset.resultId = String(id);
-          entry.className = 'w-full text-left rounded-xl border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10 transition';
-          entry.innerHTML = `
-            <div class="flex items-center justify-between text-[11px] uppercase tracking-wide text-slate-400">
-              <span><i class="fa-regular fa-user"></i> ${esc(item.user_name||'—')}</span>
-              <span>${NF_DATE.format(new Date((item.ts||0)*1000))}</span>
-            </div>
-            <div class="mt-1 text-slate-200">${esc(item.body||'')}</div>`;
-          entry.addEventListener('click', ()=>{
-            focusMessage(id);
-          });
-          searchItems.appendChild(entry);
-        }
+        markPendingSending(cid);
       }
-
-      searchMeta.textContent = items.length
-        ? `${items.length} rezultate pentru „${term}”`
-        : `Rezultate pentru „${term}”`;
-      searchResults.classList.remove('hidden');
-    }
-
-    searchClose?.addEventListener('click', ()=>{
-      clearSearchResults();
-    });
-
-    searchInput?.addEventListener('input', ()=>{
-      if (!searchInput.value.trim()) clearSearchResults();
-    });
-
-    searchForm?.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const term = (searchInput?.value || '').trim();
-      if (term.length < 2) {
-        clearSearchResults();
-        return;
-      }
-      if (searchAbort) { searchAbort.abort(); }
-      const controller = new AbortController();
-      searchAbort = controller;
-      setSearchLoading(true);
-      try{
-        const r = await fetch(`/api/chat/search.php?q=${encodeURIComponent(term)}&limit=20`, {credentials:'include', signal: controller.signal});
-        if (!r.ok) {
-          renderSearch(term, [], r.status === 401 ? 'auth' : 'error');
-          return;
-        }
-        const j = await r.json();
-        renderSearch(term, Array.isArray(j.items) ? j.items : [], j.hint || null);
-      }catch(err){
-        if (err.name !== 'AbortError') {
-          renderSearch(term, [], 'error');
-        }
-      }finally{
-        if (searchAbort === controller) searchAbort = null;
-        setSearchLoading(false);
-      }
-    });
-
-    async function focusMessage(rawId){
-      const targetId = rawId|0;
-      if (!targetId) return;
-      let attempts = 0;
-      if (!SEEN.has(targetId)) {
-        if (oldestId !== null && targetId < oldestId) {
-          while (!SEEN.has(targetId) && !olderEnd && attempts < 15) {
-            await loadOlder();
-            attempts++;
-          }
-        } else if (targetId > lastId) {
-          await pullLatest();
-        }
-      }
-      const node = feed.querySelector(`[data-chat-id="${targetId}"]`);
-      if (!node) {
-        alert('Mesajul este mai vechi. Continuă să derulezi în sus pentru a încărca mai mult din arhivă.');
-        return;
-      }
-      const top = Math.max(0, node.offsetTop - 12);
-      feed.scrollTo({ top, behavior: 'smooth' });
-      const bubble = node.firstElementChild;
-      if (bubble) {
-        bubble.classList.add('ring-2','ring-cyan-400/70');
-        setTimeout(()=>bubble.classList.remove('ring-2','ring-cyan-400/70'), 2000);
-      }
-    }
-
-    form.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const txt = (input.value||'').trim();
-      if(!txt) return;
-       const clientId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-      appendMsg({
-        client_id: clientId,
-        user_name: meName,
-        role: meRole,
-        body: txt,
-        ts: Date.now()/1000
-      }, { pending: true, clientId });
-      input.value='';
-      setSending(true);
 
       try{
         const r = await fetch('/api/chat/send.php', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          credentials:'include', body: JSON.stringify({ text: txt })
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'X-CSRF-Token': csrfToken || ''
+          },
+          credentials:'include',
+          body: JSON.stringify({
+            text,
+            client_id: cid,
+            mentions: Array.isArray(mentions) ? mentions : [],
+            mention_names: Array.isArray(mention_names) ? mention_names : [],
+            csrf_token: csrfToken || ''
+          })
         });
         const j = await r.json().catch(()=>null);
-        if(!r.ok || !j || !j.ok){
-          const err = (j && j.error) || 'error';
-          const t = { throttled:'Anti-spam: așteaptă 3s.', too_long:'Max 500 caractere.', duplicate:'Mesaj duplicat (30s).', unauthorized:'Nu ești autentificat.' }[err] || 'Eroare. Încearcă din nou.';
-          removePending(clientId);
-          input.value = txt;
-          alert(t);
-        } else {
-          if (j.id) {
-            const entry = pendingByClient.get(clientId);
-            if (entry) {
-              entry.serverId = j.id;
-              entry.el.dataset.msgId = String(j.id);
-              pendingByServer.set(j.id, entry);
-            }
-          }
-          if (!sse || sse.readyState !== 1) {
+
+        if (r.ok && j && j.ok){
+          // serverul a acceptat mesajul (client_id unic => safe)
+          OFFLINE_QUEUE = OFFLINE_QUEUE.filter(x => x.cid !== cid);
+          saveOfflineQueue();
+
+          // dacă SSE nu e live, sincronizăm manual
+          if (!sse || sse.readyState !== 1){
             await pullLatest();
           }
+        } else if (j && (j.error === 'csrf_invalid' || j.error === 'unauthorized')){
+          showChatToast(
+            'Sesiunea a expirat. Reîncarcă pagina pentru a trimite mesajele rămase din coada offline.',
+            'error'
+          );
+          break;
+        } else if (j && (j.error === 'rate_limited' || j.error === 'throttled')){
+          // scrii prea repede sau alt guard de server => mai încercăm mai târziu
+          break;
+        } else {
+
+          // altă eroare: nu ștergem din coadă, lăsăm pentru următoarea încercare
+          continue;
         }
       }catch{
-           removePending(clientId);
-        input.value = txt;
-        alert('Conexiune indisponibilă.');
-      }finally{
-        setSending(false);
-        input.focus();
+        // dacă iar cade netul, ieșim și așteptăm următorul „online”
+        break;
+      }
+    }
+  }
+
+
+  // presence / typing timers
+  let presTimer=null, lastTypingSent=0, typingClearTimer=null;
+  const TYPING_COOLDOWN = 4000;
+
+  // ——— helpers: day keys + separatoare ———
+  const NF_DAY = new Intl.DateTimeFormat('ro-RO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const dayKey = (ts)=>{ const d=new Date((ts||0)*1000); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+  const dayLbl = (ts)=> NF_DAY.format(new Date((ts||0)*1000));
+  function sepNode(ts){
+    const div=document.createElement('div');
+    div.className='chat-sep';
+    div.dataset.day = dayKey(ts);
+    div.innerHTML = `<span>${esc(dayLbl(ts))}</span>`;
+    return div;
+  }
+  function lastMsgRow(){
+    for (let i=feed.children.length-1;i>=0;i--){
+      const el=feed.children[i];
+      if (el.classList.contains('chat-sep')) continue;
+      return el;
+    }
+    return null;
+  }
+  function firstMsgRow(){
+    for (let i=0;i<feed.children.length;i++){
+      const el=feed.children[i];
+      if (el.classList.contains('chat-sep')) continue;
+      return el;
+    }
+    return null;
+  }
+  function ensureDaySepAppend(ts){
+    const need = dayKey(ts);
+    let lastDay=null;
+    for (let i=feed.children.length-1;i>=0;i--){
+      const el=feed.children[i];
+      if (el.classList.contains('chat-sep')) { lastDay = el.dataset.day||null; break; }
+      if (el.dataset && el.dataset.ts){ lastDay = dayKey(+el.dataset.ts||0); break; }
+    }
+    if (need!==lastDay) feed.appendChild(sepNode(ts));
+  }
+
+  // ——— presence/typing render ———
+  let PRES_LIST = [];
+  function renderPresence(list){
+    PRES_LIST = Array.isArray(list)?list:[];
+    if (!presBar) return;
+    const who = (list||[]).slice(0,12);
+    presBar.innerHTML = who.map(u =>
+      `<span class="px-2 py-[2px] rounded-full border border-emerald-400/20 bg-emerald-500/10 text-emerald-200">${esc(u.user_name||'—')}</span>`
+    ).join(' ');
+    if (liveB) liveB.title = `${(list||[]).length} activi`;
+  }
+  function renderTyping(list){
+    if (!typingBar) return;
+    const who = (list||[]).map(u=>u.user_name||'—').filter(n=>n!==meName);
+    if (!who.length){ typingBar.textContent=''; return; }
+    typingBar.textContent = who.length===1 ? `${who[0]} tastează…`
+      : who.length===2 ? `${who[0]} și ${who[1]} tastează…`
+      : `${who[0]}, ${who[1]} și alții tastează…`;
+    clearTimeout(typingClearTimer);
+    typingClearTimer = setTimeout(()=> typingBar.textContent='', 6000);
+  }
+
+  // ——— ui helpers ———
+  function setBtnBusy(b){
+    if (!btn) return; // fără buton, no-op
+    btn.disabled = b;
+    btn.dataset.busy = b ? '1' : '';
+    btn.innerHTML = b ? '<span class="animate-pulse">⏳</span>&nbsp;Trimit…' : 'Trimite';
+  }
+  function trimSeen(){
+    if (SEEN.size > MAX_SEEN) { let n=0; for (const x of SEEN){ SEEN.delete(x); if(++n>=1000) break; } }
+  }
+    // virtualizare simplă: menținem o fereastră de mesaje în dom
+  // anchor = 'bottom' → păstrăm mesajele cele mai recente
+  // anchor = 'top'    → păstrăm mesajele cele mai vechi (când sapi în arhivă)
+  function trimDOMWindow(anchor = 'bottom'){
+    const rows  = Array.from(feed.querySelectorAll('.msg'));
+    const total = rows.length;
+    if (total <= MAX_DOM_MSG) return;
+
+    const removeCount = total - MAX_DOM_MSG;
+
+    if (anchor === 'top') {
+      // păstrăm începutul listei, tăiem din coadă (partea de jos)
+      for (let i = total - 1, removed = 0; i >= 0 && removed < removeCount; i--){
+        const row = rows[i];
+        const sep = row.previousElementSibling;
+        row.remove();
+        removed++;
+        if (sep && sep.classList && sep.classList.contains('chat-sep') &&
+            (!sep.nextElementSibling || !sep.nextElementSibling.classList.contains('msg'))){
+          sep.remove();
+        }
+      }
+    } else {
+      // păstrăm capătul de jos (mesajele cele mai recente), tăiem din vârf
+      for (let i = 0, removed = 0; i < total && removed < removeCount; i++){
+        const row = rows[i];
+        const sep = row.previousElementSibling;
+        row.remove();
+        removed++;
+        if (sep && sep.classList && sep.classList.contains('chat-sep') &&
+            (!sep.nextElementSibling || !sep.nextElementSibling.classList.contains('msg'))){
+          sep.remove();
+        }
+      }
+    }
+
+    // curățare extra: separatoare rămase singure fără mesaje după ele
+    Array.from(feed.querySelectorAll('.chat-sep')).forEach(sep=>{
+      const next = sep.nextElementSibling;
+      if (!next || !next.classList.contains('msg')) sep.remove();
+    });
+  }
+
+
+  // ——— mentions: detect + dot + toast + tab ———
+  const norm = s => (s||'').normalize('NFKD').toLowerCase();
+  function isMention(m){
+    if (Array.isArray(m.mentions) && m.mentions.length){
+      for (const it of m.mentions){
+        if (meId && ((it.user_id|0) === meId)) return true;
+        if (it.name && norm(it.name) === norm(meName)) return true;
+      }
+    }
+    const rx = /(^|\s)@([^\s,.!?;:]+)/gim;
+    let mm; const body=(m.body||'');
+    while ((mm = rx.exec(body))){
+      const token = mm[2]||'';
+      if (norm(token) === norm(meName)) return true;
+    }
+    return false;
+  }
+  function latestMentionIdInDOM(){
+    let maxId = 0;
+    feed.querySelectorAll('.msg.has-mention').forEach(el=>{
+      const id = parseInt(el.dataset.msgId||'0',10); if (id>maxId) maxId=id;
+    });
+    return maxId;
+  }
+  function updateMentionDot(){
+    let count = 0;
+    feed.querySelectorAll('.msg.has-mention').forEach(el=>{
+      const id = parseInt(el.dataset.msgId||'0',10); if (id>lastMentionSeen) count++;
+    });
+    const dot = document.getElementById('mentionDot');
+    if (!dot) return;
+    if (count>0){ dot.textContent = String(count); dot.classList.remove('hidden'); }
+    else { dot.classList.add('hidden'); }
+  }
+  function markMentionsSeen(){
+    const maxId = latestMentionIdInDOM();
+    if (maxId > lastMentionSeen){
+      lastMentionSeen = maxId;
+      localStorage.setItem(KEY_LAST_SEEN, String(lastMentionSeen));
+      updateMentionDot();
+    }
+  }
+  function setView(mentionsMode){
+    VIEW_MENTIONS = !!mentionsMode;
+    const chatCard = feed.closest('[data-widget-id="chat"]');
+    if (chatCard){ chatCard.classList.toggle('view-mentions', VIEW_MENTIONS); }
+    document.getElementById('tabAll')?.classList.toggle('bg-white/5', !VIEW_MENTIONS);
+    document.getElementById('tabMent')?.classList.toggle('bg-white/5',  VIEW_MENTIONS);
+    if (VIEW_MENTIONS) markMentionsSeen();
+  }
+  document.getElementById('tabAll')?.addEventListener('click', ()=> setView(false));
+  document.getElementById('tabMent')?.addEventListener('click',()=> setView(true));
+    document.getElementById('mentionBell')?.addEventListener('click', async ()=> {
+    setView(true); // păstrăm comportamentul actual (tab mențiuni)
+    await ensureMentionPushEnabledViaClick(); // la click cerem / activăm notificările
+  });
+
+
+  /* ——— build row + mentions render ——— */
+  function renderMentions(body, meta){
+    let html = esc(body||'');
+    const me = meName;
+    const byLen = (a,b)=> (b.name||'').length - (a.name||'').length;
+    if (Array.isArray(meta) && meta.length){
+      const items = [...meta].sort(byLen);
+      for (const it of items){
+        if(!it || !it.name) continue;
+        const name = it.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        const rg = new RegExp(`(^|[^\\w])@(${name})(?=\\b)`, 'g');
+        html = html.replace(rg, (_,$1,$2)=> `${$1}<span class="mention ${$2===me?'mention-me':''}">@${$2}</span>`);
+      }
+    } else {
+      html = html.replace(/(^|[^\w])@([A-Za-z0-9._-]{2,32})/g, (_,$1,$2)=> {
+        const cls = ($2===me)?' mention-me':'';
+        return `${$1}<span class="mention${cls}">@${$2}</span>`;
+      });
+    }
+    return html;
+  }
+
+    function buildRow(m, mine = false, pending = false) {
+    const row = document.createElement('div');
+    row.className = 'msg w-full flex ' + (mine ? 'justify-end' : 'justify-start');
+    if (m.id) row.dataset.msgId = String(m.id | 0);
+
+    const tsSec = m.ts || Math.floor(Date.now() / 1000);
+    row.dataset.ts   = String(tsSec);
+    row.dataset.user = String(m.user_name || '');
+    row.dataset.mine = mine ? '1' : '0';
+    row.dataset.bodyRaw = m.body || '';
+
+    const isDeleted = !!m.deleted;
+    const tsRel = formatRelativeTime(tsSec);
+    const tsAbs = NF_TIME.format(new Date(tsSec * 1000));
+
+    const mentioned = !isDeleted && isMention(m);
+    if (mentioned) row.classList.add('has-mention');
+
+    const bodyHTML = isDeleted
+      ? '<span class="text-slate-500 italic">mesaj șters</span>'
+      : renderMentions(m.body || '', m.mentions || null);
+
+    let reactBar = '';
+    if (FLAGS.reactions && !isDeleted) {
+      reactBar = `
+      <div class="react-bar mt-1 flex gap-1">
+        <button type="button" class="react-btn text-xs px-2 py-[2px] rounded border border-white/10 hover:border-white/20" data-emoji="👍">👍 <span data-count="👍">0</span></button>
+        <button type="button" class="react-btn text-xs px-2 py-[2px] rounded border border-white/10 hover:border-white/20" data-emoji="❤️">❤️ <span data-count="❤️">0</span></button>
+        <button type="button" class="react-btn text-xs px-2 py-[2px] rounded border border-white/10 hover:border-white/20" data-emoji="🔥">🔥 <span data-count="🔥">0</span></button>
+      </div>`;
+    }
+
+    const canEditNow = mine && !pending && !isDeleted && canEditNowTs(tsSec);
+    const editedLabel  = m.edited ? '<span data-edited-flag="1" class="ml-1 text-[10px] text-slate-500 italic">(editat)</span>' : '';
+    const deletedLabel = isDeleted ? '<span data-deleted-flag="1" class="ml-2 text-[11px] text-rose-400">[mesaj șters]</span>' : '';
+
+    let actionsHtml = '';
+    if (canEditNow) {
+      actionsHtml = `
+        <button type="button"
+                class="ml-2 text-[11px] text-slate-500 hover:text-sky-400 edit-msg-btn"
+                title="editează mesajul">
+          <i class="fa-regular fa-pen-to-square"></i>
+        </button>
+        <button type="button"
+                class="ml-1 text-[11px] text-slate-500 hover:text-rose-400 delete-msg-btn"
+                title="șterge mesajul">
+          <i class="fa-regular fa-trash-can"></i>
+        </button>`;
+    }
+
+    row.innerHTML = `
+      <div class="bubble max-w-[85%] rounded-2xl px-3 py-2 text-sm border bg-white/5 border-white/10 ${pending ? 'opacity-80' : ''}">
+        <div class="meta text-[11px] opacity-80 mb-1">
+          <i class="fa-regular fa-user"></i> ${esc(m.user_name || '—')}
+          ${m.role === 'ADMIN' ? '<span class="badge bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 ml-2">Admin</span>' : ''}
+          <span class="ml-2 text-slate-500"
+                data-time
+                data-ts="${tsSec}"
+                title="${esc(tsAbs)}">${esc(tsRel)}</span>
+          ${editedLabel}
+          ${deletedLabel}
+          ${mentioned ? '<span class="mention-chip ml-2">te-a menționat</span>' : ''}
+          ${pending ? '<i class="fa-regular fa-clock ml-2" data-status title="se trimite…"></i>' : ''}
+          ${actionsHtml}
+        </div>
+        <div data-body>${bodyHTML}</div>
+        ${reactBar}
+      </div>`;
+
+    if (FLAGS.reactions && !isDeleted) attachReactHandlers(row);
+    return row;
+  }
+
+
+  function canGroup(prevRow, m, mine){
+    if (!prevRow) return false;
+    if (prevRow.classList.contains('chat-sep')) return false;
+    const sameUser = (prevRow.dataset.user||'') === (m.user_name||'');
+    const sameSide = (prevRow.dataset.mine||'0') === (mine ? '1':'0');
+    return sameUser && sameSide;
+  }
+  function joinWithPrev(prevRow, curRow){
+    const pb = prevRow?.querySelector('.bubble');
+    const cb = curRow?.querySelector('.bubble');
+    if (pb) pb.classList.add('bubble-join-bottom');
+    if (cb) cb.classList.add('bubble-join-top');
+    curRow.classList.add('msg-compact');
+  }
+
+  function appendMsg(m){
+    const id = m.id|0, cid = m.client_id || m.cid || null;
+    if (cid && PENDING.has(cid)) return confirmPending(cid, m);
+    if (!cid && PENDING.size){
+      for (const [k,p] of PENDING){
+        if (p.body === (m.body||'') && Math.abs((m.ts||0) - p.ts) <= 30) return confirmPending(k, m);
+      }
+    }
+    if (id && SEEN.has(id)) return;
+    if (id) {
+      SEEN.add(id); trimSeen();
+      lastId = Math.max(lastId, id);
+      sessionStorage.setItem('chat:lastId', String(lastId));
+      if (oldestIdLoaded === null || id < oldestIdLoaded) oldestIdLoaded = id;
+    }
+    ensureDaySepAppend(m.ts||0);
+    const mine = (m.user_name === meName);
+    const row = buildRow(m, mine, false);
+    const wasBottom = atBottom() || BOOTING;
+    const prev = lastMsgRow();
+    if (canGroup(prev, m, mine)) joinWithPrev(prev, row);
+            feed.appendChild(row);
+    if (row.classList.contains('has-mention')) {
+      if (!mine && !VIEW_MENTIONS) {
+        showMentionToast(m.user_name, (m.body||'').slice(0,80));
+      }
+      // notificare browser pentru @mențiuni, doar dacă nu e mesajul tău
+      if (!mine) {
+        fireMentionNotification(m);
+      }
+    }
+    updateMentionDot();
+
+
+    // după ce am pus mesajul nou, păstrăm doar ultimul „geam” de mesaje în dom
+    trimDOMWindow('bottom');
+
+    if (wasBottom) scrollBottomNow();
+
+  }
+
+  function prependMsgs(list){
+    if (!list || !list.length) return;
+    if (BOOTING) return;
+    let nextRow = feed.firstElementChild;
+    let dayBelow = null;
+    while (nextRow){
+      if (nextRow.classList.contains('chat-sep')) { dayBelow = nextRow.dataset.day||null; break; }
+      if (nextRow.dataset && nextRow.dataset.ts){ dayBelow = dayKey(+nextRow.dataset.ts||0); break; }
+      nextRow = nextRow.nextElementSibling;
+    }
+    const prevH = feed.scrollHeight;
+    const frag = document.createDocumentFragment();
+    let prevRowLocal = null;
+    let prevDayLocal = dayBelow;
+    for (const m of list){
+      const thisDay = dayKey(m.ts||0);
+      if (thisDay !== prevDayLocal){
+        frag.appendChild(sepNode(m.ts||0));
+        prevDayLocal = thisDay;
+      }
+      const mine = (m.user_name === meName);
+      const row = buildRow(m, mine, false);
+      if (prevRowLocal && canGroup(prevRowLocal, m, mine)) joinWithPrev(prevRowLocal, row);
+      frag.appendChild(row);
+      prevRowLocal = row;
+      const id = m.id|0;
+      if (id){ SEEN.add(id); trimSeen(); if (oldestIdLoaded===null || id<oldestIdLoaded) oldestIdLoaded=id; lastId=Math.max(lastId,id); }
+    }
+        feed.insertBefore(frag, feed.firstChild);
+
+    // aici user-ul e în „arhivă”, deci ancorăm fereastra în partea de sus
+    trimDOMWindow('top');
+
+    const newH = feed.scrollHeight;
+    feed.scrollTop = Math.max(0, newH - prevH);
+
+    sessionStorage.setItem('chat:lastId', String(lastId));
+    updateMentionDot();
+
+  }
+
+  function renderPending(cid, body, ts, mentionsArr){
+    ensureDaySepAppend(ts||Math.floor(Date.now()/1000));
+    const m = { id: 0, user_name: meName, role: 'USER', body, ts, mentions: Array.isArray(mentionsArr)?mentionsArr:[] };
+    const row = buildRow(m, true, true);
+    row.dataset.cid = cid;
+    const wasBottom = atBottom() || BOOTING;
+    const prev = lastMsgRow();
+    if (canGroup(prev, m, true)) joinWithPrev(prev, row);
+    feed.appendChild(row);
+    if (wasBottom) scrollBottomNow();
+    PENDING.set(cid, { row, body, ts, mentions: m.mentions });
+  }
+
+    function confirmPending(cid, m) {
+    const p = PENDING.get(cid);
+    if (!p) return appendMsg(m);
+
+    const { row } = p;
+
+    // scoatem iconul de pending
+    row.querySelector('[data-status]')?.remove();
+    row.querySelector('.opacity-80')?.classList.remove('opacity-80');
+
+    const tsSec = (m.ts || p.ts || Math.floor(Date.now() / 1000));
+    row.dataset.ts = String(tsSec);
+    row.dataset.bodyRaw = m.body || p.body || row.dataset.bodyRaw || '';
+
+    const t = row.querySelector('[data-time]');
+    if (t) {
+      t.dataset.ts = String(tsSec);
+      t.textContent = formatRelativeTime(tsSec);
+      t.title = NF_TIME.format(new Date(tsSec * 1000));
+    }
+
+    const dst = row.querySelector('[data-body]');
+    if (dst) {
+      const meta = Array.isArray(m.mentions) ? m.mentions : (p.mentions || []);
+      const tmp = buildRow({ ...m, mentions: meta }, true, false);
+      // numai conținutul body-ului, nu recreăm tot row-ul
+      const bodyNew = tmp.querySelector('[data-body]');
+      if (bodyNew) dst.innerHTML = bodyNew.innerHTML;
+    }
+
+    const id = m.id | 0;
+    if (id) {
+      row.dataset.msgId = String(id);
+      if (isMention(m)) row.classList.add('has-mention');
+      SEEN.add(id); trimSeen();
+      lastId = Math.max(lastId, id);
+      if (oldestIdLoaded === null || id < oldestIdLoaded) oldestIdLoaded = id;
+      sessionStorage.setItem('chat:lastId', String(lastId));
+      updateMentionDot();
+
+      // acum că avem ID și TS definit, putem atașa butoanele edit/șterge dacă încă suntem în fereastră
+      const metaEl = row.querySelector('.meta');
+      if (metaEl && canEditNowForRow(row) && !metaEl.querySelector('.edit-msg-btn')) {
+        const wrap = document.createElement('span');
+        wrap.innerHTML = `
+          <button type="button"
+                  class="ml-2 text-[11px] text-slate-500 hover:text-sky-400 edit-msg-btn"
+                  title="editează mesajul">
+            <i class="fa-regular fa-pen-to-square"></i>
+          </button>
+          <button type="button"
+                  class="ml-1 text-[11px] text-slate-500 hover:text-rose-400 delete-msg-btn"
+                  title="șterge mesajul">
+            <i class="fa-regular fa-trash-can"></i>
+          </button>`;
+        const b1 = wrap.firstElementChild;
+        const b2 = wrap.lastElementChild;
+        if (b1) metaEl.appendChild(b1);
+        if (b2) metaEl.appendChild(b2);
+      }
+    }
+
+    if (atBottom() || BOOTING) scrollBottomNow();
+    PENDING.delete(cid);
+  }
+
+
+  /* ——— Poll (fallback) ——— */
+  function stopPoll(){ if (pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
+  async function pullLatest(){
+    try{
+      const r = await fetch(`/api/chat/fetch.php?since_id=${encodeURIComponent(lastId||0)}`, { credentials:'include' });
+      const j = await r.json();
+      (j.items||[]).forEach(appendMsg);
+    }catch{}
+  }
+  function startPoll(immediate=false){
+    if (pollTimer) return;
+    if (immediate) pullLatest();
+    pollTimer = setInterval(pullLatest, POLL_MS);
+  }
+
+  /* ——— Lazy-load pe scroll sus (gated) ——— */
+  let lazyTick=false;
+  async function loadOlder(){
+    if (!ALLOW_LAZY || loadingOlder || noMoreOlder || oldestIdLoaded===null) return;
+    loadingOlder = true;
+    try{
+      const url = `/api/chat/fetch.php?before_id=${encodeURIComponent(oldestIdLoaded)}&limit=${PAGE_LIMIT}`;
+      const r = await fetch(url, { credentials:'include' });
+      const j = await r.json();
+      const items = j.items||[];
+      if (items.length){
+        prependMsgs(items);
+        oldestIdLoaded = items[0].id;
+        if (items.length < PAGE_LIMIT) noMoreOlder = true;
+      } else noMoreOlder = true;
+    }catch{} finally { loadingOlder = false; }
+  }
+  feed.addEventListener('scroll', ()=>{
+    if (BOOTING) return;
+    if (!ALLOW_LAZY) return;
+    if (lazyTick) return;
+    lazyTick = true;
+    requestAnimationFrame(()=>{ lazyTick=false; if (feed.scrollTop<=8) loadOlder(); });
+  }, {passive:true});
+
+  /* ——— Presence ping ——— */
+  async function pingPresence(){
+    try{ await fetch('/api/chat/presence_ping.php',{method:'POST',credentials:'include'}); }catch{}
+  }
+  function startPresence(){
+    pingPresence();
+    if (presTimer) clearInterval(presTimer);
+    presTimer = setInterval(pingPresence, 20000);
+  }
+
+  /* ——— Typing ——— */
+  async function sendTyping(){
+    const now = Date.now();
+    if (now - lastTypingSent < TYPING_COOLDOWN) return;
+    lastTypingSent = now;
+    try{
+      await fetch('/api/chat/typing.php', {method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:'{}'});
+    }catch{}
+  }
+  input.addEventListener('input', sendTyping);
+  input.addEventListener('keydown', (e)=>{ if(!e.isComposing) sendTyping(); });
+
+  /* ——— Mentions: UI + autocomplete + payload ——— */
+  let MENTION_IDS = new Set();
+  let MENTION_MAP = new Map();
+  let mentionState = { open:false, start:-1, caret:0, q:'', idx:-1, items:[], anchor:null };
+  let mentionPanelEl = null;
+
+  function closeMentionPanel(){ if(mentionPanelEl){ mentionPanelEl.remove(); mentionPanelEl=null; } mentionState={...mentionState, open:false, idx:-1, items:[], q:'', start:-1}; }
+  function ensurePanel(){ if (mentionPanelEl) return mentionPanelEl; const el = document.createElement('div'); el.id='piMentionPanel'; document.body.appendChild(el); mentionPanelEl=el; return el; }
+  function positionPanel(){
+    if (!mentionState.anchor || !mentionPanelEl) return;
+    const r = mentionState.anchor.getBoundingClientRect();
+    mentionPanelEl.style.left = Math.round(r.left)+'px';
+    mentionPanelEl.style.top  = Math.round(r.bottom + 6)+'px';
+    mentionPanelEl.style.width= Math.round(r.width)+'px';
+  }
+  window.addEventListener('resize', positionPanel);
+  window.addEventListener('scroll', positionPanel, {passive:true});
+  function renderPanel(){
+    if (!mentionState.open) return;
+    const el = ensurePanel(); positionPanel();
+    if (!mentionState.items.length){ el.innerHTML = `<div class="pi-mention-item"><span class="pi-mention-meta">nimic găsit</span></div>`; return; }
+    el.innerHTML = '';
+    mentionState.items.forEach((u,i)=>{
+      const btn = document.createElement('button');
+      btn.type='button';
+      btn.className = 'pi-mention-item';
+      btn.setAttribute('aria-selected', String(i===mentionState.idx));
+      btn.innerHTML = `<div>${u.name}</div><div class="pi-mention-meta">${u.role||'USER'} ${u.is_online?'• online':''}</div>`;
+      btn.addEventListener('click', ()=> pickMention(i));
+      el.appendChild(btn);
+    });
+  }
+  function getAtToken(val, caret){
+    let i = val.lastIndexOf('@', caret-1);
+    if (i<0) return null;
+    if (i>0 && /\w/.test(val[i-1])) return null;
+    const frag = val.slice(i+1, caret);
+    if (/\s/.test(frag)) return null;
+    if (frag.length===0) return {start:i, q:''};
+    if (!/^[A-Za-z0-9._-]{0,32}$/.test(frag)) return null;
+    return {start:i, q:frag};
+  }
+  let suggestAbort=null;
+  async function suggestMentions(q){
+    const local = (PRES_LIST||[]).map(u=>({ user_id:u.user_id||null, name:u.user_name||u.name||'', role:u.role||'USER', is_online:true }))
+      .filter(x=> x.name && x.name.toLowerCase().startsWith(q.toLowerCase()))
+      .slice(0,6);
+    try{
+      if (suggestAbort) suggestAbort.abort();
+      suggestAbort = new AbortController();
+      const r = await fetch(`/api/chat/mentions_suggest.php?q=${encodeURIComponent(q)}&limit=10`, { credentials:'include', signal:suggestAbort.signal });
+      const j = await r.json();
+      if (j && j.ok && Array.isArray(j.items) && j.items.length){
+        return j.items;
+      }
+    }catch(_){}
+    return local;
+  }
+  function pickMention(i){
+    const it = mentionState.items[i]; if (!it) return;
+    const val = input.value; const caret = input.selectionStart|0;
+    const start = mentionState.start;
+    const before = val.slice(0, start);
+    const after  = val.slice(caret);
+    const insert = '@'+it.name+' ';
+    input.value = before + insert + after;
+    const pos = (before+insert).length;
+    input.setSelectionRange(pos,pos);
+    if (it.user_id!=null) MENTION_IDS.add(it.user_id);
+    MENTION_MAP.set(it.user_id==null?`n:${it.name}`:String(it.user_id), it.name);
+    closeMentionPanel();
+    autoGrow(); updateCounter();
+  }
+  function moveMentionSel(dir){
+    if (!mentionState.open || !mentionState.items.length) return;
+    const n = mentionState.items.length;
+    mentionState.idx = ( (mentionState.idx + (dir>0?1:-1)) + n ) % n;
+    renderPanel();
+  }
+  function onInputForMentions(){
+    const val = input.value; const caret = input.selectionStart|0;
+    const tok = getAtToken(val, caret);
+    if (!tok){ closeMentionPanel(); return; }
+    mentionState = { ...mentionState, open:true, start:tok.start, caret, q:tok.q, anchor:input, idx:0 };
+    positionPanel();
+    suggestMentions(tok.q||'').then(items=>{
+      if (!mentionState.open) return;
+      mentionState.items = items||[];
+      renderPanel();
+    });
+  }
+  input.addEventListener('input', onInputForMentions);
+  input.addEventListener('keydown', (e)=>{
+    if (!mentionState.open) return;
+    if (e.key==='ArrowDown'){ e.preventDefault(); moveMentionSel(+1); }
+    else if (e.key==='ArrowUp'){ e.preventDefault(); moveMentionSel(-1); }
+    else if (e.key==='Enter' || e.key==='Tab'){ e.preventDefault(); pickMention(Math.max(0, mentionState.idx)); }
+    else if (e.key==='Escape'){ e.preventDefault(); closeMentionPanel(); }
+  });
+
+  /* ——— Enter = trimite; Shift+Enter = linie nouă ——— */
+  input.addEventListener('keydown', (e)=>{
+    if (mentionState.open) return; // deja gestionat mai sus
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing){
+      e.preventDefault();
+      form.requestSubmit();
+    }
+    // altfel comportamentul default al textarea-ului adaugă linie nouă
+  });
+
+  /* ——— Reacții (UI + API) ——— */
+  function getRowByMsgId(id){ return feed.querySelector(`.msg[data-msg-id="${id}"]`); }
+  function applyRowReactions(row, data){
+    if (!row) return;
+    const counts = data?.counts || {};
+    row.querySelectorAll('.react-btn').forEach(b=>{
+      const e=b.dataset.emoji||'';
+      const span = b.querySelector(`[data-count="${CSS.escape(e)}"]`);
+      if (span) span.textContent = String(counts[e]||0);
+    });
+  }
+  
+    function applyLocalDelete(row) {
+    if (!row) return;
+    row.classList.add('msg-deleted');
+
+    const bodyEl = row.querySelector('[data-body]');
+    if (bodyEl) {
+      bodyEl.innerHTML = '<span class="text-slate-500 italic">mesaj șters</span>';
+    }
+
+    row.querySelectorAll('.react-bar').forEach(el => el.remove());
+    row.querySelectorAll('.edit-msg-btn, .delete-msg-btn').forEach(el => el.remove());
+
+    let meta = row.querySelector('.meta');
+    if (meta && !meta.querySelector('[data-deleted-flag]')) {
+      const span = document.createElement('span');
+      span.dataset.deletedFlag = '1';
+      span.className = 'ml-2 text-[11px] text-rose-400';
+      span.textContent = '[mesaj șters]';
+      meta.appendChild(span);
+    }
+  }
+
+  function applyLocalEdit(row, m) {
+    if (!row) return;
+
+    const tsSec = m.ts || parseInt(row.dataset.ts || '0', 10) || Math.floor(Date.now() / 1000);
+    row.dataset.ts = String(tsSec);
+    row.dataset.bodyRaw = m.body || row.dataset.bodyRaw || '';
+
+    const bodyEl = row.querySelector('[data-body]');
+    if (bodyEl) {
+      bodyEl.innerHTML = renderMentions(m.body || '', m.mentions || null);
+    }
+
+    const tEl = row.querySelector('[data-time]');
+    if (tEl) {
+      tEl.dataset.ts = String(tsSec);
+      tEl.textContent = formatRelativeTime(tsSec);
+      tEl.title = NF_TIME.format(new Date(tsSec * 1000));
+    }
+
+    let meta = row.querySelector('.meta');
+    if (meta && !meta.querySelector('[data-edited-flag]')) {
+      const span = document.createElement('span');
+      span.dataset.editedFlag = '1';
+      span.className = 'ml-1 text-[10px] text-slate-500 italic';
+      span.textContent = '(editat)';
+      // îl punem înainte de chip-uri / status dacă există
+      const insertBefore =
+        meta.querySelector('.mention-chip') ||
+        meta.querySelector('[data-status]') ||
+        null;
+      meta.insertBefore(span, insertBefore);
+    }
+
+    row.dataset.editing = '';
+  }
+
+  function openInlineEditor(row) {
+    if (!row) return;
+    if (row.dataset.editing === '1' || row.dataset.editing === '2') return;
+    if (!canEditNowForRow(row)) {
+      if (typeof showToast === 'function') showToast('fereastra de editare a expirat', 'info');
+      refreshEditControls();
+      return;
+    }
+
+    const bodyEl = row.querySelector('[data-body]');
+    if (!bodyEl) return;
+
+    const raw = row.dataset.bodyRaw || bodyEl.textContent || '';
+    row.dataset.editing = '1';
+
+    const ta = document.createElement('textarea');
+    ta.className = 'w-full rounded-lg bg-slate-900/70 border border-cyan-500/40 px-2 py-1 text-sm';
+    ta.value = raw;
+    ta.rows = Math.min(8, Math.max(2, raw.split('\n').length));
+    ta.dataset.editInput = '1';
+
+    const actions = document.createElement('div');
+    actions.className = 'mt-1 flex items-center gap-2 text-xs';
+    actions.innerHTML = `
+      <button type="button"
+              class="px-2 py-1 rounded bg-cyan-500/20 border border-cyan-400/40 text-cyan-100 save-edit-btn">
+        salvează
+      </button>
+      <button type="button"
+              class="px-2 py-1 rounded bg-slate-700/60 border border-white/10 text-slate-200 cancel-edit-btn">
+        anulează
+      </button>`;
+
+    bodyEl.innerHTML = '';
+    bodyEl.appendChild(ta);
+    bodyEl.appendChild(actions);
+
+    ta.focus();
+    ta.selectionStart = ta.value.length;
+
+    ta.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        submitEdit(row);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelEdit(row);
       }
     });
+  }
 
-    window.addEventListener('beforeunload', ()=>{
-      try{sse?.close();}catch{}
+  function cancelEdit(row) {
+    if (!row) return;
+    const bodyEl = row.querySelector('[data-body]');
+    if (!bodyEl) return;
+    const raw = row.dataset.bodyRaw || bodyEl.textContent || '';
+    bodyEl.innerHTML = renderMentions(raw, null);
+    row.dataset.editing = '';
+  }
+
+  async function submitEdit(row) {
+    if (!row) return;
+
+    const msgId = parseInt(row.dataset.msgId || '0', 10);
+    if (!msgId) return;
+
+    const ta = row.querySelector('[data-edit-input]');
+    if (!ta) return;
+
+    const newText = ta.value.trim();
+    const orig = (row.dataset.bodyRaw || '').trim();
+
+    if (!newText) {
+      if (typeof showToast === 'function') showToast('mesajul nu poate fi gol', 'error');
+      return;
+    }
+    if (newText === orig) {
+      cancelEdit(row);
+      return;
+    }
+
+    if (!canEditNowForRow(row)) {
+      cancelEdit(row);
+      refreshEditControls();
+      if (typeof showToast === 'function') showToast('fereastra de editare a expirat', 'info');
+      return;
+    }
+
+    row.dataset.editing = '2';
+
+    const payload = { message_id: msgId, text: newText };
+        const headers = {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    };
+
+
+    try {
+      const r = await fetch('/api/chat/edit.php', {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify(payload)
+      });
+      const j = await r.json().catch(() => null);
+
+      if (!r.ok || !j || !j.ok) {
+        row.dataset.editing = '';
+        if (typeof showToast === 'function') {
+          showToast(j?.error || 'eroare la editarea mesajului', 'error');
+        }
+        return;
+      }
+
+      const m = j.message || {
+        id: msgId,
+        body: newText,
+        ts: j.ts || j.time || Math.floor(Date.now() / 1000),
+        edited: true
+      };
+      applyLocalEdit(row, m);
+
+      if (typeof showToast === 'function') showToast('mesaj actualizat', 'success');
+    } catch (e) {
+      row.dataset.editing = '';
+      if (typeof showToast === 'function') {
+        showToast('nu am putut salva modificarea. verifică conexiunea.', 'error');
+      }
+    }
+  }
+
+  async function confirmDelete(row) {
+    if (!row) return;
+
+    const msgId = parseInt(row.dataset.msgId || '0', 10);
+    if (!msgId) return;
+
+    if (!canEditNowForRow(row)) {
+      refreshEditControls();
+      if (typeof showToast === 'function') showToast('fereastra pentru ștergere a expirat', 'info');
+      return;
+    }
+
+    if (!window.confirm('Ștergi acest mesaj pentru toată lumea?')) return;
+
+        const headers = {
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': csrfToken
+    };
+
+
+    try {
+      const r = await fetch('/api/chat/delete.php', {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify({ message_id: msgId })
+      });
+      const j = await r.json().catch(() => null);
+
+      if (!r.ok || !j || !j.ok) {
+        if (typeof showToast === 'function') {
+          showToast(j?.error || 'nu am putut șterge mesajul', 'error');
+        }
+        return;
+      }
+
+      applyLocalDelete(row);
+      if (typeof showToast === 'function') showToast('mesaj șters', 'info');
+    } catch (e) {
+      if (typeof showToast === 'function') {
+        showToast('nu am putut șterge mesajul. verifică conexiunea.', 'error');
+      }
+    }
+  }
+
+  // pentru când vine editarea/ștergerea prin SSE din backend (alți utilizatori)
+  function applyExternalEdit(m) {
+    if (!m || !m.id) return;
+    const row = getRowByMsgId(m.id | 0);
+    if (!row) return;
+    applyLocalEdit(row, m);
+  }
+
+  function applyExternalDelete(id) {
+    const row = getRowByMsgId(id | 0);
+    if (!row) return;
+    applyLocalDelete(row);
+  }
+
+  // handler global de click pentru editare / ștergere / salvare / anulare
+  feed.addEventListener('click', (e) => {
+    const editBtn   = e.target.closest('.edit-msg-btn');
+    const deleteBtn = e.target.closest('.delete-msg-btn');
+    const saveBtn   = e.target.closest('.save-edit-btn');
+    const cancelBtn = e.target.closest('.cancel-edit-btn');
+
+    if (editBtn) {
+      e.preventDefault();
+      const row = editBtn.closest('.msg');
+      openInlineEditor(row);
+      return;
+    }
+
+    if (deleteBtn) {
+      e.preventDefault();
+      const row = deleteBtn.closest('.msg');
+      confirmDelete(row);
+      return;
+    }
+
+    if (saveBtn) {
+      e.preventDefault();
+      const row = saveBtn.closest('.msg');
+      submitEdit(row);
+      return;
+    }
+
+    if (cancelBtn) {
+      e.preventDefault();
+      const row = cancelBtn.closest('.msg');
+      cancelEdit(row);
+      return;
+    }
+  });
+
+  
+  function attachReactHandlers(row){
+    row.querySelectorAll('.react-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if (!FLAGS.reactions) return;
+        const emoji = btn.dataset.emoji||'';
+        const id = parseInt(row.dataset.msgId||'0',10);
+        if (!id || !emoji) return;
+        try{
+          const r = await fetch('/api/chat/react.php', {
+            method:'POST', credentials:'include', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ message_id:id, emoji })
+          });
+          if (!r.ok) return;
+          const span = btn.querySelector(`[data-count="${CSS.escape(emoji)}"]`);
+          if (span){ span.textContent = String((parseInt(span.textContent||'0',10)||0)+1); }
+        }catch{}
+      });
+    });
+  }
+
+  const REACTS_BULK = { set:new Set(), timer:null };
+  function scheduleReactFetch(id){
+    if (!FLAGS.reactions) return;
+    if (id) REACTS_BULK.set.add(id);
+    clearTimeout(REACTS_BULK.timer);
+    REACTS_BULK.timer = setTimeout(fetchReactionsBulk, 280);
+  }
+  async function fetchReactionsBulk(){
+    if (!FLAGS.reactions) return;
+    const ids = Array.from(REACTS_BULK.set.values()).filter(Boolean);
+    REACTS_BULK.set.clear();
+    REACTS_BULK.timer = null;
+    if (!ids.length) return;
+    try{
+      const url = `/api/chat/reactions_bulk.php?ids=${encodeURIComponent(ids.join(','))}`;
+      const r = await fetch(url, { credentials:'include' });
+      if (r.status === 404){ disableReactions('404 reactions_bulk.php'); return; }
+      if (!r.ok) return;
+      const j = await r.json();
+      const items = j?.items || [];
+      items.forEach(it=> applyRowReactions(getRowByMsgId(it.message_id|0), it));
+    }catch{}
+  }
+
+  /* ——— Toast mențiuni ——— */
+    const TOAST_MAX = 3;
+
+  function pushToastCard(card){
+    const host = document.getElementById('mentionToast');
+    if (!host){
+      console.warn('[chat-toast]', card.textContent || '');
+      return;
+    }
+
+    host.appendChild(card);
+
+    // limităm numărul de toast-uri simultane
+    const cards = host.querySelectorAll('.toast-card');
+    if (cards.length > TOAST_MAX){
+      const removeCount = cards.length - TOAST_MAX;
+      for (let i = 0; i < removeCount; i++){
+        const old = cards[i];
+        if (!old) continue;
+        old.style.opacity = '.0';
+        old.style.transform = 'translateY(8px)';
+        setTimeout(() => old.remove(), 220);
+      }
+    }
+  }
+
+    function showMentionToast(fromName, preview){
+    const card = document.createElement('div');
+    // îl lăsăm „info”, că e notificare prietenoasă
+    card.className = 'toast-card toast-info';
+    card.innerHTML =
+      `<div class="icon">@</div>
+       <div class="text-sm">
+         <b>${esc(fromName || 'cineva')}</b> te-a menționat<br>
+         <span class="text-slate-400">${esc(preview || '')}</span>
+       </div>`;
+
+    // montăm cu limită globală max 3
+    pushToastCard(card);
+
+    setTimeout(() => {
+      card.style.opacity = '.0';
+      card.style.transform = 'translateY(8px)';
+      setTimeout(() => card.remove(), 220);
+    }, 2600);
+  }
+
+  // ——— helper: cere permisiune pentru Notification API, apelat din interacțiune user (click pe clopoțel) ———
+  async function ensureMentionPushEnabledViaClick() {
+  if (!('Notification' in window)) {
+    showToast('error', 'notificările browser nu sunt suportate aici.');
+    return;
+  }
+
+  if (Notification.permission === 'denied') {
+    showToast(
+      'error',
+      'notificările sunt blocate pentru acest site. mergi în setările browserului și pune site-ul pe „allow”.'
+    );
+    return;
+  }
+
+  if (Notification.permission === 'default') {
+    const res = await Notification.requestPermission();
+    if (res !== 'granted') {
+      showToast('info', 'ai refuzat notificările. le poți activa oricând din setările browserului.');
+      return;
+    }
+  }
+
+  mentionPushEnabled = true;
+  showToast('info', 'notificările pentru mențiuni sunt active.');
+}
+
+
+
+  // ——— helper: notificare efectivă pentru @mențiune ———
+  function fireMentionNotification(msg) {
+    if (!mentionPushEnabled) return;
+    if (!('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+
+    // trimitem notificări doar când nu ești pe tab
+    if (!document.hidden) return;
+
+    const now = Date.now();
+    if (now - mentionPushLastTs < MENTION_PUSH_COOLDOWN_MS) return;
+    mentionPushLastTs = now;
+
+    const fromName = msg.user_name || 'cineva';
+    const bodyRaw  = msg.body || '';
+    const bodyPreview = bodyRaw.length > 120 ? bodyRaw.slice(0, 117) + '…' : bodyRaw || 'ai o mențiune nouă în chat.';
+
+    try {
+      const n = new Notification(`${fromName} te-a menționat`, {
+        body: bodyPreview,
+        // ajustează la icon-ul tău real, dacă ai: logo PI / favicon custom
+        icon: '/favicon.ico',
+        tag: 'pi-mention',   // același tag => se re-folosește notificarea
+        renotify: true
+      });
+
+      n.onclick = () => {
+        try { n.close(); } catch (_) {}
+        window.focus();
+        setView(true); // deschidem tab-ul „mențiuni”
+      };
+    } catch (_) {
+      // în caz că aruncă, nu stricăm nimic
+    }
+  }
+
+  
+    // toast generic pentru erori / info (reutilizează același container și același stil)
+     function showChatToast(message, type){
+    const card = document.createElement('div');
+
+    const variant =
+      type === 'error'   ? 'toast-error'   :
+      type === 'success' ? 'toast-success' :
+                           'toast-info';
+
+    card.className = 'toast-card ' + variant;
+
+    let icon = 'i';
+    if (type === 'error')      icon = '!';
+    else if (type === 'success') icon = '✓';
+
+    card.innerHTML =
+      `<div class="icon">${icon}</div>
+       <div class="text-sm">${esc(message || '')}</div>`;
+
+    // montăm toast-ul cu limită max 3
+    pushToastCard(card);
+
+    // auto-hide după 2.6s
+    setTimeout(() => {
+      card.style.opacity = '.0';
+      card.style.transform = 'translateY(8px)';
+      setTimeout(() => card.remove(), 220);
+    }, 2600);
+  }
+
+
+
+
+  /* ——— Bootstrap ——— */
+    async function bootstrap(){
+    try{
+      loadOfflineQueue();
+
+      // probe reacții
+      const okBulk = await probeHEAD('/api/chat/reactions_bulk.php');
+
+      if (!okBulk) disableReactions('404 reactions_bulk.php');
+
+      const r = await fetch(`/api/chat/fetch.php?limit=${PAGE_LIMIT}`, { credentials:'include' });
+      const j = await r.json();
+      (j.items||[]).forEach(m=>{
+        appendMsg(m);
+        if (FLAGS.reactions && m.id) scheduleReactFetch(m.id|0);
+      });
+      if (j.items && j.items.length){
+        oldestIdLoaded = j.items[0].id;
+        noMoreOlder = (j.items.length < PAGE_LIMIT);
+      }
+      requestAnimationFrame(()=>{
+        // dacă avem ?m=ID în url, sărim direct la acel mesaj
+        let mid = 0;
+        try {
+          const url = new URL(window.location.href);
+          mid = parseInt(url.searchParams.get('m') || '0', 10) || 0;
+        } catch(_) {
+          mid = 0;
+        }
+        if (mid > 0) {
+          jumpToAround(mid);
+        } else {
+          scrollBottomNow();
+        }
+        BOOTING = false;
+        ALLOW_LAZY = true;
+        autoGrow(); updateCounter();
+      });
+
+            if ('EventSource' in window) openSSE();
+      else {
+        liveB.textContent='sync';
+        liveB.className='badge bg-amber-500/15 text-amber-200 border border-amber-400/30';
+        startPoll(true);
+      }
+      startPresence();
+      updateMentionDot();
+
+      // dacă deja avem net la load, încearcă să trimiți din coadă
+      if (navigator.onLine) {
+        flushOfflineQueue();
+      }
+
+    }catch{
+      sessionStorage.removeItem('chat:lastId');
+      liveB.textContent='offline';
+      liveB.className='badge bg-rose-500/15 text-rose-200 border border-rose-400/30';
+      requestAnimationFrame(()=>{
+        scrollBottomNow();
+        BOOTING = false;
+        ALLOW_LAZY = true;
+        autoGrow(); updateCounter();
+      });
+      startPoll(true);
+      startPresence();
+      updateMentionDot();
+    }
+  }
+
+  /* ——— SSE ——— */
+  function openSSE(){
+    if (sse) { try{sse.close();}catch{} sse=null; }
+    sse = new EventSource(`/api/chat/stream.php?last_id=${encodeURIComponent(lastId||0)}`);
+    sse.addEventListener('open', ()=>{
+      liveB.textContent='live';
+      liveB.className='badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30';
       stopPoll();
+      if (atBottom()) scrollBottomNow();
+    });
+    sse.addEventListener('hello', (e)=>{
+      try{
+        const d = JSON.parse(e.data);
+        if (d && d.last_id) {
+          lastId = Math.max(lastId, d.last_id|0);
+          sessionStorage.setItem('chat:lastId', String(lastId));
+        }
+      }catch{}
+    });
+    sse.addEventListener('message', (e)=>{
+      try{
+        const m = JSON.parse(e.data);
+        const cid = m.client_id || m.cid || null;
+        if (cid && PENDING.has(cid)) confirmPending(cid, m);
+        else {
+          appendMsg(m);
+          if (FLAGS.reactions && m.id) scheduleReactFetch(m.id|0);
+        }
+      }catch{}
+    });
+    sse.addEventListener('presence', (e)=>{ try{ const d=JSON.parse(e.data); renderPresence(d.users||[]); }catch{} });
+    sse.addEventListener('typing',   (e)=>{ try{ const d=JSON.parse(e.data); renderTyping(d.users||[]); }catch{} });
+    sse.addEventListener('ping', ()=>{});
+    sse.addEventListener('error', ()=>{
+      liveB.textContent='sync';
+      liveB.className='badge bg-amber-500/15 text-amber-200 border border-amber-400/30';
+      startPoll(true);
+    });
+        sse.addEventListener('message_edit', (e) => {
+      try {
+        const m = JSON.parse(e.data);
+        if (!m || !m.id) return;
+        applyExternalEdit(m);
+      } catch {}
     });
 
-    bootstrap();
-  })();
-  </script>
-  <!-- /Chat Comunitate -->
+    sse.addEventListener('message_delete', (e) => {
+      try {
+        const m = JSON.parse(e.data);
+        const id = m.id || m.message_id;
+        if (!id) return;
+        applyExternalDelete(id);
+      } catch {}
+    });
+
+  }
+  document.addEventListener('visibilitychange', ()=>{
+    if (!document.hidden && sse && sse.readyState === 2) openSSE();
+    if (!document.hidden) { pingPresence(); if (VIEW_MENTIONS) markMentionsSeen(); }
+  });
+
+  /* ——— Submit (optimistic) ——— */
+    form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const raw = (input.value||'');
+    const txt = raw.trim();
+    if(!txt){ updateCounter(); return; }
+       if (raw.length > MAX_CHARS){
+      showChatToast(
+        `Mesajul depășește limita de ${MAX_CHARS} caractere.`,
+        'error'
+      );
+      return;
+    }
+
+
+    const mentionsPayload = Array.from(MENTION_IDS);
+    const mentionsNames   = Array.from(MENTION_MAP.values());
+
+    const cid = genCID(), ts = Math.floor(Date.now()/1000);
+    const offlinePayload = { cid, txt, ts, mentionsPayload, mentionsNames };
+
+    renderPending(cid, txt, ts, mentionsNames.map(n=>({ user_id: null, name: n })));
+
+    input.value=''; autoGrow(); updateCounter();
+    setBtnBusy(true);
+
+    // dacă nu avem conexiune, nu mai încercăm fetch acum: punem în coadă și ieșim
+    if (!navigator.onLine){
+      queueOffline(offlinePayload);
+      setBtnBusy(false);
+      input.focus();
+      MENTION_IDS.clear(); MENTION_MAP.clear(); closeMentionPanel();
+      try{ navigator.sendBeacon && navigator.sendBeacon('/api/chat/typing.php', JSON.stringify({stop:true})); }catch{}
+      return;
+    }
+
+    try{
+      const r = await fetch('/api/chat/send.php', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'X-CSRF-Token': csrfToken || ''
+        },
+        credentials:'include',
+        body: JSON.stringify({
+          text: txt,
+          client_id: cid,
+          mentions: mentionsPayload,
+          mention_names: mentionsNames,
+          csrf_token: csrfToken || ''
+        })
+      });
+      const j = await r.json().catch(()=>null);
+
+      if(!r.ok || !j || !j.ok){
+        const p = PENDING.get(cid);
+        if (p?.row){
+          const ic = p.row.querySelector('[data-status]');
+          if (ic) {
+            ic.className = 'fa-regular fa-circle-xmark ml-2 text-rose-400';
+            ic.title = 'eroare la trimitere';
+          }
+          p.row.querySelector('.opacity-80')?.classList.remove('opacity-80');
+        }
+
+                let msg = 'Eroare. încearcă din nou.';
+        if (j && j.error) {
+          if (j.error === 'csrf_invalid') {
+            msg = 'Sesiunea de securitate a expirat. Reîncarcă pagina și apoi mai trimite o dată.';
+          } else if (j.error === 'rate_limited' || j.error === 'throttled') {
+            msg = 'Scrii prea repede. așteaptă câteva secunde înainte să trimiți următorul mesaj.';
+          } else if (j.error === 'duplicate') {
+            msg = 'Același mesaj a fost deja trimis recent.';
+          } else {
+            msg = `eroare: ${j.error}`;
+          }
+        }
+        showChatToast(msg, 'error');
+
+      } else if (!sse || sse.readyState !== 1) {
+        await pullLatest();
+      }
+    }catch{
+      // cel mai probabil a picat netul => trimitem în coadă offline
+      queueOffline(offlinePayload);
+    }finally{
+      setBtnBusy(false);
+      input.focus();
+      MENTION_IDS.clear(); MENTION_MAP.clear(); closeMentionPanel();
+      try{ navigator.sendBeacon && navigator.sendBeacon('/api/chat/typing.php', JSON.stringify({stop:true})); }catch{}
+    }
+  });
+
+
+  /* ——— Search (debounce + abort + jump) ——— */
+  const sInput  = document.getElementById('chatSearchInput');
+  const sResult = document.getElementById('chatSearchResults');
+  let sAbort=null, sTimer=null;
+
+  async function doSearch(q){
+    if (!q || q.length < 2){ sResult.classList.add('hidden'); sResult.innerHTML=''; return; }
+    if (sAbort) sAbort.abort();
+    sAbort = new AbortController();
+    sResult.innerHTML = '<div class="text-sm text-slate-400 px-2 py-1">caut…</div>';
+    sResult.classList.remove('hidden');
+    try{
+      const r = await fetch(`/api/chat/search.php?q=${encodeURIComponent(q)}&limit=30`, {
+        credentials:'include', signal: sAbort.signal
+      });
+      const j = await r.json();
+      if (!j.ok){
+        sResult.innerHTML = `<div class="text-sm text-rose-300 px-2 py-1">eroare: ${esc(j.hint || j.error || 'necunoscută')}.</div>`;
+        return;
+      }
+      const items = j.items||[];
+      if (!items.length){ sResult.innerHTML = '<div class="text-sm text-slate-400 px-2 py-1">nimic găsit.</div>'; return; }
+      sResult.innerHTML = '';
+      items.forEach(m=>{
+        const it = document.createElement('button');
+        it.type='button';
+        it.className='w-full text-left px-2 py-2 rounded-lg hover:bg-white/5 border border-white/5';
+        it.innerHTML = `
+                    <div class="text-xs text-slate-500">
+            ${esc(formatRelativeTime(m.ts))}
+            <span class="ml-1 text-slate-500/70">(${NF_TIME.format(new Date(m.ts*1000))})</span>
+            • ${esc(m.user_name||'—')}
+          </div>
+
+          <div class="text-sm">${esc(m.body||'')}</div>`;
+        it.addEventListener('click', ()=> jumpToAround(m.id));
+        sResult.appendChild(it);
+      });
+    }catch(e){
+      if (e.name === 'AbortError') return;
+      sResult.innerHTML = '<div class="text-sm text-rose-300 px-2 py-1">eroare la căutare.</div>';
+    }
+  }
+  if (sInput){
+    sInput.addEventListener('input', ()=>{
+      clearTimeout(sTimer);
+      sTimer = setTimeout(()=> doSearch(sInput.value.trim()), 220);
+    });
+    sInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); doSearch(sInput.value.trim()); }});
+  }
+  document.addEventListener('click', (e)=>{ if(!sResult.contains(e.target) && e.target!==sInput){ sResult.classList.add('hidden'); }});
+
+  async function jumpToAround(id){
+    sResult.classList.add('hidden');
+    sResult.innerHTML='';
+    try{
+      const r = await fetch(`/api/chat/fetch.php?around_id=${encodeURIComponent(id)}&window=30`, { credentials:'include' });
+      const j = await r.json();
+      if (!j.ok) {
+        sResult.innerHTML = `<div class="text-sm text-rose-300 px-2 py-1">eroare: ${esc(j.hint || j.error || 'necunoscută')}.</div>`;
+        return;
+      }
+      feed.innerHTML = '';
+      SEEN.clear(); PENDING.clear();
+      (j.items||[]).forEach(appendMsg);
+      if (j.items && j.items.length){
+        oldestIdLoaded = j.items[0].id;
+        lastId = j.items[j.items.length-1].id;
+        sessionStorage.setItem('chat:lastId', String(lastId));
+        const anchor = feed.querySelector('[data-msg-id="'+id+'"]');
+        if (anchor){
+          anchor.scrollIntoView({block:'center'});
+          anchor.querySelector('.border')?.classList.add('ring-2','ring-cyan-500/50');
+          setTimeout(()=> anchor.querySelector('.border')?.classList.remove('ring-2','ring-cyan-500/50'), 1200);
+        }
+      }
+      updateMentionDot();
+    }catch{}
+  }
+
+  // auto-resize + contor live
+  input.addEventListener('input', ()=>{ autoGrow(); updateCounter(); });
+  // init
+  autoGrow(); updateCounter();
+
+  window.addEventListener('online', ()=>{
+    if (liveB){
+      liveB.textContent = 'live';
+      liveB.className = 'badge bg-emerald-500/15 text-emerald-200 border border-emerald-400/30';
+    }
+    // dacă SSE nu e conectat, îl repornim
+    if (!sse || sse.readyState !== 1){
+      if ('EventSource' in window) openSSE();
+    }
+    flushOfflineQueue();
+  });
+
+  window.addEventListener('offline', ()=>{
+    if (liveB){
+      liveB.textContent = 'offline';
+      liveB.className = 'badge bg-rose-500/15 text-rose-200 border border-rose-400/30';
+    }
+  });
+
+  // refresh relativ pentru timpi (acum / acum 2 min) la fiecare 30s
+    setInterval(tickTimeUI, 30000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) tickTimeUI();
+  });
+
+  feed.addEventListener('click', (e) => {
+    const editBtn = e.target.closest && e.target.closest('.edit-msg-btn');
+    if (editBtn) {
+      const row = editBtn.closest('.msg');
+      if (row) openInlineEditor(row);
+      return;
+    }
+
+    const delBtn = e.target.closest && e.target.closest('.delete-msg-btn');
+    if (delBtn) {
+      const row = delBtn.closest('.msg');
+      if (row) confirmDelete(row);
+      return;
+    }
+  });
+
+
+  window.addEventListener('beforeunload', ()=>{
+    try{sse?.close();}catch{}
+    if (pollTimer) clearInterval(pollTimer);
+    try{ navigator.sendBeacon && navigator.sendBeacon('/api/chat/typing.php', JSON.stringify({stop:true})); }catch{}
+  });
+
+  bootstrap();
+})();
+</script>
+
+<script>
+(function () {
+  const input     = document.getElementById('chatInput');
+  const counterEl = document.getElementById('chatCharCounter');
+
+  if (!input || !counterEl) return;
+
+  // 1) input-ul să stea perfect în chenar, fără spațiu rezervat pentru overlay
+  input.style.paddingRight = '';
+  input.style.width        = '100%';
+  input.style.boxSizing    = 'border-box';
+
+  // 2) mutăm contorul sub input, în flux normal, nu peste text
+  counterEl.style.position      = 'static';
+  counterEl.style.right         = '';
+  counterEl.style.bottom        = '';
+  counterEl.style.display       = 'flex';
+  counterEl.style.flexWrap      = 'wrap';
+  counterEl.style.alignItems    = 'center';
+  counterEl.style.gap           = '10px';
+  counterEl.style.marginTop     = '4px';
+
+  // 3) curățăm placeholder-ul, păstrăm doar textul de bază
+  if (input.placeholder) {
+    // scoate bucata adăugată de script: " · enter = trimite · shift+enter = linie nouă"
+    input.placeholder = input.placeholder.replace(/ · enter[^]+$/i, '').trim();
+  }
+})();
+</script>
+
+<script>
+(function () {
+  const feed = document.getElementById('chatFeed');
+  if (!feed) return;
+
+  // inserează buton "copiază link" în meta pentru fiecare mesaj
+  function decorateRow(row) {
+    if (!row || row.dataset.copyLinkInit === '1') return;
+    row.dataset.copyLinkInit = '1';
+
+    const id = row.dataset.msgId;
+    if (!id) return; // nu are încă id (mesaj pending)
+
+    const bubble = row.querySelector('.bubble');
+    if (!bubble) return;
+    const meta = bubble.querySelector('.meta');
+    if (!meta) return;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className =
+      'ml-2 text-[11px] text-slate-500 hover:text-cyan-400 copy-link-btn';
+    btn.setAttribute('data-copy-link', '1');
+    btn.title = 'copiază link către acest mesaj';
+    btn.innerHTML = '<i class="fa-solid fa-link"></i>';
+
+    meta.appendChild(btn);
+  }
+
+  // decorează mesajele deja existente (dacă sunt)
+  feed.querySelectorAll('.msg').forEach(decorateRow);
+
+  // observă mesaje noi adăugate în feed (SSE, poll, send etc.)
+  const obs = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      for (const node of m.addedNodes) {
+        if (!(node instanceof HTMLElement)) continue;
+
+        if (node.classList.contains('msg')) {
+          decorateRow(node);
+        } else if (node.querySelectorAll) {
+          node.querySelectorAll('.msg').forEach(decorateRow);
+        }
+      }
+    }
+  });
+  obs.observe(feed, { childList: true });
+
+  // mic toast reutilizând containerul existent pentru mențiuni (dacă există)
+  function showCopyToast(text) {
+    const host = document.getElementById('mentionToast');
+    if (!host) {
+      // fallback simplu dacă nu ai încă toast-ui
+      alert(text);
+      return;
+    }
+    const card = document.createElement('div');
+    card.className = 'toast-card';
+    card.innerHTML =
+      '<div class="icon">🔗</div>' +
+      '<div class="text-sm">' + text + '</div>';
+    host.appendChild(card);
+    setTimeout(() => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(8px)';
+      setTimeout(() => card.remove(), 220);
+    }, 2200);
+  }
+
+  // handler global pe feed: copiază link absolut către mesaj
+  feed.addEventListener('click', (ev) => {
+    const btn = ev.target.closest && ev.target.closest('[data-copy-link]');
+    if (!btn) return;
+
+    const row = btn.closest('.msg');
+    if (!row) return;
+
+    const id = row.dataset.msgId;
+    if (!id) return;
+
+    // baza: fie data-chat-path, fie path-ul paginii curente
+    let base = document.body.dataset.chatPath || window.location.pathname || '/chat';
+
+    let urlObj;
+    try {
+      urlObj = new URL(base, window.location.origin);
+    } catch (_) {
+      urlObj = new URL(window.location.href);
+    }
+
+    // setăm / suprascriem parametrul m
+    urlObj.searchParams.set('m', id);
+    const link = urlObj.toString();
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(link)
+        .then(() => showCopyToast('link copiat în clipboard'))
+        .catch(() => {
+          window.prompt('copiază manual acest link:', link);
+        });
+    } else {
+      window.prompt('copiază manual acest link:', link);
+    }
+  });
+})();
+</script>
+
+// === editare / stergere in primele 2 minute ===
+
+const EDIT_WINDOW_MS = 2 * 60 * 1000;
+
+// helper: gaseste row-ul si textul
+function getMsgContextFromButton(btn) {
+  const bubble = btn.closest('.bubble');           // adapteaza daca ai alt class
+  if (!bubble) return null;
+
+  const row = bubble.closest('[data-msg-id]') || bubble.parentElement;
+  const textarea = bubble.querySelector('textarea');
+  const bodyEl = bubble.querySelector('[data-body]');
+
+  return { row, bubble, textarea, bodyEl };
+}
+
+// helper: verificam daca mai avem voie sa editam
+function canStillEdit(row) {
+  if (!row) return false;
+  const ts = row.dataset.ts ? Number(row.dataset.ts) * 1000 : null;
+  if (!ts) return false;
+  return (Date.now() - ts) <= EDIT_WINDOW_MS;
+}
+
+// global delegation pentru butoane "salveaza" / "anuleaza"
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+
+  const label = btn.textContent.trim().toLowerCase();
+
+  // ne asiguram ca lucram doar pe mesajele din chat, nu pe alte formulare
+  const inChat = btn.closest('[data-chat-root="community"]'); // adapteaza la containerul tau
+  if (!inChat) return;
+
+  const ctx = getMsgContextFromButton(btn);
+  if (!ctx) return;
+  const { row, textarea, bodyEl } = ctx;
+
+  // anuleaza edit
+  if (label === 'anulează') {
+    if (!row || !bodyEl) return;
+
+    const originalHtml = row.dataset.originalBodyHtml;
+    if (originalHtml) {
+      bodyEl.innerHTML = originalHtml;
+      delete row.dataset.originalBodyHtml;
+    }
+
+    row.classList.remove('is-editing');
+    return;
+  }
+
+  // salveaza edit
+  if (label === 'salvează') {
+    if (!row || !textarea || !bodyEl) return;
+
+    if (!canStillEdit(row)) {
+      if (typeof showToast === 'function') {
+        showToast('error', 'fereastra de editare de 2 minute a expirat');
+      }
+      return;
+    }
+
+    const msgId = row.dataset.msgId;
+    const newText = textarea.value.trim();
+
+    if (!msgId || !newText) {
+      if (typeof showToast === 'function') {
+        showToast('error', 'mesajul nu poate fi gol');
+      }
+      return;
+    }
+
+    try {
+      const resp = await fetch('/api/chat/edit-message.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: msgId, body: newText })
+      });
+
+      if (!resp.ok) throw new Error('http ' + resp.status);
+      const data = await resp.json();
+      if (!data || !data.success) {
+        throw new Error(data && data.error ? data.error : 'edit esuat');
+      }
+
+      // reconstruieste textul in DOM (cu @mention formatat, daca ai functie)
+      if (typeof renderMentions === 'function') {
+        bodyEl.innerHTML = renderMentions(newText, data.mentions || null);
+      } else {
+        bodyEl.textContent = newText;
+      }
+
+      // marcheaza "editat"
+      const meta = row.querySelector('[data-meta-time]');
+      if (meta && !meta.dataset.edited) {
+        meta.dataset.edited = '1';
+        const badge = document.createElement('span');
+        badge.className = 'ml-2 text-[10px] uppercase tracking-wide text-slate-400';
+        badge.textContent = '(editat)';
+        meta.appendChild(badge);
+      }
+
+      row.classList.remove('is-editing');
+      delete row.dataset.originalBodyHtml;
+
+      if (typeof showToast === 'function') {
+        showToast('success', 'mesaj actualizat');
+      }
+    } catch (err) {
+      console.error('edit fail', err);
+      if (typeof showToast === 'function') {
+        showToast('error', 'nu am putut salva editarea, verifica conexiunea');
+      }
+    }
+  }
+});
+
+
+<!-- /Chat Comunitate -->
+
+
 
 </body>
 </html>
