@@ -33,7 +33,7 @@ try {
   
   $hasMentionsJ  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'mentions_json'")->fetch();
   
-  $hasMentionsJ  = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'mentions_json'")->fetch();
+  $hasReplyTo    = (bool)$pdo->query("SHOW COLUMNS FROM chat_messages LIKE 'reply_to'")->fetch();
 
   $textCol = $hasMsg ? 'message' : ($hasBody ? 'body' : null);
   if (!$textCol) { echo json_encode(['ok'=>false,'error'=>'no_text_column']); exit; }
@@ -52,6 +52,8 @@ try {
   if ($hasUpdatedAt) $selCols .= ", UNIX_TIMESTAMP(updated_at) AS updated_at";
   
   if ($hasMentionsJ) $selCols .= ", mentions_json";
+  
+  if ($hasReplyTo)   $selCols .= ", reply_to";
   
   $editedJoin = (!$hasEditedAt && $hasEditTable) ? " LEFT JOIN chat_message_edits e ON e.message_id = chat_messages.id" : "";
 
@@ -173,6 +175,47 @@ try {
         $m['edited']     = $m['updated_at'] !== null && ($hasCreatedAt ? $m['updated_at'] > (int)$m['ts'] : true);
       }
       
+    }
+    unset($m);
+  }
+
+// ——— atașează pre-vizualizare pentru reply_to (dacă există coloană) ———
+  if ($hasReplyTo && $items) {
+    $replyIds = [];
+    foreach ($items as $m) {
+      $rid = (int)($m['reply_to'] ?? 0);
+      if ($rid > 0) $replyIds[] = $rid;
+    }
+
+    $replyIds = array_values(array_unique($replyIds));
+
+    $replyMap = [];
+    if ($replyIds) {
+      $in = implode(',', array_fill(0, count($replyIds), '?'));
+      $sqlReply = "SELECT id,user_name,$textCol AS body FROM chat_messages WHERE id IN ($in)";
+      if ($hasRoom) $sqlReply .= " AND room = 'global'";
+
+      $stR = $pdo->prepare($sqlReply);
+      foreach ($replyIds as $idx=>$rid) {
+        $stR->bindValue($idx+1, $rid, PDO::PARAM_INT);
+      }
+
+      $stR->execute();
+      $rows = $stR->fetchAll();
+      foreach ($rows as $r) {
+        $replyMap[(int)$r['id']] = [
+          'id'        => (int)$r['id'],
+          'user_name' => (string)($r['user_name'] ?? ''),
+          'body'      => (string)($r['body'] ?? ''),
+        ];
+      }
+    }
+
+    foreach ($items as &$m) {
+      $rid = (int)($m['reply_to'] ?? 0);
+      if ($rid > 0 && isset($replyMap[$rid])) {
+        $m['reply'] = $replyMap[$rid];
+      }
     }
     unset($m);
   }

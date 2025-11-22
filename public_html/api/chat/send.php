@@ -50,6 +50,8 @@ $cid  = trim((string)($in['client_id'] ?? ''));
 $mentionsIdsIn   = $in['mentions']       ?? [];
 $mentionNamesIn  = $in['mention_names']  ?? [];
 
+$replyToIn       = isset($in['reply_to']) ? (int)$in['reply_to'] : 0;
+
 // Validări de bază (aliniate cu UI: maxlength=500)
 if ($text === '') { echo json_encode(['ok'=>false,'error'=>'empty']); exit; }
 if (mb_strlen($text, 'UTF-8') > 500) { echo json_encode(['ok'=>false,'error'=>'too_long']); exit; }
@@ -67,6 +69,8 @@ $mentionNames = array_values(array_unique(array_filter(array_map(function($x){
   $s = preg_replace('~[^A-Za-z0-9._-]+~u', '', $s);
   return mb_substr($s, 0, 64);
 }, (array)$mentionNamesIn))));
+
+$replyTo = $replyToIn > 0 ? $replyToIn : 0;
 
 try {
   require __DIR__ . '/../db.php'; // $pdo
@@ -104,6 +108,7 @@ try {
     'ua'            => false,
     'created_at'    => false,
     'client_id'     => false,
+    'reply_to'      => false,
     // extensii mențiuni (oricare din acestea dacă există în schema)
     'mentions_json' => false,
     'mentions_ids'  => false,
@@ -125,6 +130,29 @@ try {
   $textCol = $has['message'] ? 'message' : ($has['body'] ? 'body' : null);
   if (!$textCol) {
     echo json_encode(['ok'=>false,'error'=>'server_error','hint'=>'no_text_column']); exit;
+  }
+  
+  // dacă avem suport pentru reply_to, încercăm să recuperăm un snapshot al mesajului țintă
+  $replyPreview = null;
+  if ($replyTo > 0 && $has['reply_to']) {
+    try {
+      $sqlReply = "SELECT id,user_name,$textCol AS body FROM chat_messages WHERE id = :rid";
+      if ($has['room']) $sqlReply .= " AND room = :room";
+      $sqlReply .= " LIMIT 1";
+
+      $stR = $pdo->prepare($sqlReply);
+      $stR->bindValue(':rid', $replyTo, PDO::PARAM_INT);
+      if ($has['room']) $stR->bindValue(':room', 'global', PDO::PARAM_STR);
+      $stR->execute();
+      $replyPreview = $stR->fetch();
+      if (!$replyPreview) {
+        $replyTo = 0; // mesajul nu există în cameră
+      } else {
+        $replyPreview['body'] = mb_substr(trim((string)($replyPreview['body'] ?? '')), 0, 240);
+      }
+    } catch (Throwable $e) {
+      $replyTo = 0; // nu blocăm trimiterea dacă lookup-ul eșuează
+    }
   }
 
   // ——— Rate-limit per user + IP (idempotent-friendly, ignoră același client_id) + duplicate guard ———
@@ -287,6 +315,7 @@ try {
   if ($has['ip'])        { $cols[]='ip';        $vals[]=':ip';        $bind[':ip']   = $ip; }
   if ($has['ua'])        { $cols[]='ua';        $vals[]=':ua';        $bind[':ua']   = $ua; }
   if ($has['client_id']) { $cols[]='client_id'; $vals[]=':cid';       $bind[':cid']  = ($cid !== '') ? $cid : null; }
+  if ($has['reply_to'])  { $cols[]='reply_to';  $vals[]=':replyto';   $bind[':replyto'] = $replyTo ?: null; }
   if ($has['created_at']){ $cols[]='created_at';$vals[]='FROM_UNIXTIME(:ts)'; $bind[':ts'] = $now; }
 
   // mențiuni — oricare schemă disponibilă
@@ -331,6 +360,14 @@ try {
     'role'      => $role,
     'client_id' => $has['client_id'] ? ($cid !== '' ? $cid : null) : null,
     'mentions'  => $respMentions,
+    'reply_to'  => $replyTo ?: null,
+    'reply'     => ($replyPreview && $replyTo)
+      ? [
+          'id'        => (int)($replyPreview['id'] ?? $replyTo),
+          'user_name' => (string)($replyPreview['user_name'] ?? ''),
+          'body'      => (string)($replyPreview['body'] ?? ''),
+        ]
+      : null,
   ]);
 } catch (Throwable $e) {
   http_response_code(200);

@@ -95,6 +95,12 @@ $uid = (int)($me['id'] ?? 0);
   .msg .bubble{border-radius:1rem}
   .bubble-join-top{border-top-left-radius:.5rem!important;border-top-right-radius:.5rem!important}
   .bubble-join-bottom{border-bottom-left-radius:.5rem!important;border-bottom-right-radius:.5rem!important}
+  .reply-ref{display:block;width:100%;text-align:left;border:1px solid rgba(56,189,248,.25);background:rgba(8,47,73,.55);
+    border-radius:.75rem;padding:.4rem .6rem;margin-bottom:.4rem;color:#e0f2fe;transition:border-color .2s ease,background .2s ease;}
+  .reply-ref:hover{border-color:rgba(56,189,248,.55);background:rgba(8,47,73,.75);}
+  .reply-ref .preview{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .msg-highlight{animation: replyFlash 2s ease-in-out;} 
+  @keyframes replyFlash{from{box-shadow:0 0 0 0 rgba(56,189,248,.6);}to{box-shadow:0 0 0 0 rgba(56,189,248,0);} }
   </style>
 
   <style>
@@ -445,6 +451,17 @@ $uid = (int)($me['id'] ?? 0);
 
         <div id="chatFeed" class="h-[51vh] overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
         <div id="mentionToast" aria-live="polite"></div>
+        <div id="replyContext" class="hidden mt-2 px-3 py-2 rounded-xl border border-cyan-500/30 bg-cyan-500/5 text-xs">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="text-[13px] font-semibold text-cyan-100">Răspunzi la <span id="replyUser">mesaj</span></div>
+              <div id="replyPreview" class="mt-1 text-slate-300 leading-snug max-h-12 overflow-hidden"></div>
+            </div>
+            <button id="replyCancel" type="button" class="text-slate-400 hover:text-rose-300" title="anulează răspunsul">
+              <i class="fa-regular fa-circle-xmark"></i>
+            </button>
+          </div>
+        </div>
 
         <form id="chatForm" class="mt-3 flex items-center gap-2">
           <input id="chatInput" maxlength="1000" autocomplete="off"
@@ -1435,10 +1452,17 @@ $uid = (int)($me['id'] ?? 0);
   }
   const presBar   = document.getElementById('chatPresenceBar');
   const typingBar = document.getElementById('chatTypingBar');
+  const replyBox      = document.getElementById('replyContext');
+  const replyUserEl   = document.getElementById('replyUser');
+  const replyPrevEl   = document.getElementById('replyPreview');
+  const replyCancelEl = document.getElementById('replyCancel');
 
     /* ——— State & utilitare ——— */
   const meName  = (document.body.dataset.userName || 'Investitor').trim();
   const meId    = parseInt(document.body.dataset.userId||'0',10) || 0;
+  const MSG_INDEX = new Map(); // id => {id,user_name,body,ts}
+  const MSG_ORDER = [];
+  let replyTarget = null;
 
   // coadă offline per user
   const OFFLINE_KEY = `pi:chat:offlineQueue:${meId||0}`;
@@ -1475,10 +1499,84 @@ $uid = (int)($me['id'] ?? 0);
   let BOOTING = true;
   let ALLOW_LAZY = false;
 
-    const NF_TIME = new Intl.DateTimeFormat('ro-RO', { hour: '2-digit', minute: '2-digit' });
+    replyCancelEl?.addEventListener('click', (e)=>{ e.preventDefault(); clearReplyTarget(); });
+
+  function renderReplyContext(){
+    if (!replyBox) return;
+    if (replyTarget && replyTarget.id){
+      replyBox.classList.remove('hidden');
+      if (replyUserEl) replyUserEl.textContent = replyTarget.user || replyTarget.user_name || 'mesaj';
+      if (replyPrevEl) replyPrevEl.textContent = replyTarget.body || '';
+    } else {
+      replyBox.classList.add('hidden');
+    }
+  }
+
+  function setReplyTarget(meta){
+    if (!meta || !meta.id) return;
+    replyTarget = {
+      id: meta.id,
+      user: meta.user || meta.user_name || '',
+      body: (meta.body || '').trim()
+    };
+    renderReplyContext();
+    if (input) input.focus();
+  }
+
+  function startReplyFromRow(row){
+    if (!row) return;
+    const msgId = parseInt(row.dataset.msgId || '0', 10);
+    if (!msgId) return;
+    const meta = {
+      id: msgId,
+      user: row.dataset.user || '',
+      body: (row.dataset.bodyRaw || row.querySelector('[data-body]')?.textContent || '').trim()
+    };
+    setReplyTarget(meta);
+  }
+
+  function clearReplyTarget(){
+    replyTarget = null;
+    renderReplyContext();
+  }
+
+  const NF_TIME = new Intl.DateTimeFormat('ro-RO', { hour: '2-digit', minute: '2-digit' });
   const NF_DAY_SHORT = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'short' });
 
   const esc = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+  function indexMessage(m){
+    if (!m || !m.id) return;
+    const entry = {
+      id: m.id|0,
+      user_name: m.user_name || '',
+      body: m.body || '',
+      ts: m.ts || Math.floor(Date.now()/1000)
+    };
+    if (!MSG_INDEX.has(entry.id)) MSG_ORDER.push(entry.id);
+    MSG_INDEX.set(entry.id, entry);
+
+    // menținem indexul compact (max ~2000 mesaje)
+    if (MSG_ORDER.length > 2000) {
+      const drop = MSG_ORDER.shift();
+      MSG_INDEX.delete(drop);
+    }
+  }
+
+  function resolveReplyMeta(m){
+    const rid = m.reply_to || (m.reply && m.reply.id) || null;
+    if (!rid) return null;
+
+    const cached = MSG_INDEX.get(rid) || {};
+    const fallback = m.reply || {};
+    const user = cached.user_name || fallback.user_name || fallback.user || '';
+    const body = cached.body || fallback.body || '';
+
+    return {
+      id: rid,
+      user_name: user,
+      body
+    };
+  }
 
   function formatRelativeTime(tsSec) {
     if (!tsSec) return 'acum';
@@ -1628,7 +1726,9 @@ $uid = (int)($me['id'] ?? 0);
       text: payload.txt,
       ts: payload.ts,
       mentions: payload.mentionsPayload || [],
-      mention_names: payload.mentionsNames || []
+      mention_names: payload.mentionsNames || [],
+      reply_to: payload.reply_to || null,
+      reply_preview: payload.reply_preview || null
     });
 
     saveOfflineQueue();
@@ -1644,7 +1744,7 @@ $uid = (int)($me['id'] ?? 0);
 
     const items = [...OFFLINE_QUEUE];
     for (const item of items){
-      const { cid, text, ts, mentions, mention_names } = item;
+      const { cid, text, ts, mentions, mention_names, reply_to, reply_preview } = item;
       if (!cid || !text) continue;
 
       // dacă nu mai avem pending în memorie (ex: refresh), recreăm bulele
@@ -1655,7 +1755,8 @@ $uid = (int)($me['id'] ?? 0);
           ts || Math.floor(Date.now()/1000),
           Array.isArray(mention_names)
             ? mention_names.map(n => ({ user_id:null, name:n }))
-            : []
+            : [],
+          reply_preview || (reply_to ? { id: reply_to } : null)
         );
       } else {
         markPendingSending(cid);
@@ -1674,6 +1775,7 @@ $uid = (int)($me['id'] ?? 0);
             client_id: cid,
             mentions: Array.isArray(mentions) ? mentions : [],
             mention_names: Array.isArray(mention_names) ? mention_names : [],
+             reply_to: reply_to || null,
             csrf_token: csrfToken || ''
           })
         });
@@ -1918,6 +2020,7 @@ $uid = (int)($me['id'] ?? 0);
     row.dataset.user = String(m.user_name || '');
     row.dataset.mine = mine ? '1' : '0';
     row.dataset.bodyRaw = m.body || '';
+    if (m.id) indexMessage(m);
 
     const isDeleted = !!m.deleted;
     const tsRel = formatRelativeTime(tsSec);
@@ -1929,6 +2032,18 @@ $uid = (int)($me['id'] ?? 0);
     const bodyHTML = isDeleted
       ? '<span class="text-slate-500 italic">mesaj șters</span>'
       : renderMentions(m.body || '', m.mentions || null);
+      const replyMeta = !isDeleted ? resolveReplyMeta(m) : null;
+    let replyHTML = '';
+    if (replyMeta && replyMeta.id){
+      row.dataset.replyId = String(replyMeta.id);
+      const userLabel = replyMeta.user_name || 'mesaj';
+      const preview = esc((replyMeta.body || '').slice(0, 220));
+      replyHTML = `
+        <button type="button" class="reply-ref" data-reply-jump="${replyMeta.id}">
+          <div class="text-[11px] text-cyan-200"><i class="fa-solid fa-reply mr-1"></i> către ${esc(userLabel)}</div>
+          <div class="preview text-[12px] text-slate-200 leading-snug">${preview || '—'}</div>
+        </button>`;
+    }
 
     let reactBar = '';
     if (FLAGS.reactions && !isDeleted) {
@@ -1945,8 +2060,17 @@ $uid = (int)($me['id'] ?? 0);
     const deletedLabel = isDeleted ? '<span data-deleted-flag="1" class="ml-2 text-[11px] text-rose-400">[mesaj șters]</span>' : '';
 
     let actionsHtml = '';
+    if (!isDeleted) {
+      actionsHtml += `
+        <button type="button"
+                class="ml-2 text-[11px] text-slate-500 hover:text-cyan-400 reply-msg-btn"
+                title="răspunde la mesaj">
+          <i class="fa-solid fa-reply"></i>
+        </button>`;
+    }
     if (canEditNow) {
       actionsHtml = `
+      ${actionsHtml}
         <button type="button"
                 class="ml-2 text-[11px] text-slate-500 hover:text-sky-400 edit-msg-btn"
                 title="editează mesajul">
@@ -1961,6 +2085,7 @@ $uid = (int)($me['id'] ?? 0);
 
     row.innerHTML = `
       <div class="bubble max-w-[85%] rounded-2xl px-3 py-2 text-sm border bg-white/5 border-white/10 ${pending ? 'opacity-80' : ''}">
+      ${replyHTML}
         <div class="meta text-[11px] opacity-80 mb-1">
           <i class="fa-regular fa-user"></i> ${esc(m.user_name || '—')}
           ${m.role === 'ADMIN' ? '<span class="badge bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 ml-2">Admin</span>' : ''}
@@ -2080,9 +2205,18 @@ $uid = (int)($me['id'] ?? 0);
 
   }
 
-  function renderPending(cid, body, ts, mentionsArr){
+  function renderPending(cid, body, ts, mentionsArr, replyMeta){
     ensureDaySepAppend(ts||Math.floor(Date.now()/1000));
-    const m = { id: 0, user_name: meName, role: 'USER', body, ts, mentions: Array.isArray(mentionsArr)?mentionsArr:[] };
+    const m = {
+      id: 0,
+      user_name: meName,
+      role: 'USER',
+      body,
+      ts,
+      mentions: Array.isArray(mentionsArr)?mentionsArr:[],
+      reply_to: replyMeta?.id || null,
+      reply: replyMeta || null
+    };
     const row = buildRow(m, true, true);
     row.dataset.cid = cid;
     const wasBottom = atBottom() || BOOTING;
@@ -2106,6 +2240,8 @@ $uid = (int)($me['id'] ?? 0);
     const tsSec = (m.ts || p.ts || Math.floor(Date.now() / 1000));
     row.dataset.ts = String(tsSec);
     row.dataset.bodyRaw = m.body || p.body || row.dataset.bodyRaw || '';
+    const replyId = m.reply_to || (m.reply && m.reply.id) || null;
+    if (replyId) row.dataset.replyId = String(replyId); else delete row.dataset.replyId;
 
     const t = row.querySelector('[data-time]');
     if (t) {
@@ -2114,14 +2250,16 @@ $uid = (int)($me['id'] ?? 0);
       t.title = NF_TIME.format(new Date(tsSec * 1000));
     }
 
-    const dst = row.querySelector('[data-body]');
-    if (dst) {
-      const meta = Array.isArray(m.mentions) ? m.mentions : (p.mentions || []);
-      const tmp = buildRow({ ...m, mentions: meta }, true, false);
-      // numai conținutul body-ului, nu recreăm tot row-ul
-      const bodyNew = tmp.querySelector('[data-body]');
-      if (bodyNew) dst.innerHTML = bodyNew.innerHTML;
+    const bubble = row.querySelector('.bubble');
+    const meta = Array.isArray(m.mentions) ? m.mentions : (p.mentions || []);
+    const tmp = buildRow({ ...m, mentions: meta }, true, false);
+    const bubbleNew = tmp.querySelector('.bubble');
+    if (bubble && bubbleNew) {
+      const cls = bubble.className;
+      bubble.innerHTML = bubbleNew.innerHTML;
+      bubble.className = cls;
     }
+    if (FLAGS.reactions && !m.deleted) attachReactHandlers(row);
 
     const id = m.id | 0;
     if (id) {
@@ -2334,6 +2472,13 @@ $uid = (int)($me['id'] ?? 0);
 
   /* ——— Reacții (UI + API) ——— */
   function getRowByMsgId(id){ return feed.querySelector(`.msg[data-msg-id="${id}"]`); }
+  function scrollToMsg(id){
+    const row = getRowByMsgId(id);
+    if (!row) return;
+    row.scrollIntoView({ behavior:'smooth', block:'center' });
+    row.classList.add('msg-highlight');
+    setTimeout(()=> row.classList.remove('msg-highlight'), 1800);
+  }
   function applyRowReactions(row, data){
     if (!row) return;
     const counts = data?.counts || {};
@@ -2372,6 +2517,8 @@ $uid = (int)($me['id'] ?? 0);
     const tsSec = m.ts || parseInt(row.dataset.ts || '0', 10) || Math.floor(Date.now() / 1000);
     row.dataset.ts = String(tsSec);
     row.dataset.bodyRaw = m.body || row.dataset.bodyRaw || '';
+    const idxId = parseInt(row.dataset.msgId || String(m.id || 0), 10) || 0;
+    if (idxId) indexMessage({ id: idxId, user_name: row.dataset.user || m.user_name || '', body: row.dataset.bodyRaw, ts: tsSec });
 
     const bodyEl = row.querySelector('[data-body]');
     if (bodyEl) {
@@ -2598,6 +2745,8 @@ $uid = (int)($me['id'] ?? 0);
     const deleteBtn = e.target.closest('.delete-msg-btn');
     const saveBtn   = e.target.closest('.save-edit-btn');
     const cancelBtn = e.target.closest('.cancel-edit-btn');
+    const replyBtn  = e.target.closest('.reply-msg-btn');
+    const replyJump = e.target.closest('[data-reply-jump]');
 
     if (editBtn) {
       e.preventDefault();
@@ -2625,6 +2774,18 @@ $uid = (int)($me['id'] ?? 0);
       const row = cancelBtn.closest('.msg');
       cancelEdit(row);
       return;
+    }
+    if (replyBtn) {
+      e.preventDefault();
+      const row = replyBtn.closest('.msg');
+      startReplyFromRow(row);
+      return;
+    }
+
+    if (replyJump) {
+      e.preventDefault();
+      const targetId = parseInt(replyJump.dataset.replyJump || '0', 10);
+      if (targetId) scrollToMsg(targetId);
     }
   });
 
@@ -2966,14 +3127,22 @@ $uid = (int)($me['id'] ?? 0);
 
     const mentionsPayload = Array.from(MENTION_IDS);
     const mentionsNames   = Array.from(MENTION_MAP.values());
+    const replyMeta = replyTarget && replyTarget.id ? { ...replyTarget, id: replyTarget.id } : null;
 
     const cid = genCID(), ts = Math.floor(Date.now()/1000);
-    const offlinePayload = { cid, txt, ts, mentionsPayload, mentionsNames };
+    const offlinePayload = { cid, txt, ts, mentionsPayload, mentionsNames, reply_to: replyMeta?.id || null, reply_preview: replyMeta };
 
-    renderPending(cid, txt, ts, mentionsNames.map(n=>({ user_id: null, name: n })));
+    renderPending(
+      cid,
+      txt,
+      ts,
+      mentionsNames.map(n=>({ user_id: null, name: n })),
+      replyMeta
+    );
 
     input.value=''; autoGrow(); updateCounter();
     setBtnBusy(true);
+    clearReplyTarget();
 
     // dacă nu avem conexiune, nu mai încercăm fetch acum: punem în coadă și ieșim
     if (!navigator.onLine){
