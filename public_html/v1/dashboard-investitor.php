@@ -48,6 +48,7 @@ $uid = (int)($me['id'] ?? 0);
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
   <title>Panoul Meu — Banca Comună de Investiții</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -667,36 +668,26 @@ $uid = (int)($me['id'] ?? 0);
       console.log('[KPI]', payload);
     }
 
-    /* ---------------- Mock vizual (grafice/tx) — neafectează KPI-urile reale ---------------- */
-    const seedRand = (s)=>()=> (s=Math.sin(s)*10000, s-Math.floor(s));
-    const rand = seedRand(42);
-    const dataAll = Array.from({length: 200}, (_,i)=>{
-      const d = new Date(); d.setDate(d.getDate()-(199-i));
-      const p = Math.round((rand()*40 - 15) * 100)/100; // [-15, +25]
-      let dep=0, wit=0; const r = rand();
-      if(r>0.98) dep = Math.round((200 + rand()*400));
-      if(r<0.02) wit = Math.round((100 + rand()*200));
-      return { date:d, profitDelta:p, deposit:dep, withdraw:wit };
-    });
-    function toISO(d){ return d.toISOString().slice(0,10); }
+   /* ---------------- Serii reale pentru grafice ---------------- */
+    async function fetchPerformance(range){
+      try {
+        const res = await fetch(`/api/user/performance_timeseries.php?range=${encodeURIComponent(range)}`, { credentials:'include' });
+        if(!res.ok) throw new Error('network');
+        const payload = await res.json();
+        if(!payload.ok || !Array.isArray(payload.points)) throw new Error('bad_payload');
 
-    function rangeToStart(range){
-      if (range === 'today') { const d = new Date(); d.setHours(0,0,0,0); return d; }
-      return new Date(dataAll[0].date); // all
-    }
-
-    function computeStats(range){
-      const start = rangeToStart(range);
-      const points=[]; let baseBalance=1000, cumProfit=0, cumBalance=0;
-      dataAll.forEach(r=>{
-        if(r.date>=start){
-          baseBalance += r.deposit - r.withdraw + r.profitDelta;
-          cumProfit   += r.profitDelta;
-          cumBalance   = baseBalance;
-          points.push({x: toISO(r.date), profit:cumProfit, balance:cumBalance});
-        }
-      });
-      return { points };
+        return payload.points.map(p=>({
+          x: p.date,
+          profit: (p.profit_cents || 0) / 100,
+          balance: (p.balance_cents || 0) / 100,
+          deposit: (p.deposit_cents || 0) / 100,
+          withdraw: (p.withdraw_cents || 0) / 100,
+          profitDelta: (p.profit_delta_cents || 0) / 100,
+        }));
+      } catch(e){
+        console.error('Nu s-au putut obține seriile de performanță', e);
+        return [];
+      }
     }
 
     // EUR formatter + helper
@@ -871,17 +862,16 @@ $uid = (int)($me['id'] ?? 0);
       }
     }
 
-    /* ---------------- Tranzacții mock ---------------- */
+    /* ---------------- Tranzacții din seriile reale ---------------- */
     function fillTx(points){
       const list = document.getElementById('txList'); const empty = document.getElementById('txEmpty');
       list.innerHTML = '';
       const tx = [];
       points.slice(-40).forEach(p=>{
-        const d = p.x; const src = dataAll.find(r=> toISO(r.date)===d);
-        if(!src) return;
-        if(src.deposit)  tx.push({ date:d, type:'deposit',  amount:src.deposit });
-        if(src.withdraw) tx.push({ date:d, type:'withdraw', amount:src.withdraw });
-        if(src.profitDelta) tx.push({ date:d, type: src.profitDelta>=0 ? 'profit' : 'pierdere', amount: Math.abs(src.profitDelta) });
+        cconst d = p.x;
+        if(p.deposit)  tx.push({ date:d, type:'deposit',  amount:p.deposit });
+        if(p.withdraw) tx.push({ date:d, type:'withdraw', amount:p.withdraw });
+        if(p.profitDelta) tx.push({ date:d, type: p.profitDelta>=0 ? 'profit' : 'pierdere', amount: Math.abs(p.profitDelta) });
       });
       tx.sort((a,b)=> a.date>b.date?-1:1);
       const last = tx.slice(0,10);
@@ -1179,17 +1169,17 @@ $uid = (int)($me['id'] ?? 0);
       modal?.addEventListener('click', (e)=>{ if(e.target===modal) close(); });
     })();
 
-    /* ---------------- Refresh: mock pentru grafice/tx, REAL pentru KPI ---------------- */
+    /* ---------------- Refresh: serii reale pentru grafice/tx + KPI ---------------- */
     async function refreshAll(){
       const range = document.getElementById('dateRange').value;
 
       // placeholders
       setText('sumInvested','—'); setText('sumProfit','—'); setText('sumBalance','—'); setText('sumGrowth','—');
 
-      // Vizual
-      const s = computeStats(range);
-      updateCharts(s.points);
-      fillTx(s.points);
+      // Vizual real
+      const points = await fetchPerformance(range);
+      updateCharts(points);
+      fillTx(points);
 
       // KPI reale + nomenclator
       await fetchAndApplyRealSummary(range);
