@@ -90,11 +90,18 @@ $uid = (int)($me['id'] ?? 0);
   .chat-sep{display:flex;align-items:center;justify-content:center;margin:.5rem 0}
   .chat-sep>span{font-size:11px;padding:2px 10px;border-radius:9999px;
     border:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.85);color:#94a3b8}
+    .chat-stack{grid-template-columns:1fr!important}
 
   .msg-compact .meta{display:none}              /* ascunde headerul repetitiv */
   .msg .bubble{border-radius:1rem}
   .bubble-join-top{border-top-left-radius:.5rem!important;border-top-right-radius:.5rem!important}
   .bubble-join-bottom{border-bottom-left-radius:.5rem!important;border-bottom-right-radius:.5rem!important}
+  .reply-ref{display:block;width:100%;text-align:left;border:1px solid rgba(56,189,248,.25);background:rgba(8,47,73,.55);
+    border-radius:.75rem;padding:.4rem .6rem;margin-bottom:.4rem;color:#e0f2fe;transition:border-color .2s ease,background .2s ease;}
+  .reply-ref:hover{border-color:rgba(56,189,248,.55);background:rgba(8,47,73,.75);}
+  .reply-ref .preview{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .msg-highlight{animation: replyFlash 2s ease-in-out;} 
+  @keyframes replyFlash{from{box-shadow:0 0 0 0 rgba(56,189,248,.6);}to{box-shadow:0 0 0 0 rgba(56,189,248,0);} }
   </style>
 
   <style>
@@ -443,20 +450,57 @@ $uid = (int)($me['id'] ?? 0);
           </div>
         </div>
 
-        <div id="chatFeed" class="h-[51vh] overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
-        <div id="mentionToast" aria-live="polite"></div>
+         <div class="grid lg:grid-cols-[2fr,1fr] gap-4 chat-stack">
+          <div class="space-y-2">
+            <div id="chatFeed" class="h-[51vh] overflow-y-auto nice-scroll space-y-2 p-1 rounded-xl border border-white/10 bg-slate-900/50" aria-live="polite"></div>
+            <div id="mentionToast" aria-live="polite"></div>
+            <div id="replyContext" class="hidden mt-2 px-3 py-2 rounded-xl border border-cyan-500/30 bg-cyan-500/5 text-xs">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex-1 min-w-0">
+                  <div class="text-[13px] font-semibold text-cyan-100">Răspunzi la <span id="replyUser">mesaj</span></div>
+                  <div id="replyPreview" class="mt-1 text-slate-300 leading-snug max-h-12 overflow-hidden"></div>
+                </div>
+                <button id="replyCancel" type="button" class="text-slate-400 hover:text-rose-300" title="anulează răspunsul">
+                  <i class="fa-regular fa-circle-xmark"></i>
+                </button>
+              </div>
+            </div>
+            <div class="mt-2 flex items-center gap-2 text-[12px] text-slate-400">
+              <label for="chatFile" class="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 hover:border-white/20 cursor-pointer">
+                <i class="fa-solid fa-paperclip"></i> Atașează fișiere
+              </label>
+              <div id="attachHint" class="text-[11px] text-slate-500">poze, clipuri, muzică (max 20MB)</div>
+              <input id="chatFile" type="file" class="hidden" accept="image/*,video/*,audio/*" multiple />
+            </div>
+
+            <div id="attachList" class="hidden mt-2 flex flex-wrap gap-2"></div>
 
         <form id="chatForm" class="mt-3 flex items-center gap-2">
-          <input id="chatInput" maxlength="1000" autocomplete="off"
-                class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
-                placeholder="Scrie un mesaj (max 1000 caractere)…" />
-          <button id="chatSend" type="submit"
-                class="rounded-xl px-3 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 text-sm font-semibold">
-            Trimite
-          </button>
-        </form>
+              <input id="chatInput" maxlength="1000" autocomplete="off"
+                    class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-cyan-400/60"
+                    placeholder="Scrie un mesaj (max 1000 caractere)…" />
+              <button id="chatSend" type="submit"
+                    class="rounded-xl px-3 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 text-sm font-semibold">
+                Trimite
+              </button>
+            </form>
 
-        <div id="chatHint" class="mt-2 text-[11px] text-slate-500">Respectă comunitatea. Anti-spam activ (3s între mesaje).</div>
+            <div id="chatHint" class="mt-2 text-[11px] text-slate-500">Respectă comunitatea. Anti-spam activ (3s între mesaje).</div>
+          </div>
+
+        <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <div class="font-semibold text-sm">Răspunsuri &amp; mențiuni</div>
+                <div class="text-[11px] text-slate-400">Mesaje necitite care te vizează direct.</div>
+              </div>
+              <button id="btnMentionsReadAll" type="button" class="text-[11px] px-2 py-1 rounded-lg border border-white/10 hover:border-white/20">
+                marchează citit
+              </button>
+            </div>
+            <div id="mentionInbox" class="mt-3 space-y-2 text-sm"></div>
+          </div>
+        </div>
       </section>
 
       <!-- Grafice -->
@@ -1319,6 +1363,10 @@ $uid = (int)($me['id'] ?? 0);
 
   /* ——— limite & contor caractere ——— */
   const MAX_CHARS = 1000;
+  const attachInput = document.getElementById('chatFile');
+  const attachListEl = document.getElementById('attachList');
+  const attachHintEl = document.getElementById('attachHint');
+  const ATTACHMENTS = [];
 
   // overlay contor + hint „enter trimite”
   function ensureCharCounter(){
@@ -1371,7 +1419,78 @@ $uid = (int)($me['id'] ?? 0);
       btn.disabled = busy || over || !(/\S/.test(input.value||''));
     }
   }
+/* ——— atașamente: listă + încărcare ——— */
+  function renderAttachList(){
+    if (!attachListEl) return;
+    attachListEl.innerHTML = '';
+    if (!ATTACHMENTS.length){
+      attachListEl.classList.add('hidden');
+      return;
+    }
+    attachListEl.classList.remove('hidden');
+    ATTACHMENTS.forEach((att, idx)=>{
+      const card = document.createElement('div');
+      card.className = 'flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-sm min-w-[220px]';
+      const icon = att.kind === 'image' ? '🖼️' : att.kind === 'video' ? '🎬' : att.kind === 'audio' ? '🎵' : '📎';
+      card.innerHTML = `
+        <span class="text-lg">${icon}</span>
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-slate-100 text-[13px] truncate">${esc(att.name||'fișier')}</div>
+          <div class="text-[11px] text-slate-500 truncate">${esc(att.mime || att.kind || '')}</div>
+        </div>
+        <button type="button" data-remove="${idx}" class="text-slate-500 hover:text-rose-300">
+          <i class="fa-regular fa-circle-xmark"></i>
+        </button>`;
+      card.querySelector('[data-remove]')?.addEventListener('click', ()=>{
+        ATTACHMENTS.splice(idx,1);
+        renderAttachList();
+      });
+      attachListEl.appendChild(card);
+    });
+  }
 
+  function clearAttachments(){
+    ATTACHMENTS.splice(0, ATTACHMENTS.length);
+    renderAttachList();
+  }
+
+  async function uploadAttachment(file){
+    try{
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('csrf_token', csrfToken || '');
+      attachHintEl?.classList.add('text-cyan-400');
+      const r = await fetch('/api/chat/upload.php', {
+        method:'POST',
+        body: fd,
+        credentials:'include'
+      });
+      const j = await r.json().catch(()=>null);
+      if (j && j.ok && j.attachment){
+        if (ATTACHMENTS.length >= 5){
+          showChatToast('maxim 5 atașamente per mesaj.', 'info');
+          return;
+        }
+        ATTACHMENTS.push(j.attachment);
+        renderAttachList();
+      } else {
+        const msg = j?.hint || j?.error || 'eroare la încărcare.';
+        showChatToast(msg, 'error');
+      }
+    }catch(e){
+      showChatToast('nu am putut încărca fișierul. verifică conexiunea.', 'error');
+    } finally {
+      attachHintEl?.classList.remove('text-cyan-400');
+    }
+  }
+
+  attachInput?.addEventListener('change', async ()=>{
+    const files = Array.from(attachInput.files || []);
+    for (const f of files){
+      await uploadAttachment(f);
+    }
+    attachInput.value = '';
+  });
   /* ——— auto-resize textarea (max ~32% viewport sau 280px) ——— */
   function autoGrow(){
     const stick = Math.abs(feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 6;
@@ -1435,10 +1554,17 @@ $uid = (int)($me['id'] ?? 0);
   }
   const presBar   = document.getElementById('chatPresenceBar');
   const typingBar = document.getElementById('chatTypingBar');
+  const replyBox      = document.getElementById('replyContext');
+  const replyUserEl   = document.getElementById('replyUser');
+  const replyPrevEl   = document.getElementById('replyPreview');
+  const replyCancelEl = document.getElementById('replyCancel');
 
     /* ——— State & utilitare ——— */
   const meName  = (document.body.dataset.userName || 'Investitor').trim();
   const meId    = parseInt(document.body.dataset.userId||'0',10) || 0;
+  const MSG_INDEX = new Map(); // id => {id,user_name,body,ts}
+  const MSG_ORDER = [];
+  let replyTarget = null;
 
   // coadă offline per user
   const OFFLINE_KEY = `pi:chat:offlineQueue:${meId||0}`;
@@ -1466,19 +1592,96 @@ $uid = (int)($me['id'] ?? 0);
     }catch{}
   }
 
-  const KEY_LAST_SEEN = `pi:mentions:lastSeen:${meId||0}`;
-
-  let lastMentionSeen = parseInt(localStorage.getItem(KEY_LAST_SEEN)||'0',10) || 0;
+  let mentionUnreadCount = 0;
+  let mentionNotifications = [];
+  let mentionRefreshTimer = null;
   let VIEW_MENTIONS = false;
 
   // scroll control: blocăm lazy-load la boot și forțăm „stick to bottom”
   let BOOTING = true;
   let ALLOW_LAZY = false;
 
-    const NF_TIME = new Intl.DateTimeFormat('ro-RO', { hour: '2-digit', minute: '2-digit' });
+    replyCancelEl?.addEventListener('click', (e)=>{ e.preventDefault(); clearReplyTarget(); });
+
+  function renderReplyContext(){
+    if (!replyBox) return;
+    if (replyTarget && replyTarget.id){
+      replyBox.classList.remove('hidden');
+      if (replyUserEl) replyUserEl.textContent = replyTarget.user || replyTarget.user_name || 'mesaj';
+      if (replyPrevEl) replyPrevEl.textContent = replyTarget.body || '';
+    } else {
+      replyBox.classList.add('hidden');
+    }
+  }
+
+  function setReplyTarget(meta){
+    if (!meta || !meta.id) return;
+    replyTarget = {
+      id: meta.id,
+      user: meta.user || meta.user_name || '',
+      body: (meta.body || '').trim()
+    };
+    renderReplyContext();
+    if (input) input.focus();
+  }
+
+  function startReplyFromRow(row){
+    if (!row) return;
+    const msgId = parseInt(row.dataset.msgId || '0', 10);
+    if (!msgId) return;
+    const meta = {
+      id: msgId,
+      user: row.dataset.user || '',
+      body: (row.dataset.bodyRaw || row.querySelector('[data-body]')?.textContent || '').trim()
+    };
+    setReplyTarget(meta);
+  }
+
+  function clearReplyTarget(){
+    replyTarget = null;
+    renderReplyContext();
+  }
+
+  const NF_TIME = new Intl.DateTimeFormat('ro-RO', { hour: '2-digit', minute: '2-digit' });
   const NF_DAY_SHORT = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'short' });
 
   const esc = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+  function indexMessage(m){
+    if (!m || !m.id) return;
+    const entry = {
+      id: m.id|0,
+       user_id: m.user_id || null,
+      user_name: m.user_name || '',
+      body: m.body || '',
+      ts: m.ts || Math.floor(Date.now()/1000)
+    };
+    if (!MSG_INDEX.has(entry.id)) MSG_ORDER.push(entry.id);
+    MSG_INDEX.set(entry.id, entry);
+
+    // menținem indexul compact (max ~2000 mesaje)
+    if (MSG_ORDER.length > 2000) {
+      const drop = MSG_ORDER.shift();
+      MSG_INDEX.delete(drop);
+    }
+  }
+
+  function resolveReplyMeta(m){
+    const rid = m.reply_to || (m.reply && m.reply.id) || null;
+    if (!rid) return null;
+
+    const cached = MSG_INDEX.get(rid) || {};
+    const fallback = m.reply || {};
+    const user = cached.user_name || fallback.user_name || fallback.user || '';
+     const uid  = cached.user_id || fallback.user_id || null;
+    const body = cached.body || fallback.body || '';
+
+    return {
+      id: rid,
+       user_id: uid,
+      user_name: user,
+      body
+    };
+  }
 
   function formatRelativeTime(tsSec) {
     if (!tsSec) return 'acum';
@@ -1628,7 +1831,10 @@ $uid = (int)($me['id'] ?? 0);
       text: payload.txt,
       ts: payload.ts,
       mentions: payload.mentionsPayload || [],
-      mention_names: payload.mentionsNames || []
+      mention_names: payload.mentionsNames || [],
+      reply_to: payload.reply_to || null,
+      reply_preview: payload.reply_preview || null,
+      attachments: Array.isArray(payload.attachments) ? payload.attachments : []
     });
 
     saveOfflineQueue();
@@ -1644,8 +1850,9 @@ $uid = (int)($me['id'] ?? 0);
 
     const items = [...OFFLINE_QUEUE];
     for (const item of items){
-      const { cid, text, ts, mentions, mention_names } = item;
-      if (!cid || !text) continue;
+      const { cid, text, ts, mentions, mention_names, reply_to, reply_preview, attachments } = item;
+      const hasAtt = Array.isArray(attachments) && attachments.length > 0;
+      if (!cid || (!text && !hasAtt)) continue;
 
       // dacă nu mai avem pending în memorie (ex: refresh), recreăm bulele
       if (!PENDING.has(cid)){
@@ -1655,7 +1862,9 @@ $uid = (int)($me['id'] ?? 0);
           ts || Math.floor(Date.now()/1000),
           Array.isArray(mention_names)
             ? mention_names.map(n => ({ user_id:null, name:n }))
-            : []
+            : [],
+          reply_preview || (reply_to ? { id: reply_to } : null),
+          Array.isArray(attachments) ? attachments : []
         );
       } else {
         markPendingSending(cid);
@@ -1674,6 +1883,9 @@ $uid = (int)($me['id'] ?? 0);
             client_id: cid,
             mentions: Array.isArray(mentions) ? mentions : [],
             mention_names: Array.isArray(mention_names) ? mention_names : [],
+            attachments: Array.isArray(attachments) ? attachments : [],
+             reply_to: reply_to || null,
+            reply_preview: reply_preview || null,
             csrf_token: csrfToken || ''
           })
         });
@@ -1845,30 +2057,91 @@ $uid = (int)($me['id'] ?? 0);
     }
     return false;
   }
-  function latestMentionIdInDOM(){
-    let maxId = 0;
-    feed.querySelectorAll('.msg.has-mention').forEach(el=>{
-      const id = parseInt(el.dataset.msgId||'0',10); if (id>maxId) maxId=id;
-    });
-    return maxId;
+  function isReplyToMe(m){
+    const meta = resolveReplyMeta(m);
+    if (!meta || !meId) return false;
+    const targetId = meta.user_id || (MSG_INDEX.get(meta.id||0)?.user_id) || null;
+    return !!targetId && targetId === meId;
   }
   function updateMentionDot(){
-    let count = 0;
-    feed.querySelectorAll('.msg.has-mention').forEach(el=>{
-      const id = parseInt(el.dataset.msgId||'0',10); if (id>lastMentionSeen) count++;
-    });
+    
     const dot = document.getElementById('mentionDot');
     if (!dot) return;
-    if (count>0){ dot.textContent = String(count); dot.classList.remove('hidden'); }
+    if (mentionUnreadCount>0){ dot.textContent = String(mentionUnreadCount); dot.classList.remove('hidden'); }
     else { dot.classList.add('hidden'); }
   }
-  function markMentionsSeen(){
-    const maxId = latestMentionIdInDOM();
-    if (maxId > lastMentionSeen){
-      lastMentionSeen = maxId;
-      localStorage.setItem(KEY_LAST_SEEN, String(lastMentionSeen));
-      updateMentionDot();
+  function renderMentionInbox(){
+    const host = document.getElementById('mentionInbox');
+    if (!host) return;
+    host.innerHTML = '';
+    if (!mentionNotifications.length){
+      host.innerHTML = '<div class="text-[13px] text-slate-400">Nu ai notificări necitite.</div>';
+      return;
     }
+    mentionNotifications.forEach(n=>{
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'w-full text-left px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:border-cyan-400/40 hover:bg-cyan-500/5';
+      const kindLabel = n.kind === 'reply' ? 'ți-a răspuns' : 'te-a menționat';
+      const tsRel = formatRelativeTime(n.ts||0);
+      row.innerHTML = `
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span>${esc(kindLabel)}</span>
+          <span>${esc(tsRel)}</span>
+        </div>
+        <div class="text-[13px] text-slate-300 mt-1">${esc(n.user_name||'—')}</div>
+        <div class="text-sm text-slate-200 mt-1 leading-snug">${esc(n.body||'')}</div>
+      `;
+      row.addEventListener('click', ()=>{
+        if (n.message_id) jumpToAround(n.message_id);
+        if (n.notif_id) markMentionNotifications([n.notif_id]);
+      });
+      host.appendChild(row);
+    });
+  }
+
+  async function markMentionNotifications(ids){
+    if (!ids || !ids.length) return;
+    try {
+      const r = await fetch('/api/chat/mentions_mark_read.php', {
+        method:'POST',
+        credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ids })
+      });
+      const j = await r.json();
+      if (j && j.ok){
+        mentionUnreadCount = j.unread_count || 0;
+        updateMentionDot();
+        await loadMentionInbox(false);
+      }
+    } catch{}
+  }
+
+  async function markAllMentionsRead(){
+    const ids = mentionNotifications.map(n=>n.notif_id).filter(Boolean);
+    if (!ids.length) return;
+    await markMentionNotifications(ids);
+  }
+
+  async function loadMentionInbox(markRead){
+    try{
+      const r = await fetch('/api/chat/mentions_unread.php', { credentials:'include' });
+      const j = await r.json();
+      if (!j || !j.ok) return;
+      mentionUnreadCount = j.unread_count || 0;
+      mentionNotifications = Array.isArray(j.items) ? j.items : [];
+      renderMentionInbox();
+      updateMentionDot();
+      if (markRead && mentionNotifications.length){
+        await markAllMentionsRead();
+      }
+    }catch{}
+  }
+
+  function scheduleMentionRefresh(){
+    if (mentionRefreshTimer) clearTimeout(mentionRefreshTimer);
+    mentionRefreshTimer = setTimeout(()=> loadMentionInbox(false), 400);
   }
   function setView(mentionsMode){
     VIEW_MENTIONS = !!mentionsMode;
@@ -1876,15 +2149,16 @@ $uid = (int)($me['id'] ?? 0);
     if (chatCard){ chatCard.classList.toggle('view-mentions', VIEW_MENTIONS); }
     document.getElementById('tabAll')?.classList.toggle('bg-white/5', !VIEW_MENTIONS);
     document.getElementById('tabMent')?.classList.toggle('bg-white/5',  VIEW_MENTIONS);
-    if (VIEW_MENTIONS) markMentionsSeen();
+   if (VIEW_MENTIONS) loadMentionInbox(true);
   }
   document.getElementById('tabAll')?.addEventListener('click', ()=> setView(false));
   document.getElementById('tabMent')?.addEventListener('click',()=> setView(true));
     document.getElementById('mentionBell')?.addEventListener('click', async ()=> {
     setView(true); // păstrăm comportamentul actual (tab mențiuni)
     await ensureMentionPushEnabledViaClick(); // la click cerem / activăm notificările
+     await loadMentionInbox(true);
   });
-
+document.getElementById('btnMentionsReadAll')?.addEventListener('click', ()=> markAllMentionsRead());
 
   /* ——— build row + mentions render ——— */
   function renderMentions(body, meta){
@@ -1907,7 +2181,55 @@ $uid = (int)($me['id'] ?? 0);
     }
     return html;
   }
+function renderAttachments(list){
+    if (!Array.isArray(list) || !list.length) return '';
+    const parts = [];
+    for (const att of list){
+      if (!att || !att.url) continue;
+      const url  = esc(att.url);
+      const name = esc(att.name || 'fișier');
+      const mime = esc(att.mime || '');
+      const kind = att.kind || 'file';
+      if (kind === 'image') {
+        parts.push(`<a href="${url}" target="_blank" rel="noreferrer" class="block"><img src="${url}" alt="${name}" class="max-h-48 rounded-xl border border-white/10" loading="lazy"/></a>`);
+      } else if (kind === 'video') {
+        parts.push(`<video controls class="max-h-56 rounded-xl w-full border border-white/10 bg-black/40"><source src="${url}" type="${mime}"></video>`);
+      } else if (kind === 'audio') {
+        parts.push(`<audio controls class="w-full mt-1"><source src="${url}" type="${mime}"></audio>`);
+      } else {
+        parts.push(`<a href="${url}" target="_blank" rel="noreferrer" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 hover:border-white/20 bg-white/5"><i class="fa-solid fa-paperclip"></i> ${name}</a>`);
+      }
+    }
+    if (!parts.length) return '';
+    return `<div class="mt-2 space-y-2">${parts.join('')}</div>`;
+  }
 
+  function renderLinkPreview(preview){
+    if (!preview || typeof preview !== 'object') return '';
+    const url = esc(preview.url || '');
+    if (!url) return '';
+    const title = esc(preview.title || preview.url || 'Previzualizare link');
+    const desc  = preview.description ? `<div class="text-[12px] text-slate-300" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${esc(preview.description)}</div>` : '';
+    const site  = preview.site_name || preview.provider || '';
+    const siteHtml = site ? `<div class="text-[11px] text-slate-500 mt-1">${esc(site)}</div>` : '';
+    const badge = preview.provider ? `<span class="text-[11px] text-cyan-300 font-semibold uppercase">${esc(preview.provider)}</span>` : '';
+    const imgHtml = preview.image ? `<div class="shrink-0 w-24 h-24 overflow-hidden rounded-lg border border-white/10 bg-white/5"><img src="${esc(preview.image)}" alt="" class="object-cover w-full h-full" loading="lazy"/></div>` : '';
+    const embedHtml = (preview.provider === 'youtube' && preview.embed)
+      ? `<div class="mt-2 aspect-video"><iframe src="${esc(preview.embed)}" class="w-full h-full rounded-xl border border-white/10" allowfullscreen loading="lazy"></iframe></div>`
+      : '';
+    return `<a href="${url}" target="_blank" rel="noreferrer" class="block mt-2 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 p-3">
+      <div class="flex gap-3 items-center">
+        ${imgHtml}
+        <div class="min-w-0">
+          ${badge}
+          <div class="font-semibold text-slate-100 text-sm" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${title}</div>
+          ${desc}
+          ${siteHtml}
+        </div>
+      </div>
+      ${embedHtml}
+    </a>`;
+  }
     function buildRow(m, mine = false, pending = false) {
     const row = document.createElement('div');
     row.className = 'msg w-full flex ' + (mine ? 'justify-end' : 'justify-start');
@@ -1918,17 +2240,32 @@ $uid = (int)($me['id'] ?? 0);
     row.dataset.user = String(m.user_name || '');
     row.dataset.mine = mine ? '1' : '0';
     row.dataset.bodyRaw = m.body || '';
+    if (m.id) indexMessage(m);
 
     const isDeleted = !!m.deleted;
     const tsRel = formatRelativeTime(tsSec);
     const tsAbs = NF_TIME.format(new Date(tsSec * 1000));
 
-    const mentioned = !isDeleted && isMention(m);
+    const replyToMe = !isDeleted && isReplyToMe(m);
+    const mentioned = !isDeleted && (isMention(m) || replyToMe);
     if (mentioned) row.classList.add('has-mention');
-
+const mentionLabel = replyToMe ? 'ți-a răspuns' : (isMention(m) ? 'te-a menționat' : '');
     const bodyHTML = isDeleted
       ? '<span class="text-slate-500 italic">mesaj șters</span>'
       : renderMentions(m.body || '', m.mentions || null);
+      const bodyBlock = bodyHTML ? `<div data-body class="body text-sm leading-relaxed">${bodyHTML}</div>` : '';
+      const replyMeta = !isDeleted ? resolveReplyMeta(m) : null;
+    let replyHTML = '';
+    if (replyMeta && replyMeta.id){
+      row.dataset.replyId = String(replyMeta.id);
+      const userLabel = replyMeta.user_name || 'mesaj';
+      const preview = esc((replyMeta.body || '').slice(0, 220));
+      replyHTML = `
+        <button type="button" class="reply-ref" data-reply-jump="${replyMeta.id}">
+          <div class="text-[11px] text-cyan-200"><i class="fa-solid fa-reply mr-1"></i> către ${esc(userLabel)}</div>
+          <div class="preview text-[12px] text-slate-200 leading-snug">${preview || '—'}</div>
+        </button>`;
+    }
 
     let reactBar = '';
     if (FLAGS.reactions && !isDeleted) {
@@ -1943,10 +2280,21 @@ $uid = (int)($me['id'] ?? 0);
     const canEditNow = mine && !pending && !isDeleted && canEditNowTs(tsSec);
     const editedLabel  = m.edited ? '<span data-edited-flag="1" class="ml-1 text-[10px] text-slate-500 italic">(editat)</span>' : '';
     const deletedLabel = isDeleted ? '<span data-deleted-flag="1" class="ml-2 text-[11px] text-rose-400">[mesaj șters]</span>' : '';
+    const attachHTML = !isDeleted ? renderAttachments(m.attachments || []) : '';
+    const previewHTML = !isDeleted ? renderLinkPreview(m.link_preview || null) : '';
 
     let actionsHtml = '';
+    if (!isDeleted) {
+      actionsHtml += `
+        <button type="button"
+                class="ml-2 text-[11px] text-slate-500 hover:text-cyan-400 reply-msg-btn"
+                title="răspunde la mesaj">
+          <i class="fa-solid fa-reply"></i>
+        </button>`;
+    }
     if (canEditNow) {
       actionsHtml = `
+      ${actionsHtml}
         <button type="button"
                 class="ml-2 text-[11px] text-slate-500 hover:text-sky-400 edit-msg-btn"
                 title="editează mesajul">
@@ -1961,6 +2309,7 @@ $uid = (int)($me['id'] ?? 0);
 
     row.innerHTML = `
       <div class="bubble max-w-[85%] rounded-2xl px-3 py-2 text-sm border bg-white/5 border-white/10 ${pending ? 'opacity-80' : ''}">
+      ${replyHTML}
         <div class="meta text-[11px] opacity-80 mb-1">
           <i class="fa-regular fa-user"></i> ${esc(m.user_name || '—')}
           ${m.role === 'ADMIN' ? '<span class="badge bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 ml-2">Admin</span>' : ''}
@@ -1970,11 +2319,13 @@ $uid = (int)($me['id'] ?? 0);
                 title="${esc(tsAbs)}">${esc(tsRel)}</span>
           ${editedLabel}
           ${deletedLabel}
-          ${mentioned ? '<span class="mention-chip ml-2">te-a menționat</span>' : ''}
+          ${mentionLabel ? `<span class="mention-chip ml-2">${esc(mentionLabel)}</span>` : ''}
           ${pending ? '<i class="fa-regular fa-clock ml-2" data-status title="se trimite…"></i>' : ''}
           ${actionsHtml}
         </div>
-        <div data-body>${bodyHTML}</div>
+        ${bodyBlock}
+        ${attachHTML}
+        ${previewHTML}
         ${reactBar}
       </div>`;
 
@@ -2027,6 +2378,7 @@ $uid = (int)($me['id'] ?? 0);
       // notificare browser pentru @mențiuni, doar dacă nu e mesajul tău
       if (!mine) {
         fireMentionNotification(m);
+        scheduleMentionRefresh();
       }
     }
     updateMentionDot();
@@ -2080,9 +2432,19 @@ $uid = (int)($me['id'] ?? 0);
 
   }
 
-  function renderPending(cid, body, ts, mentionsArr){
+  function renderPending(cid, body, ts, mentionsArr, replyMeta, attList){
     ensureDaySepAppend(ts||Math.floor(Date.now()/1000));
-    const m = { id: 0, user_name: meName, role: 'USER', body, ts, mentions: Array.isArray(mentionsArr)?mentionsArr:[] };
+    const m = {
+      id: 0,
+      user_name: meName,
+      role: 'USER',
+      body,
+      ts,
+      mentions: Array.isArray(mentionsArr)?mentionsArr:[],
+      reply_to: replyMeta?.id || null,
+      reply: replyMeta || null,
+      attachments: Array.isArray(attList) ? attList : [],
+    };
     const row = buildRow(m, true, true);
     row.dataset.cid = cid;
     const wasBottom = atBottom() || BOOTING;
@@ -2090,7 +2452,7 @@ $uid = (int)($me['id'] ?? 0);
     if (canGroup(prev, m, true)) joinWithPrev(prev, row);
     feed.appendChild(row);
     if (wasBottom) scrollBottomNow();
-    PENDING.set(cid, { row, body, ts, mentions: m.mentions });
+    PENDING.set(cid, { row, body, ts, mentions: m.mentions, reply: replyMeta || null, attachments: m.attachments });
   }
 
     function confirmPending(cid, m) {
@@ -2098,7 +2460,13 @@ $uid = (int)($me['id'] ?? 0);
     if (!p) return appendMsg(m);
 
     const { row } = p;
-
+    
+    // completăm meta de reply dacă serverul nu a trimis-o
+    const replyMeta = m.reply
+      || (m.reply_to ? { id: m.reply_to } : null)
+      || p.reply
+      || null;
+const attachments = Array.isArray(m.attachments) ? m.attachments : (p.attachments || []);
     // scoatem iconul de pending
     row.querySelector('[data-status]')?.remove();
     row.querySelector('.opacity-80')?.classList.remove('opacity-80');
@@ -2106,6 +2474,8 @@ $uid = (int)($me['id'] ?? 0);
     const tsSec = (m.ts || p.ts || Math.floor(Date.now() / 1000));
     row.dataset.ts = String(tsSec);
     row.dataset.bodyRaw = m.body || p.body || row.dataset.bodyRaw || '';
+   const replyId = m.reply_to || (replyMeta && replyMeta.id) || null;
+    if (replyId) row.dataset.replyId = String(replyId); else delete row.dataset.replyId;
 
     const t = row.querySelector('[data-time]');
     if (t) {
@@ -2114,14 +2484,16 @@ $uid = (int)($me['id'] ?? 0);
       t.title = NF_TIME.format(new Date(tsSec * 1000));
     }
 
-    const dst = row.querySelector('[data-body]');
-    if (dst) {
-      const meta = Array.isArray(m.mentions) ? m.mentions : (p.mentions || []);
-      const tmp = buildRow({ ...m, mentions: meta }, true, false);
-      // numai conținutul body-ului, nu recreăm tot row-ul
-      const bodyNew = tmp.querySelector('[data-body]');
-      if (bodyNew) dst.innerHTML = bodyNew.innerHTML;
+    const bubble = row.querySelector('.bubble');
+    const meta = Array.isArray(m.mentions) ? m.mentions : (p.mentions || []);
+    const tmp = buildRow({ ...m, mentions: meta, reply: replyMeta, reply_to: m.reply_to || replyMeta?.id || null, attachments }, true, false);
+    const bubbleNew = tmp.querySelector('.bubble');
+    if (bubble && bubbleNew) {
+      const cls = bubble.className;
+      bubble.innerHTML = bubbleNew.innerHTML;
+      bubble.className = cls;
     }
+    if (FLAGS.reactions && !m.deleted) attachReactHandlers(row);
 
     const id = m.id | 0;
     if (id) {
@@ -2334,6 +2706,13 @@ $uid = (int)($me['id'] ?? 0);
 
   /* ——— Reacții (UI + API) ——— */
   function getRowByMsgId(id){ return feed.querySelector(`.msg[data-msg-id="${id}"]`); }
+  function scrollToMsg(id){
+    const row = getRowByMsgId(id);
+    if (!row) return;
+    row.scrollIntoView({ behavior:'smooth', block:'center' });
+    row.classList.add('msg-highlight');
+    setTimeout(()=> row.classList.remove('msg-highlight'), 1800);
+  }
   function applyRowReactions(row, data){
     if (!row) return;
     const counts = data?.counts || {};
@@ -2372,6 +2751,8 @@ $uid = (int)($me['id'] ?? 0);
     const tsSec = m.ts || parseInt(row.dataset.ts || '0', 10) || Math.floor(Date.now() / 1000);
     row.dataset.ts = String(tsSec);
     row.dataset.bodyRaw = m.body || row.dataset.bodyRaw || '';
+    const idxId = parseInt(row.dataset.msgId || String(m.id || 0), 10) || 0;
+    if (idxId) indexMessage({ id: idxId, user_name: row.dataset.user || m.user_name || '', body: row.dataset.bodyRaw, ts: tsSec });
 
     const bodyEl = row.querySelector('[data-body]');
     if (bodyEl) {
@@ -2598,6 +2979,8 @@ $uid = (int)($me['id'] ?? 0);
     const deleteBtn = e.target.closest('.delete-msg-btn');
     const saveBtn   = e.target.closest('.save-edit-btn');
     const cancelBtn = e.target.closest('.cancel-edit-btn');
+    const replyBtn  = e.target.closest('.reply-msg-btn');
+    const replyJump = e.target.closest('[data-reply-jump]');
 
     if (editBtn) {
       e.preventDefault();
@@ -2625,6 +3008,18 @@ $uid = (int)($me['id'] ?? 0);
       const row = cancelBtn.closest('.msg');
       cancelEdit(row);
       return;
+    }
+    if (replyBtn) {
+      e.preventDefault();
+      const row = replyBtn.closest('.msg');
+      startReplyFromRow(row);
+      return;
+    }
+
+    if (replyJump) {
+      e.preventDefault();
+      const targetId = parseInt(replyJump.dataset.replyJump || '0', 10);
+      if (targetId) scrollToMsg(targetId);
     }
   });
 
@@ -2954,7 +3349,8 @@ $uid = (int)($me['id'] ?? 0);
     e.preventDefault();
     const raw = (input.value||'');
     const txt = raw.trim();
-    if(!txt){ updateCounter(); return; }
+    const hasAttach = ATTACHMENTS.length > 0;
+    if(!txt && !hasAttach){ updateCounter(); showChatToast('Adaugă un mesaj sau un atașament.', 'info'); return; }
        if (raw.length > MAX_CHARS){
       showChatToast(
         `Mesajul depășește limita de ${MAX_CHARS} caractere.`,
@@ -2966,14 +3362,25 @@ $uid = (int)($me['id'] ?? 0);
 
     const mentionsPayload = Array.from(MENTION_IDS);
     const mentionsNames   = Array.from(MENTION_MAP.values());
+    const replyMeta = replyTarget && replyTarget.id ? { ...replyTarget, id: replyTarget.id } : null;
 
     const cid = genCID(), ts = Math.floor(Date.now()/1000);
-    const offlinePayload = { cid, txt, ts, mentionsPayload, mentionsNames };
+    const attachmentsCopy = ATTACHMENTS.map(a => ({ ...a }));
+    const offlinePayload = { cid, txt, ts, mentionsPayload, mentionsNames, reply_to: replyMeta?.id || null, reply_preview: replyMeta, attachments: attachmentsCopy };
 
-    renderPending(cid, txt, ts, mentionsNames.map(n=>({ user_id: null, name: n })));
+    renderPending(
+      cid,
+      txt,
+      ts,
+      mentionsNames.map(n=>({ user_id: null, name: n })),
+      replyMeta,
+      attachmentsCopy
+    );
 
     input.value=''; autoGrow(); updateCounter();
+    clearAttachments();
     setBtnBusy(true);
+    clearReplyTarget();
 
     // dacă nu avem conexiune, nu mai încercăm fetch acum: punem în coadă și ieșim
     if (!navigator.onLine){
@@ -2998,6 +3405,10 @@ $uid = (int)($me['id'] ?? 0);
           client_id: cid,
           mentions: mentionsPayload,
           mention_names: mentionsNames,
+          attachments: attachmentsCopy,
+          
+          reply_to: replyMeta?.id || null,
+          reply_preview: replyMeta || null,
           csrf_token: csrfToken || ''
         })
       });
@@ -3175,7 +3586,7 @@ $uid = (int)($me['id'] ?? 0);
     if (pollTimer) clearInterval(pollTimer);
     try{ navigator.sendBeacon && navigator.sendBeacon('/api/chat/typing.php', JSON.stringify({stop:true})); }catch{}
   });
-
+loadMentionInbox(false);
   bootstrap();
 })();
 </script>

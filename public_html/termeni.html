@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Termeni & Condiții • Pariază Inteligent</title>
+  <meta name="description" content="Termeni și condiții pentru utilizarea platformei Pariază Inteligent."/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+      background:linear-gradient(135deg,#0a0e27 0%,#1a1f3a 50%,#0f1829 100%);
+      min-height:100vh; color:#eaf7ff; position:relative; overflow-x:hidden;
+    }
+
+    /* Particule identice cu contact.php (organice) */
+    .particles{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;z-index:0;pointer-events:none}
+    .particle{position:absolute;width:4px;height:4px;background:rgba(0,255,157,.35);border-radius:50%;will-change:transform}
+
+    /* Layout */
+    .wrap{position:relative;z-index:1;width:min(1100px,92%);margin:46px auto}
+    .hero{text-align:center;margin-bottom:16px;padding:10px}
+    .brand{
+      font-size:34px;font-weight:900;letter-spacing:.3px;line-height:1.15;
+      background:linear-gradient(90deg,#00ff9d 0%,#00b8ff 100%);
+      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+      filter:drop-shadow(0 0 10px rgba(0,255,157,.45));animation:glow 3s ease-in-out infinite;
+    }
+    @keyframes glow{
+      0%,100%{filter:drop-shadow(0 0 10px rgba(0,255,157,.45))}
+      50%{filter:drop-shadow(0 0 18px rgba(0,255,157,.8))}
+    }
+    .subtitle{color:#cfe8ff;opacity:.9;margin-top:8px;font-size:15px}
+    .notice{
+      margin:14px auto 0;max-width:720px;
+      background:linear-gradient(135deg,rgba(0,255,157,.12),rgba(0,184,255,.12));
+      border:1px solid rgba(0,255,157,.35); border-radius:12px; padding:10px 14px; color:#d7ecff;
+    }
+
+    /* Card „glass” pentru conținut */
+    .card{
+      background:rgba(26,31,58,.9);
+      border:1px solid rgba(0,255,157,.18);
+      border-radius:16px;
+      box-shadow:0 14px 45px rgba(0,0,0,.45);
+      backdrop-filter:blur(8px);
+      overflow:hidden;
+    }
+
+    .section{padding:22px;border-top:1px solid rgba(255,255,255,.06);animation:fadeIn .6s ease both}
+    .section:first-child{border-top:0}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+    .section h2{
+      font-size:20px;margin:0 0 10px;display:flex;align-items:center;gap:10px;
+      color:#83f7ff;font-weight:800;position:relative;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:50%;
+      background:linear-gradient(135deg,#00ff9d 0%,#00b8ff 100%);
+      box-shadow:0 0 12px rgba(0,255,157,.6);flex:0 0 auto;
+    }
+    .divider{height:1px;margin:16px 0;background:linear-gradient(90deg,rgba(0,255,157,0),rgba(0,255,157,.45),rgba(0,255,157,0))}
+    p,li{color:#d7ecff;line-height:1.75;font-size:15px}
+    ul{margin-left:18px;margin-top:8px}
+    li{margin-bottom:8px;position:relative;padding-left:14px}
+    li::before{content:'';position:absolute;left:0;top:.7em;width:6px;height:6px;border-radius:50%;background:#00ffb4;box-shadow:0 0 8px rgba(0,255,157,.8)}
+
+    .toc a{
+      display:inline-block;margin:6px 8px 0 0;padding:8px 12px;border-radius:10px;
+      color:#bfe8ff;text-decoration:none;border:1px solid rgba(0,255,157,.2);
+      background:rgba(15,24,41,.35);transition:all .25s ease;
+    }
+    .toc a:hover{color:#00ffd5;border-color:rgba(0,255,157,.45);transform:translateY(-2px)}
+
+    .meta{color:#9cc6ff;font-size:12px;text-align:center;margin:16px 0 6px}
+    footer{color:#9cc6ff;text-align:center;font-size:13px;padding:10px 6px 0}
+
+    .back{
+      display:inline-block;margin: 10px 0 18px 0;color:#00ffd5;text-decoration:none;font-size:14px;
+      transition:transform .2s ease,color .2s ease;
+    }
+    .back:hover{color:#83f7ff;transform:translateX(-5px)}
+
+    @media (max-width:768px){.brand{font-size:28px}.section{padding:18px}}
+  </style>
+</head>
+<body>
+
+  <!-- Particule -->
+  <div class="particles" id="particles" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <header class="hero">
+      <h1 class="brand">Pariază Inteligent</h1>
+      <p class="subtitle">Termeni & Condiții de utilizare — te rugăm să citești cu atenție.</p>
+      <a class="back" href="index.html">← Înapoi la pagina principală</a>
+      <div class="notice"><strong>Mesaj responsabil:</strong> Pariurile implică riscuri. Jucați responsabil. 18+.</div>
+      <div class="divider" aria-hidden="true"></div>
+    </header>
+
+    <section class="card">
+      <!-- Cuprins -->
+      <div class="section toc" id="cuprins">
+        <h2><span class="dot"></span> Cuprins</h2>
+        <a href="#acces">Acces & acceptare</a>
+        <a href="#cont">Cont, securitate, eligibilitate</a>
+        <a href="#drepturi">Drepturi & obligații utilizator</a>
+        <a href="#platforma">Obligațiile Pariază Inteligent</a>
+        <a href="#risc">Avertisment de risc</a>
+        <a href="#limite">Limitarea răspunderii</a>
+        <a href="#proprietate">Proprietate intelectuală</a>
+        <a href="#contact">Contact & sesizări</a>
+      </div>
+
+      <div class="section" id="acces">
+        <h2><span class="dot"></span> Acces & acceptare</h2>
+        <p>Accesul la site și folosirea serviciilor presupun citirea, înțelegerea și acceptarea prezentelor Termeni și Condiții. Dacă nu ești de acord, te rugăm să nu utilizezi platforma. Ne rezervăm dreptul de a actualiza documentul; versiunea curentă rămâne disponibilă pe această pagină.</p>
+      </div>
+
+      <div class="section" id="cont">
+        <h2><span class="dot"></span> Cont, securitate & eligibilitate</h2>
+        <ul>
+          <li>Platforma este destinată exclusiv persoanelor de 18+ ani; putem solicita verificări de vârstă/identitate.</li>
+          <li>Ești responsabil pentru confidențialitatea datelor de autentificare și activitatea contului tău.</li>
+          <li>Informează-ne imediat în caz de suspiciune de acces neautorizat.</li>
+        </ul>
+      </div>
+
+      <div class="section" id="drepturi">
+        <h2><span class="dot"></span> Drepturi & obligații utilizator</h2>
+        <ul>
+          <li>Folosește platforma conform legii și acestor termeni.</li>
+          <li>Furnizează informații reale; nu încerca să manipulezi sistemele ori rezultatele.</li>
+          <li>Respectă drepturile de proprietate intelectuală și politicile de fair-use.</li>
+        </ul>
+      </div>
+
+      <div class="section" id="platforma">
+        <h2><span class="dot"></span> Obligațiile Pariază Inteligent</h2>
+        <ul>
+          <li>Oferim instrumente și informații pentru pariuri responsabile, fără garanții de rezultat.</li>
+          <li>Putem actualiza/suspenda temporar funcții pentru mentenanță sau îmbunătățiri.</li>
+          <li>Putem lua măsuri în caz de abuz, fraudă ori nerespectare a termenilor.</li>
+        </ul>
+      </div>
+
+      <div class="section" id="risc">
+        <h2><span class="dot"></span> Avertisment de risc</h2>
+        <p>Pariurile implică riscuri financiare și emoționale. Jucați responsabil și nu pariați bani pe care nu vă permiteți să îi pierdeți. Pariază Inteligent nu este responsabil pentru pierderi rezultate din decizii personale de pariere. Dacă simți că ai o problemă, cere ajutor din timp.</p>
+      </div>
+
+      <div class="section" id="limite">
+        <h2><span class="dot"></span> Limitarea răspunderii</h2>
+        <p>În măsura maximă permisă de lege, serviciile sunt furnizate „ca atare”. Nu garantăm acuratețea, caracterul complet sau disponibilitatea neîntreruptă. Nu vom fi răspunzători pentru pierderi indirecte, speciale, incidentale, consecvențiale sau de profit.</p>
+      </div>
+
+      <div class="section" id="proprietate">
+        <h2><span class="dot"></span> Proprietate intelectuală</h2>
+        <p>Conținutul, identitatea vizuală, mărcile, logo-urile „Pariază Inteligent”, interfețele și componentele software sunt protejate de legislația privind drepturile de autor și mărcile comerciale. Nu este permisă copierea, distribuirea sau utilizarea neautorizată.</p>
+      </div>
+
+      <div class="section" id="contact">
+        <h2><span class="dot"></span> Contact & sesizări</h2>
+        <p>Pentru întrebări sau solicitări privind drepturi, ne poți contacta la:</p>
+        <ul>
+          <li><strong>E-mail:</strong> <a href="mailto:contact@pariazainteligent.ro" style="color:#83f7ff;text-decoration:none;border-bottom:1px dashed rgba(131,247,255,.45)">contact@pariazainteligent.ro</a></li>
+          <li><strong>Website:</strong> <a href="https://pariazainteligent.ro/" style="color:#83f7ff;text-decoration:none;border-bottom:1px dashed rgba(131,247,255,.45)">pariazainteligent.ro</a></li>
+        </ul>
+        <div class="divider"></div>
+        <p>Vezi și <a href="confidentialitate.html" style="color:#00ffd5;text-decoration:none;border-bottom:1px dashed rgba(0,255,213,.55)">Politica de confidențialitate</a>.</p>
+      </div>
+    </section>
+
+    <div class="meta">Ultima actualizare: 4 octombrie 2025</div>
+    <footer>&copy; <span id="year"></span> Pariază Inteligent · Toate drepturile rezervate.</footer>
+  </main>
+
+  <script>
+    // An dinamic
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Particule organice – un singur <style> cu toate keyframes
+    (function(){
+      const box = document.getElementById('particles');
+      if(!box) return;
+      const COUNT=60, minDur=6, maxDur=16;
+      let css=''; const frag=document.createDocumentFragment();
+      for(let i=0;i<COUNT;i++){
+        const p=document.createElement('div'); p.className='particle';
+        const size=(Math.random()*3+2).toFixed(1);
+        p.style.width=size+'px'; p.style.height=size+'px';
+        p.style.background=Math.random()<0.6?'rgba(0,255,157,.35)':'rgba(0,184,255,.35)';
+        p.style.left=Math.random()*100+'%'; p.style.top=Math.random()*100+'%';
+        const delay=(Math.random()*6).toFixed(2)+'s';
+        const dur=(Math.random()*(maxDur-minDur)+minDur).toFixed(2)+'s';
+        p.style.animationDelay=delay;
+        const kf='float-'+i;
+        const dx1=(Math.random()*140-70).toFixed(0), dy1=(Math.random()*140-70).toFixed(0);
+        const dx2=(Math.random()*140-70).toFixed(0), dy2=(Math.random()*140-70).toFixed(0);
+        const dx3=(Math.random()*140-70).toFixed(0), dy3=(Math.random()*140-70).toFixed(0);
+        css+=`@keyframes ${kf}{0%,100%{transform:translate(0,0);opacity:.75}25%{transform:translate(${dx1}px,${dy1}px);opacity:.95}50%{transform:translate(${dx2}px,${dy2}px);opacity:.85}75%{transform:translate(${dx3}px,${dy3}px);opacity:.95}}`;
+        p.style.animation=`${kf} ${dur} ease-in-out infinite`;
+        frag.appendChild(p);
+      }
+      box.appendChild(frag);
+      const style=document.createElement('style'); style.textContent=css; document.head.appendChild(style);
+    })();
+
+    // Micro-animare la intrarea secțiunilor în viewport
+    const io=new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.animate({transform:['translateY(12px)','translateY(0)'],opacity:[0,1]},{duration:500,easing:'ease-out'});
+          io.unobserve(e.target);
+        }
+      })
+    },{threshold:.12});
+    document.querySelectorAll('.section').forEach(s=>io.observe(s));
+  </script>
+</body>
+</html>

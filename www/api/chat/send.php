@@ -46,32 +46,31 @@ if (!$csrfExpected || $csrfTokenIn === '' || !hash_equals((string)$csrfExpected,
 $text = trim((string)($in['text'] ?? $in['message'] ?? $in['body'] ?? ''));
 $cid  = trim((string)($in['client_id'] ?? ''));
 
-// mențiuni (opțional): ids + names (fallback)
-$mentionsIdsIn   = $in['mentions']       ?? [];
-$mentionNamesIn  = $in['mention_names']  ?? [];
+// id-ul mesajului la care răspundem (reply_to)
+$replyToIn = isset($in['reply_to']) ? (int)$in['reply_to'] : 0;
 
-// Validări de bază (aliniate cu UI: maxlength=500)
-if ($text === '') { echo json_encode(['ok'=>false,'error'=>'empty']); exit; }
-if (mb_strlen($text, 'UTF-8') > 500) { echo json_encode(['ok'=>false,'error'=>'too_long']); exit; }
-
-// validare minimală pentru client_id (evităm gunoi în coloana unică)
-if ($cid !== '' && !preg_match('~^[A-Za-z0-9_-]{5,64}$~', $cid)) {
-  echo json_encode(['ok'=>false,'error'=>'bad_client_id']); exit;
+// atașamente (array sau string JSON)
+$attachmentsIn = $in['attachments'] ?? [];
+if (is_string($attachmentsIn)) {
+  $attachmentsIn = json_decode($attachmentsIn, true) ?: [];
 }
 
-// Normalizează mențiunile
-$mentionsIds = array_values(array_unique(array_filter(array_map('intval', (array)$mentionsIdsIn))));
-$mentionNames = array_values(array_unique(array_filter(array_map(function($x){
-  $s = trim((string)$x);
-  // curăță caractere nepotrivite pentru @username
-  $s = preg_replace('~[^A-Za-z0-9._-]+~u', '', $s);
-  return mb_substr($s, 0, 64);
-}, (array)$mentionNamesIn))));
+// le inițializăm simplu aici, fără funcții helper
+$attachments = [];
+$replyTo     = $replyToIn > 0 ? $replyToIn : 0;
+$preview     = null;
+
 
 try {
   require __DIR__ . '/../db.php'; // $pdo
+  require __DIR__ . '/notifications_lib.php';
+  require __DIR__ . '/meta_lib.php';
+
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+  // acum funcțiile există (vin din meta_lib.php)
+  $attachments = chat_filter_attachments($attachmentsIn);
+  $preview     = $text !== '' ? chat_preview_from_text($text) : null;
 
   // Rezolvă numele pentru IDs dacă lipsesc
   if ($mentionsIds && count($mentionNames) < count($mentionsIds)) {
@@ -104,6 +103,7 @@ try {
     'ua'            => false,
     'created_at'    => false,
     'client_id'     => false,
+    'reply_to'      => false,
     // extensii mențiuni (oricare din acestea dacă există în schema)
     'mentions_json' => false,
     'mentions_ids'  => false,
@@ -125,6 +125,30 @@ try {
   $textCol = $has['message'] ? 'message' : ($has['body'] ? 'body' : null);
   if (!$textCol) {
     echo json_encode(['ok'=>false,'error'=>'server_error','hint'=>'no_text_column']); exit;
+  }
+  
+  // dacă avem suport pentru reply_to, încercăm să recuperăm un snapshot al mesajului țintă
+  $replyPreview = null;
+  if ($replyTo > 0 && $has['reply_to']) {
+    try {
+       $sqlReply = "SELECT id,user_id,user_name,$textCol AS body FROM chat_messages WHERE id = :rid";
+      if ($has['room']) $sqlReply .= " AND room = :room";
+      $sqlReply .= " LIMIT 1";
+
+      $stR = $pdo->prepare($sqlReply);
+      $stR->bindValue(':rid', $replyTo, PDO::PARAM_INT);
+      if ($has['room']) $stR->bindValue(':room', 'global', PDO::PARAM_STR);
+      $stR->execute();
+      $replyPreview = $stR->fetch();
+      if (!$replyPreview) {
+        $replyTo = 0; // mesajul nu există în cameră
+      } else {
+        $replyPreview['body'] = mb_substr(trim((string)($replyPreview['body'] ?? '')), 0, 240);
+        $replyPreview['user_id'] = isset($replyPreview['user_id']) ? (int)$replyPreview['user_id'] : null;
+      }
+    } catch (Throwable $e) {
+      $replyTo = 0; // nu blocăm trimiterea dacă lookup-ul eșuează
+    }
   }
 
   // ——— Rate-limit per user + IP (idempotent-friendly, ignoră același client_id) + duplicate guard ———
@@ -287,6 +311,7 @@ try {
   if ($has['ip'])        { $cols[]='ip';        $vals[]=':ip';        $bind[':ip']   = $ip; }
   if ($has['ua'])        { $cols[]='ua';        $vals[]=':ua';        $bind[':ua']   = $ua; }
   if ($has['client_id']) { $cols[]='client_id'; $vals[]=':cid';       $bind[':cid']  = ($cid !== '') ? $cid : null; }
+  if ($has['reply_to'])  { $cols[]='reply_to';  $vals[]=':replyto';   $bind[':replyto'] = $replyTo ?: null; }
   if ($has['created_at']){ $cols[]='created_at';$vals[]='FROM_UNIXTIME(:ts)'; $bind[':ts'] = $now; }
 
   // mențiuni — oricare schemă disponibilă
@@ -310,6 +335,60 @@ try {
   $st->execute($bind);
 
   $id = (int)$pdo->lastInsertId();
+  
+  // notificări pentru mențiuni + răspuns direct
+  $notifRows = [];
+  if ($id > 0) {
+    foreach ($mentionsIds as $mid) {
+      if ($mid > 0 && $mid !== $uid) {
+        $notifRows[] = [
+          'user_id'    => $mid,
+          'message_id' => $id,
+          'kind'       => 'mention',
+        ];
+      }
+    }
+
+    $replyAuthorId = (int)($replyPreview['user_id'] ?? 0);
+    if ($replyAuthorId > 0 && $replyAuthorId !== $uid) {
+      $notifRows[] = [
+        'user_id'    => $replyAuthorId,
+        'message_id' => $id,
+        'kind'       => 'reply',
+      ];
+    }
+
+    if ($notifRows) {
+      insertChatNotifications($pdo, $notifRows);
+    }
+  }
+// salvăm meta (atașamente + preview link + reply snapshot) pe disc
+if ($id > 0) {
+  $metaPayload = [];
+
+  if ($attachments) {
+    $metaPayload['attachments'] = $attachments;
+  }
+
+  if ($preview) {
+    $metaPayload['link_preview'] = $preview;
+  }
+
+  // snapshot de reply, ca să îl vadă toată lumea, nu doar cel care trimite
+  if ($replyPreview && $replyTo) {
+    $metaPayload['reply_to'] = (int)$replyTo;
+    $metaPayload['reply'] = [
+      'id'        => (int)($replyPreview['id'] ?? $replyTo),
+      'user_id'   => isset($replyPreview['user_id']) ? (int)$replyPreview['user_id'] : null,
+      'user_name' => (string)($replyPreview['user_name'] ?? ''),
+      'body'      => (string)($replyPreview['body'] ?? ''),
+    ];
+  }
+
+  if ($metaPayload) {
+    chat_save_meta($id, $metaPayload);
+  }
+}
 
   // răspuns: includem și mențiunile (clientul le poate folosi pentru confirmPending)
   $respMentions = [];
@@ -331,6 +410,17 @@ try {
     'role'      => $role,
     'client_id' => $has['client_id'] ? ($cid !== '' ? $cid : null) : null,
     'mentions'  => $respMentions,
+    'reply_to'  => $replyTo ?: null,
+    'reply'     => ($replyPreview && $replyTo)
+      ? [
+          'id'        => (int)($replyPreview['id'] ?? $replyTo),
+           'user_id'   => isset($replyPreview['user_id']) ? (int)$replyPreview['user_id'] : null,
+          'user_name' => (string)($replyPreview['user_name'] ?? ''),
+          'body'      => (string)($replyPreview['body'] ?? ''),
+        ]
+      : null,
+      'attachments' => $attachments,
+    'link_preview'=> $preview,
   ]);
 } catch (Throwable $e) {
   http_response_code(200);

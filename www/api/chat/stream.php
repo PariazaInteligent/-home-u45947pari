@@ -27,6 +27,7 @@ header('Connection: keep-alive');
 header('X-Accel-Buffering: no'); // nginx
 
 require __DIR__ . '/../db.php';
+require __DIR__ . '/meta_lib.php';
 $pdo = $pdo ?? null;
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
@@ -43,7 +44,15 @@ $has = [
   'body'        => false,
   'client_id'   => false,
   'created_at'  => false,
+  'reply_to'    => false,
+  'user_id'     => false,
+  
+  'edited_at'   => false,
+  'updated_at'  => false,
+  
   'mentions_js' => false, // mentions_json
+  
+  'edit_table'  => false,
 ];
 try {
   $cols = $pdo->query("
@@ -57,8 +66,17 @@ try {
     if ($c === 'body') $has['body'] = true;
     if ($c === 'client_id') $has['client_id'] = true;
     if ($c === 'created_at') $has['created_at'] = true;
+    if ($c === 'reply_to') $has['reply_to'] = true;
+    if ($c === 'user_id') $has['user_id'] = true;
+    
+    if ($c === 'edited_at') $has['edited_at'] = true;
+    if ($c === 'updated_at') $has['updated_at'] = true;
+    
     if ($c === 'mentions_json') $has['mentions_js'] = true;
   }
+  
+  $has['edit_table'] = (bool)$pdo->query("SHOW TABLES LIKE 'chat_message_edits'")->fetch();
+  
 } catch (Throwable $e) {
   // fallback minimal
   $has['message'] = true;
@@ -71,7 +89,18 @@ $roomVal = $has['room'] ? 'global' : null;
 
 $selCols = "id,user_id,user_name,role,$textCol AS body,$tsExpr AS ts";
 if ($has['client_id']) $selCols .= ", client_id";
+if ($has['reply_to'])   $selCols .= ", reply_to";
+
+if ($has['edited_at']) {
+  $selCols .= ", UNIX_TIMESTAMP(edited_at) AS edited_at";
+} elseif ($has['edit_table']) {
+  $selCols .= ", UNIX_TIMESTAMP(e.edited_at) AS edited_at";
+}
+if ($has['updated_at']) $selCols .= ", UNIX_TIMESTAMP(updated_at) AS updated_at";
+
 if ($has['mentions_js']) $selCols .= ", mentions_json";
+
+$editedJoin = (!$has['edited_at'] && $has['edit_table']) ? " LEFT JOIN chat_message_edits e ON e.message_id = chat_messages.id" : "";
 
 // ——— util: encoder SSE ———
 $send = function(string $event, array $data, ?int $id=null) {
@@ -90,6 +119,9 @@ $normalize = function(array $m) use ($has): array {
   $m['user_name'] = isset($m['user_name']) ? (string)$m['user_name'] : '';
   $m['role']      = strtoupper((string)($m['role'] ?? 'USER'));
   $m['body']      = (string)($m['body'] ?? '');
+  if ($has['reply_to'] && array_key_exists('reply_to', $m)) {
+    $m['reply_to'] = $m['reply_to'] === null ? null : (int)$m['reply_to'];
+  }
 
   if ($has['client_id'] && array_key_exists('client_id', $m)) {
     // păstrăm null dacă e gol
@@ -114,9 +146,73 @@ $normalize = function(array $m) use ($has): array {
       }
     }
   }
+  
+  // marchează mesajele editate dacă avem coloana în schemă
+  $m['edited'] = false;
+  if ($has['edited_at'] && array_key_exists('edited_at', $m)) {
+    $m['edited_at'] = $m['edited_at'] ? (int)$m['edited_at'] : null;
+    $m['edited']    = $m['edited_at'] !== null;
+  } elseif ($has['updated_at'] && array_key_exists('updated_at', $m)) {
+    $m['updated_at'] = $m['updated_at'] ? (int)$m['updated_at'] : null;
+    $m['edited']     = $m['updated_at'] !== null && ($has['created_at'] ? $m['updated_at'] > (int)$m['ts'] : true);
+  }
+  
   return $m;
 };
 
+// ——— helper: atașează snapshot reply (dacă există coloană) ———
+$replyCache = [];
+$attachReply = function(array $row) use (&$replyCache, $pdo, $has, $textCol, $roomVal): array {
+  if (!$has['reply_to'] || !isset($row['reply_to'])) return $row;
+
+  $rid = (int)($row['reply_to'] ?? 0);
+  $row['reply_to'] = $rid ?: null;
+
+  if ($rid <= 0) return $row;
+
+  if (array_key_exists($rid, $replyCache)) {
+    if ($replyCache[$rid] !== null) $row['reply'] = $replyCache[$rid];
+    return $row;
+  }
+
+  try {
+   $sql = "SELECT id" . ($has['user_id'] ? ',user_id' : '') . ",user_name,$textCol AS body FROM chat_messages WHERE id = :rid";
+    if ($has['room']) $sql .= " AND room = :room";
+    $sql .= " LIMIT 1";
+
+    $st = $pdo->prepare($sql);
+    $st->bindValue(':rid', $rid, PDO::PARAM_INT);
+    if ($has['room']) $st->bindValue(':room', $roomVal, PDO::PARAM_STR);
+    $st->execute();
+    $snap = $st->fetch();
+    if ($snap) {
+      $replyCache[$rid] = [
+        'id'        => (int)($snap['id'] ?? $rid),
+        'user_id'   => $has['user_id'] && isset($snap['user_id']) ? (int)$snap['user_id'] : null,
+        'user_name' => (string)($snap['user_name'] ?? ''),
+        'body'      => (string)($snap['body'] ?? ''),
+      ];
+      $row['reply'] = $replyCache[$rid];
+    } else {
+      $replyCache[$rid] = null;
+    }
+  } catch (Throwable $e) {
+    $replyCache[$rid] = null;
+  }
+
+  return $row;
+};
+// ——— helper: atașează meta din fișiere (atașamente + preview link) ———
+$attachMeta = function(array $row): array {
+  $mid = (int)($row['id'] ?? 0);
+  if ($mid <= 0) return $row;
+  $meta = chat_load_meta($mid);
+  if ($meta) {
+    if (isset($meta['attachments'])) $row['attachments'] = $meta['attachments'];
+    if (isset($meta['link_preview'])) $row['link_preview'] = $meta['link_preview'];
+  }
+  return $row;
+};
 // ——— handshake SSE ———
 echo "retry: 3000\n";
 echo ':' . str_repeat(' ', 2048) . "\n\n"; // kickstart buffer
@@ -134,7 +230,7 @@ $lastPres = time() - $PRES_EVERY + 1;
 
 // ——— backlog inițial ———
 try {
-  $sql = "SELECT $selCols FROM chat_messages WHERE id > :last_id";
+  $sql = "SELECT $selCols FROM chat_messages$editedJoin WHERE id > :last_id";
   if ($has['room']) $sql .= " AND room = :room";
   $sql .= " ORDER BY id ASC LIMIT 200";
   $st = $pdo->prepare($sql);
@@ -143,6 +239,8 @@ try {
   $st->execute();
   while ($row = $st->fetch()) {
     $row = $normalize($row);
+    $row = $attachReply($row);
+    $row = $attachMeta($row);
     $mid = (int)$row['id'];
     $send('message', $row, $mid);
     $lastId = $mid;
@@ -244,7 +342,7 @@ while (true) {
   // mesaje noi (ASC)
   try {
     $sql = "SELECT $selCols
-            FROM chat_messages
+            FROM chat_messages$editedJoin
             WHERE id > :last_id";
     if ($has['room']) $sql .= " AND room = :room";
     $sql .= " ORDER BY id ASC LIMIT 200";
@@ -255,6 +353,8 @@ while (true) {
 
     while ($row = $st->fetch()) {
       $row = $normalize($row);
+      $row = $attachReply($row);
+      $row = $attachMeta($row);
       $mid = (int)$row['id'];
       $send('message', $row, $mid);
       $lastId = $mid;
