@@ -4,14 +4,16 @@ declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 session_start();
+
 function log_gemini_error(string $message, array $context = []): void
 {
-  $logFile = __DIR__ . '/gemini_analyze.log';
-  $line = date('c') . ' ' . $message;
+  $logFile = __DIR__ . '/logs/gemini_analyze.log';
+  $line = '[' . date('Y-m-d H:i:s') . '] ' . $message;
   if (!empty($context)) {
-    $line .= ' ' . json_encode($context, JSON_UNESCAPED_UNICODE);
+    $line .= "\n" . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
   }
-  file_put_contents($logFile, $line . "\n", FILE_APPEND);
+  $line .= "\n" . str_repeat('-', 80) . "\n";
+  file_put_contents($logFile, $line, FILE_APPEND);
 }
 
 function respond(array $payload): void
@@ -103,15 +105,14 @@ $envPath = __DIR__ . '/../config/.env';
 // gemini 2.5 folosește în docuri v1beta
 $API_VER = 'v1beta';
 
-
 $key = read_env_value($envPath, 'GEMINI_API_KEY');
 if (!$key) {
-  respond(['ok' => false, 'answer' => null, 'error' => 'missing_api_key']);
+  respond(['ok' => false, 'answer' => 'Cheia API Gemini nu este configurată.', 'error' => 'missing_api_key']);
 }
 
 $userId = (int) ($_SESSION['user']['id'] ?? 0);
 if (!$userId) {
-  respond(['ok' => false, 'answer' => null, 'error' => 'unauthorized']);
+  respond(['ok' => false, 'answer' => 'Trebuie să fii autentificat pentru a folosi acest serviciu.', 'error' => 'unauthorized']);
 }
 session_write_close();
 
@@ -169,7 +170,8 @@ try {
   if ($current_balance_cents < 0) {
     $current_balance_cents = 0;
   }
-// ---- transactions summary ----
+
+  // ---- transactions summary ----
   $profit_positive_cents = scalar_query(
     $pdo,
     "SELECT COALESCE(SUM(amount_cents),0) FROM profit_distributions WHERE user_id=:uid AND amount_cents > 0",
@@ -191,7 +193,7 @@ try {
     ['uid' => $userId]
   );
 
-// ---- trades ----
+  // ---- trades ----
   $tradesStmt = $pdo->prepare(
     "SELECT pd.created_at, pd.amount_cents, bg.event
      FROM profit_distributions pd
@@ -257,89 +259,75 @@ try {
   }
 } catch (Throwable $e) {
   log_gemini_error('db_error', ['message' => $e->getMessage()]);
-  respond(['ok' => false, 'answer' => null, 'error' => 'db_error']);
+  respond(['ok' => false, 'answer' => 'Nu s-au putut încărca datele necesare pentru analiză. Te rugăm să încerci din nou.', 'error' => 'db_error']);
 }
 
 /* ---------- PROMPT ---------- */
 $systemPrompt = <<<TXT
-ești modulul „analiză avansată gemini” pentru platforma pariază inteligent.
-primești întotdeauna un obiect json cu:
-- global_stats: depuneri, retrageri, profit net, roi, sold curent, număr investitori etc.
+Ești modulul „Analiză Avansată Gemini" pentru platforma Pariază Inteligent.
+Primești întotdeauna un obiect JSON cu:
+- global_stats: depuneri, retrageri, profit net, ROI, sold curent, număr investitori etc.
 - transactions_summary: sumar pe tipuri (depuneri, retrageri, profit, pierderi).
 - last_trade: ultimul trade cu data, tip, sumă și nume eveniment (echipele).
 - recent_trades: lista ultimelor tranzacții de tip profit/pierdere.
 
+Rolul tău este să răspunzi la întrebări ale investitorului despre:
+- Ce depuneri are (număr și sumă totală)
+- Câte retrageri a făcut și în ce valoare
+- Ce profit total a obținut până acum
+- Sold curent, randament, evoluția generală
+- Ultimul trade și trade-urile recente (echipe, dată, profit/pierdere)
+- Comparații pe perioade, dacă sunt disponibile în JSON.
 
-rolul tău este să răspunzi la întrebări ale investitorului despre:
-- ce depuneri are (număr și sumă totală)
-- câte retrageri a făcut și în ce valoare
-- ce profit total a obținut până acum
-- sold curent, randament, evoluția generală
-- ultimul trade și trade-urile recente (echipe, dată, profit/pierdere)
-- comparații pe perioade, dacă sunt disponibile în json.
-
-reguli:
-- folosește DOAR datele din jsonul primit. nu inventa sume, date sau evenimente.
-- dacă o informație lipsește din json, spune direct „nu există această informație în datele primite”, nu „nu am primit un răspuns valid”.
-- răspunde mereu în limba română, clar și concis, în 2–5 fraze.
-- când utilizatorul întreabă:
-  - „ce depuneri am?” → răspunzi cu numărul de depuneri și suma totală (ex.: „ai 5 depuneri, în valoare totală de 1.250 eur”).
-  - „cate retrageri am facut si in valoare de cat?” → număr retrageri + suma totală.
-  - „cat profit am obtinut pana in prezent?” → profitul net all time.
-  - „care sunt echipele implicate in ultimul trade si ce profit am facut?” → folosești câmpul last_trade (event + amount + data).
-
+REGULI:
+- Folosește DOAR datele din JSON-ul primit. Nu inventa sume, date sau evenimente.
+- Dacă o informație lipsește din JSON, spune direct „nu există această informație în datele primite", nu „nu am primit un răspuns valid".
+- Răspunde mereu în limba română, clar și concis, în 2–5 fraze.
+- Când utilizatorul întreabă:
+  - „ce depuneri am?" → răspunzi cu numărul de depuneri și suma totală (ex.: „Ai 5 depuneri, în valoare totală de 1.250 EUR").
+  - „câte retrageri am făcut și în valoare de cât?" → număr retrageri + suma totală.
+  - „cât profit am obținut până în prezent?" → profitul net all time.
+  - „care sunt echipele implicate în ultimul trade și ce profit am făcut?" → folosești câmpul last_trade (event + amount + data).
 TXT;
 
 $promptData = json_encode($modelData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
+// Construim mesajul complet: system prompt + context + întrebarea investitorului
+$fullPrompt = $systemPrompt . "\n\n---\n\nDATE DE CONTEXT (JSON):\n" . $promptData . "\n\n---\n\nÎNTREBARE INVESTITOR:\n" . $q;
 
+// Payload corect pentru API-ul Gemini (v1beta/generateContent)
+// IMPORTANT: Nu folosim systemInstruction pentru că nu este suportat în v1beta
+// În schimb, combinăm totul într-un singur mesaj de tip user
 $payload = [
-'systemInstruction' => [
-    'parts' => [
-      ['text' => $systemPrompt],
-    ],
-  ],
   'contents' => [
-    [
-         'role' => 'user',
-      'parts' => [
-        ['text' => "Context de date (JSON):\n{$promptData}"],
-      ],
-    ],
     [
       'role' => 'user',
       'parts' => [
-        ['text' => "Întrebarea investitorului: {$q}"],
+        ['text' => $fullPrompt],
       ],
     ],
   ],
   'generationConfig' => [
     'temperature' => 0.4,
     'topP' => 0.9,
-    
     'maxOutputTokens' => 1024,
-    
-    'thinkingConfig' => [
-      'thinkingBudget' => 0,
-    ],
   ],
 ];
 
 /* ---------- GEMINI CALL (cu fallback) ---------- */
 $models = [
-  'gemini-2.5-flash',      // default: rapid + ieftin
-  'gemini-2.5-flash-lite', // fallback mai ieftin
-  'gemini-2.5-pro',        // fallback mai „deștept”
+  'gemini-1.5-flash',      // model stabil și rapid
+  'gemini-1.5-pro',        // fallback mai puternic
 ];
 
 $gc = 0;
 $gr = '';
 $ge = null;
 $usedModel = null;
+
 foreach ($models as $m) {
   $endpoint = "https://generativelanguage.googleapis.com/{$API_VER}/models/{$m}:generateContent";
 
-  
   list($gc, $gr, $ge) = http_json(
     $endpoint,
     ["x-goog-api-key: {$key}"],
@@ -352,23 +340,44 @@ foreach ($models as $m) {
     break;
   }
 
+  // Dacă nu e 404 (model inexistent), oprim încercările
   if ($gc !== 404) {
     break;
   }
 }
 
+// Tratăm erorile HTTP
 if ($gc !== 200) {
-  log_gemini_error('gemini_http_error', ['status' => $gc, 'body' => substr((string) $gr, 0, 800), 'curl_err' => $ge]);
+  $errorBody = substr((string) $gr, 0, 2000);
+  log_gemini_error('gemini_http_error', [
+    'status' => $gc,
+    'body' => $errorBody,
+    'curl_err' => $ge,
+    'payload_sent' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+  ]);
+
+  $userMessage = 'Momentan există o problemă tehnică cu serviciul de analiză AI. Echipa noastră a fost notificată și lucrează la rezolvare.';
+
+  if ($gc === 400) {
+    $userMessage = 'Formatul cererii către AI este incorect. Am înregistrat eroarea pentru investigare.';
+  } elseif ($gc === 401 || $gc === 403) {
+    $userMessage = 'Există o problemă cu autentificarea serviciului AI. Te rugăm să contactezi suportul tehnic.';
+  } elseif ($gc === 429) {
+    $userMessage = 'Am atins limita de cereri către serviciul AI. Te rugăm să încerci din nou în câteva minute.';
+  } elseif ($gc >= 500) {
+    $userMessage = 'Serviciul AI este temporar indisponibil. Te rugăm să încerci din nou în câteva momente.';
+  }
+
   respond([
     'ok' => false,
-    'answer' => null,
+    'answer' => $userMessage,
     'error' => "gemini_http_{$gc}",
-     ]);
+  ]);
 }
 
 $resp = json_decode($gr, true);
 
-// încercăm să extragem primul text non-gol din candidați
+// Încercăm să extragem primul text non-gol din candidați
 $text = '';
 
 if (isset($resp['candidates']) && is_array($resp['candidates'])) {
@@ -385,24 +394,24 @@ if (isset($resp['candidates']) && is_array($resp['candidates'])) {
   }
 }
 
-// dacă modelul a blocat răspunsul (safety), trimitem eroare clară
+// Dacă modelul a blocat răspunsul (safety), trimitem eroare clară
 if ($text === '' && isset($resp['promptFeedback']['blockReason'])) {
- log_gemini_error('gemini_blocked', ['feedback' => $resp['promptFeedback']]);
+  log_gemini_error('gemini_blocked', ['feedback' => $resp['promptFeedback']]);
   respond([
     'ok' => false,
-    'answer' => null,
+    'answer' => 'Cererea ta a fost blocată de filtrul de siguranță al AI-ului. Te rugăm să reformulezi întrebarea.',
     'error' => 'gemini_blocked',
-     ]);
+  ]);
 }
 
-// dacă tot nu avem text, considerăm răspuns gol și dăm detalii pentru debug
+// Dacă tot nu avem text, considerăm răspuns gol și dăm detalii pentru debug
 if ($text === '') {
- log_gemini_error('gemini_empty_response', ['body' => substr((string) $gr, 0, 800)]);
+  log_gemini_error('gemini_empty_response', ['body' => substr((string) $gr, 0, 2000)]);
   respond([
     'ok' => false,
-    'answer' => null,
+    'answer' => 'AI-ul nu a putut genera un răspuns. Te rugăm să încerci din nou cu o altă întrebare.',
     'error' => 'gemini_empty_response',
-    ]);
+  ]);
 }
 
 respond([
