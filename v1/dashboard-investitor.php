@@ -429,7 +429,7 @@ $uid = (int) ($me['id'] ?? 0);
             <h3 class="font-orbitron text-sm text-gray-300">TRANZACȚII RECENTE</h3>
             <i class="fa-solid fa-grip-lines drag-handle text-slate-400 cursor-grab"></i>
         </div>
-        <div id="recentTxList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+       <div id="recentTxList" class="space-y-3 max-h-[26rem] overflow-y-auto pr-1">
             <div class="text-center text-slate-500 text-xs py-4">Se încarcă...</div>
         </div>
     </div>
@@ -539,6 +539,7 @@ $uid = (int) ($me['id'] ?? 0);
 
     let dataAll = [];
     let recentTransactions = [];
+     let summaryData = null;
 
     function toISO(d) { return d.toISOString().slice(0, 10); }
 
@@ -654,6 +655,15 @@ $uid = (int) ($me['id'] ?? 0);
         const invested = adjInvestedC / 100;
         const profit = adjProfitC / 100;
         const balance = dispBalC / 100;
+        
+        summaryData = {
+          range,
+          investedEUR: invested,
+          profitEUR: profit,
+          balanceEUR: balance,
+          roiPct: invested > 0 ? (profit / invested) * 100 : 0,
+          raw: j
+        };
 
         setText('sumInvested', NF_EUR.format(invested));
         setText('sumProfit', (profit >= 0 ? '+' : '') + NF_EUR.format(profit));
@@ -802,9 +812,9 @@ $uid = (int) ($me['id'] ?? 0);
                 return;
             }
             
-           const renderItems = recentTransactions.slice(0, 6);
+           
             const esc = (s = '') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c));
-            renderItems.forEach(t => {
+            recentTransactions.forEach(t => {
                 const isProfit = t.type === 'profit';
                 const isLoss = t.type === 'pierdere';
                 const isDeposit = t.type === 'deposit';
@@ -1016,30 +1026,78 @@ $uid = (int) ($me['id'] ?? 0);
         const out = document.getElementById('geminiOut');
         if(!q.trim()) return;
         out.textContent = 'Analizez...';
+        const asNumber = (v) => Number(v || 0);
         
         try {
+            await ensureHistoryLoaded();
+            if (!recentTransactions.length) await loadRecentTransactions();
             const range = document.getElementById('dateRange').value;
-            const stats = computeStats(range);
-            const txForContext = (recentTransactions || []).map(t => {
-                const isLoss = t.type === 'pierdere';
-                const isWithdraw = t.type === 'withdraw';
-                const signedAmount = (isLoss || isWithdraw) ? -Math.abs(Number(t.amount || 0)) : Math.abs(Number(t.amount || 0));
-                return {
-                    date: t.date,
-                    type: t.type,
-                    status: t.status || null,
-                    amount_eur: signedAmount,
-                    event: t.details || ''
-                };
+            const byType = { deposit: { count: 0, sum: 0 }, withdraw: { count: 0, sum: 0 }, profit: { count: 0, sum: 0 }, pierdere: { count: 0, sum: 0 } };
+            const buildSignedAmount = (t) => {
+              const amt = asNumber(t.amount);
+              return (t.type === 'pierdere' || t.type === 'withdraw') ? -Math.abs(amt) : Math.abs(amt);
+            };
+
+            (recentTransactions || []).forEach(t => {
+              if (byType[t.type]) {
+                byType[t.type].count += 1;
+                byType[t.type].sum += Math.abs(asNumber(t.amount));
+              }
             });
 
-            const lastTrade = txForContext.find(t => t.type === 'profit' || t.type === 'pierdere') || txForContext[0] || null;
+            const profitLossTx = (recentTransactions || []).filter(t => t.type === 'profit' || t.type === 'pierdere');
+            const lastTradeSrc = profitLossTx[0] || recentTransactions[0] || null;
+            const tradeToPayload = (t) => ({
+              datetime: t?.date || null,
+              type: t?.type || null,
+              amount: t ? buildSignedAmount(t) : null,
+              event: t?.details || ''
+            });
+
+            const calcPeriodStats = (days) => {
+              const cutoff = new Date();
+              cutoff.setDate(cutoff.getDate() - days);
+              cutoff.setHours(0, 0, 0, 0);
+              let profit = 0, deposits = 0, withdrawals = 0, balance = null;
+              (dataAll || []).forEach(p => {
+                const d = new Date(p.date);
+                if (d >= cutoff) {
+                  profit += asNumber(p.profitDelta);
+                  deposits += asNumber(p.deposit);
+                  withdrawals += asNumber(p.withdraw);
+                  if (p.balance !== null && p.balance !== undefined) balance = p.balance;
+                }
+              });
+              return { profit, deposits, withdrawals, balance };
+            };
             const context = {
+                 global_stats: {
+                  total_deposits: byType.deposit.sum,
+                  count_deposits: byType.deposit.count,
+                  total_withdrawals: byType.withdraw.sum,
+                  count_withdrawals: byType.withdraw.count,
+                  net_profit: byType.profit.sum - byType.pierdere.sum,
+                  roi_total: summaryData?.roiPct ?? null,
+                  current_balance: summaryData?.balanceEUR ?? null,
+                  investors_active: document.getElementById('lumenInvestors')?.textContent || null
+                },
+                period_stats: {
+                  last_7_days: calcPeriodStats(7),
+                  last_30_days: calcPeriodStats(30),
+                  all_time: {
+                    profit: byType.profit.sum - byType.pierdere.sum,
+                    deposits: byType.deposit.sum,
+                    withdrawals: byType.withdraw.sum,
+                    balance: summaryData?.balanceEUR ?? null
+                  }
+                },
+                last_trade: tradeToPayload(lastTradeSrc),
+                recent_trades: profitLossTx.slice(0, 10).map(tradeToPayload),
+                transactions_summary: {
+                  by_type: byType
+                },
                 range,
-                history: stats.points.slice(-30),
-                last_trade: lastTrade,
-                recent_transactions: txForContext.slice(0, 15),
-                investors_count: document.getElementById('lumenInvestors')?.textContent || '800+',
+                
                 question: q
             };
 
@@ -1056,7 +1114,7 @@ $uid = (int) ($me['id'] ?? 0);
                     out.textContent = j.text;
                 }
             } else {
-                out.textContent = 'Nu am primit un răspuns valid.';
+                out.textContent = 'Momentan nu pot calcula acest răspuns, încearcă din nou puțin mai târziu.';
             }
         } catch(e) {
             out.textContent = 'Eroare de conexiune.';
