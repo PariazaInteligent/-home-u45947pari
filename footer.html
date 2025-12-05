@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Footer – Pariază Inteligent</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end}
+
+    body.dark footer.footer{background:rgba(20,26,46,.82);border-top:1px solid rgba(0,255,157,.25);box-shadow:0 -6px 25px rgba(0,0,0,.45)}
+    body.dark .brand-icon{background:linear-gradient(135deg,#00ff9d,#00b8ff);color:#0a0e27;box-shadow:0 0 18px rgba(0,255,157,.55)}
+    body.dark .brand-name{background:linear-gradient(90deg,#00ff9d,#00b8ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 6px rgba(0,255,157,.35))}
+    body.dark .copyright{color:#cde7ff;opacity:.85}
+    body.dark .copyright:hover{color:#00ffb4;text-shadow:0 0 10px rgba(0,255,157,.55)}
+    body.dark .version{background:linear-gradient(135deg,#00ff9d,#00b8ff);color:#0a0e27;box-shadow:0 2px 8px rgba(0,255,157,.35)}
+    body.dark .links a{color:#b9d9ff}
+    body.dark .links a:hover{color:#00ffd5}
+
+    body.light footer.footer{background:rgba(255,255,255,.9);border-top:1px solid rgba(0,186,150,.2);box-shadow:0 -4px 20px rgba(0,0,0,.12)}
+    body.light .brand-icon{background:linear-gradient(135deg,#00cda0,#19bfff);color:#ffffff;box-shadow:0 0 12px rgba(0,186,150,.45)}
+    body.light .brand-name{background:linear-gradient(90deg,#00cda0,#19bfff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 4px rgba(0,186,150,.25))}
+    body.light .copyright{color:#4c6a8f;opacity:.9}
+    body.light .copyright:hover{color:#00a67f;text-shadow:0 0 6px rgba(0,186,150,.35)}
+    body.light .version{background:linear-gradient(135deg,#00cda0,#19bfff);color:#fff;box-shadow:0 2px 6px rgba(0,186,150,.25)}
+    body.light .links a{color:#3d5f86}
+    body.light .links a:hover{color:#00a67f}
+
+    footer.footer{width:100%;padding:14px 22px;backdrop-filter:blur(8px);animation:slideUp .5s ease both;position:relative;z-index:2}
+    .footer-content{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+    .brand-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;animation:pulse 2s infinite}
+    .brand-name{font-size:15px;font-weight:700}
+
+    .info-area{display:flex;align-items:center;gap:20px;flex-wrap:wrap;font-size:13px}
+    .version{padding:4px 14px;font-size:12px;font-weight:700;border-radius:12px;cursor:pointer;overflow:hidden;position:relative;transition:transform .3s ease}
+    .version::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transform:translateX(-100%);transition:transform .6s ease}
+    .version:hover::before{transform:translateX(100%)}
+    .version:hover{transform:translateY(-2px) scale(1.05)}
+
+    .links{display:flex;gap:18px;flex-wrap:wrap}
+    .links a{text-decoration:none;font-size:13px;position:relative;padding:3px 0;transition:color .3s ease}
+    .links a::after{content:"";position:absolute;left:0;bottom:-2px;height:2px;width:0;background:linear-gradient(90deg,#00ff9d,#00b8ff);transition:width .3s ease}
+    .links a:hover::after{width:100%}
+
+    .top-bar{position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,#00ffd5,transparent);animation:shimmer 2.5s infinite}
+
+    @keyframes slideUp{from{opacity:0;transform:translateY(40%)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+    @keyframes shimmer{0%{background-position:-1500px 0}100%{background-position:1500px 0}}
+
+    @media(max-width:768px){
+      .footer-content{flex-direction:column;text-align:center;gap:12px}
+      .info-area{justify-content:center}
+      .links{justify-content:center}
+    }
+  </style>
+</head>
+<body>
+
+  <footer class="footer">
+    <div class="top-bar"></div>
+    <div class="footer-content">
+      <div class="brand">
+        <div class="brand-icon">P</div>
+        <span class="brand-name">Pariază Inteligent</span>
+      </div>
+      <div class="info-area">
+        <span class="copyright">© 2025 Pariază Inteligent. Toate drepturile rezervate.</span>
+        <span class="version">v1.0.0</span>
+      </div>
+      <div class="links">
+        <a href="confidentialitate.html" class="spa-ignore">Confidențialitate</a>
+        <a href="termeni.html" class="spa-ignore">Termeni</a>
+        <a href="contact.php" class="spa-ignore">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded',()=>{
+      const y=new Date().getFullYear();
+      document.querySelector('.copyright').textContent=`© ${y} Pariază Inteligent. Toate drepturile rezervate.`;
+      document.querySelector('.version').addEventListener('click',()=>{
+        alert('Pariază Inteligent v1.0.0\nUrmătoarele update-uri vor aduce funcții noi.');
+      });
+    });
+  </script>
+</body>
+</html>

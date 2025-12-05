@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>404 — Banca Comună de Investiții</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{ --acc-1:#2563eb; --acc-2:#06b6d4; --acc-3:#14b8a6; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .hero-gradient { background: linear-gradient(135deg, var(--acc-1), var(--acc-2), var(--acc-3)); background-size: 180% 180%; animation: gradientMove 10s ease infinite; }
+    .acc-gradient { background: linear-gradient(90deg, var(--acc-1), var(--acc-2), var(--acc-3)); }
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .glow { box-shadow: 0 10px 30px rgba(34,211,238,.25), inset 0 0 0 1px rgba(255,255,255,.06); }
+    .card-hover { transition: transform .25s ease, box-shadow .25s ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 15px 45px rgba(0,0,0,.35); }
+    .nice-scroll::-webkit-scrollbar{ width:8px;} .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.15); border-radius:8px;}
+    .badge { padding:.25rem .5rem; border-radius:.5rem; font-size:.75rem; }
+    .scanlines::after{content:""; position:absolute; inset:0; pointer-events:none; background: repeating-linear-gradient(to bottom, rgba(255,255,255,.03), rgba(255,255,255,.03) 1px, transparent 1px, transparent 3px);} 
+    .grain{position:absolute; inset:-10%; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity=".07"/></svg>'); background-size:300px 300px; mix-blend-mode:overlay; pointer-events:none;}
+    /* GLITCH 404 */
+    .glitch { position:relative; display:inline-block; font-weight:900; letter-spacing:-.04em; }
+    .glitch::before, .glitch::after{ content:attr(data-text); position:absolute; inset:0; }
+    .glitch::before{ left:2px; text-shadow:-2px 0 #22d3ee; clip-path: polygon(0 2%, 100% 2%, 100% 26%, 0 26%); animation:gl1 1.6s infinite linear alternate-reverse; }
+    .glitch::after{ left:-2px; text-shadow:2px 0 #34d399; clip-path: polygon(0 72%, 100% 72%, 100% 100%, 0 100%); animation:gl2 1.8s infinite linear alternate; }
+    @keyframes gl1{ 0%{transform:translate(0,0)} 50%{transform:translate(-1px,-.6px)} 100%{transform:translate(.6px,1px)} }
+    @keyframes gl2{ 0%{transform:translate(0,0)} 50%{transform:translate(1px,.4px)} 100%{transform:translate(-.6px,-1px)} }
+    /* WARP BUTTON */
+    .btn-warp{ position:relative; overflow:hidden; }
+    .btn-warp::before{content:""; position:absolute; inset:-150% -50%; background: conic-gradient(from 0deg, transparent 0 340deg, rgba(255,255,255,.75) 360deg); animation:spin 4s linear infinite; }
+    .btn-warp > span{ position:relative; z-index:1; }
+    @keyframes spin{ to{ transform: rotate(360deg);} }
+    /* ORB */
+    .orb{ position:absolute; width:18rem; height:18rem; border-radius:9999px; background: radial-gradient(ellipse at 30% 30%, rgba(34,211,238,.45), rgba(20,184,166,.05) 60%, transparent 70%); filter: blur(12px); pointer-events:none; }
+    .orb2{ width:28rem; height:28rem; background: radial-gradient(circle at 60% 40%, rgba(99,102,241,.30), rgba(34,211,238,.07) 60%, transparent 70%); }
+    /* PANEL glass */
+    .glass{ background: rgba(2,6,23,.65); border:1px solid rgba(255,255,255,.08); backdrop-filter: blur(8px); }
+    /* Key hint */
+    kbd { background: rgba(255,255,255,.08); padding:.25rem .45rem; border-radius:.5rem; border:1px solid rgba(255,255,255,.12); font-size:.75rem; }
+    /* Toast */
+    #toasts{position:fixed; top:1rem; right:1rem; z-index:60; display:flex; flex-direction:column; gap:.5rem}
+    .toast{display:flex;align-items:center;gap:.6rem;padding:.55rem .8rem;border-radius:.75rem;border:1px solid rgba(255,255,255,.12);background:rgba(2,6,23,.95);backdrop-filter:blur(6px);font-size:.9rem}
+    .toast.ok{border-color:rgba(34,197,94,.35)} .toast.err{border-color:rgba(239,68,68,.35)} .toast.warn{border-color:rgba(234,179,8,.35)}
+    /* Modal report */
+    .ov{position:fixed; inset:0; background:rgba(2,6,23,.75); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; z-index:50}
+    .ov.show{display:flex}
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 overflow-hidden">
+  <div id="toasts"></div>
+  <!-- cosmic canvas background -->
+  <canvas id="bg" class="fixed inset-0 -z-10"></canvas>
+  <div class="grain -z-10"></div>
+
+  <!-- NAV / TOPBAR -->
+  <header class="sticky top-0 z-40 bg-slate-950/50 backdrop-blur border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl acc-gradient text-slate-900 font-extrabold glow">PI</span>
+        <div>
+          <div class="font-semibold tracking-wide">Pariază Inteligent</div>
+          <div class="text-xs text-slate-400 -mt-0.5">Eroare • Pagina 404</div>
+        </div>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+        <a class="hover:text-white" href="/layout.html#dashboard">Dashboard</a>
+        <a class="hover:text-white" href="/investitii.html">Investiții</a>
+        <a class="hover:text-white" href="/retragere.html">Retrageri</a>
+        <a class="hover:text-white" href="/profil.html">Profil</a>
+      </nav>
+      <div class="flex items-center gap-2 text-sm">
+        <button id="btnTheme" title="Schimbă accent" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Temă</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO 404 -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 hero-gradient opacity-20"></div>
+    <div class="absolute -top-24 -left-24 orb"></div>
+    <div class="absolute -bottom-24 -right-24 orb orb2"></div>
+
+    <div class="max-w-7xl mx-auto px-4 pt-10 pb-6 relative scanlines">
+      <div class="flex flex-col lg:flex-row items-start gap-8">
+        <div class="flex-1">
+          <div class="text-[18vw] leading-none lg:text-[11rem] font-black tracking-tight select-none">
+            <span class="glitch" data-text="404">404</span>
+          </div>
+          <div class="mt-2 text-slate-300 max-w-2xl text-lg">
+            Portal deviat. Ai ajuns pe o coordonată care nu există în harta noastră.
+            <span class="text-slate-400">Nu e o simplă eroare — e o fisură stilată în spațiu‑timpul UI‑ului.</span>
+          </div>
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <a href="/layout.html#dashboard" class="btn-warp rounded-2xl px-5 py-3 acc-gradient text-slate-900 font-semibold shadow-xl"><span><i class="fa-solid fa-rocket mr-2"></i>Teleport la Dashboard</span></a>
+            <button id="btnBack" class="rounded-2xl px-5 py-3 glass card-hover"><i class="fa-solid fa-arrow-left mr-2"></i>Înapoi</button>
+            <button id="btnWarp" class="rounded-2xl px-5 py-3 glass card-hover"><i class="fa-solid fa-jet-fighter-up mr-2"></i>Activează WARP</button>
+            <button id="btnReport" class="rounded-2xl px-5 py-3 glass card-hover"><i class="fa-solid fa-circle-exclamation mr-2"></i>Raportează incident</button>
+          </div>
+        </div>
+        <aside class="w-full lg:w-[28rem]">
+          <div class="glass rounded-2xl p-5 border border-white/10">
+            <div class="flex items-center justify-between">
+              <h2 class="font-semibold">Centrul de Navigare</h2>
+              <span id="sig" class="text-xs text-slate-400">—</span>
+            </div>
+            <div class="mt-3">
+              <label class="text-slate-300 text-sm">Caută destinația</label>
+              <div class="mt-1 flex items-center gap-2">
+                <input id="search" placeholder="ex: investitii, profil, retrageri" class="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+                <button id="btnGo" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 font-semibold">GO</button>
+              </div>
+              <div class="mt-1 text-[11px] text-slate-500">Scurtături: <kbd>H</kbd> Acasă • <kbd>D</kbd> Diagnoză • <kbd>R</kbd> Reîncarcă • <kbd>/</kbd> Focus Căutare</div>
+            </div>
+            <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
+              <a href="/investitii.html" class="rounded-xl p-3 glass card-hover flex items-center gap-2"><i class="fa-solid fa-money-bill-trend-up text-emerald-300"></i><span>Investiții</span></a>
+              <a href="/retragere.html" class="rounded-xl p-3 glass card-hover flex items-center gap-2"><i class="fa-solid fa-money-bill-transfer text-cyan-300"></i><span>Retrageri</span></a>
+              <a href="/profil.html" class="rounded-xl p-3 glass card-hover flex items-center gap-2"><i class="fa-solid fa-user-astronaut text-violet-300"></i><span>Profil</span></a>
+              <a href="/" class="rounded-xl p-3 glass card-hover flex items-center gap-2"><i class="fa-solid fa-house text-amber-300"></i><span>Acasă</span></a>
+            </div>
+          </div>
+
+          <div class="mt-4 glass rounded-2xl p-5 border border-white/10">
+            <div class="flex items-center justify-between"><h3 class="font-semibold">Diagnoză rapidă</h3><span id="diagState" class="badge bg-white/10 text-slate-300">ready</span></div>
+            <ul id="diag" class="mt-3 space-y-2 text-xs text-slate-300"></ul>
+            <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <button id="btnPing" class="rounded-lg px-2.5 py-1.5 border border-white/10 hover:border-white/20">Ping API</button>
+              <button id="btnTrace" class="rounded-lg px-2.5 py-1.5 border border-white/10 hover:border-white/20">Generează trace</button>
+              <button id="btnSiteMap" class="rounded-lg px-2.5 py-1.5 border border-white/10 hover:border-white/20 col-span-2">Hartă</button>
+            </div>
+            <div class="mt-3 rounded-xl border border-white/10 bg-slate-900/60 p-3">
+              <div class="font-medium mb-1">Testare Clipboard</div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <button id="btnTestClipboard" class="rounded-lg px-2.5 py-1.5 border border-white/10 hover:border-white/20">Test Clipboard API</button>
+                <button id="btnTestFallback" class="rounded-lg px-2.5 py-1.5 border border-white/10 hover:border-white/20">Test Fallback Copy</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPORT MODAL -->
+  <div id="repOv" class="ov">
+    <div class="max-w-2xl w-full glass rounded-2xl p-5 border border-white/10">
+      <div class="flex items-center justify-between mb-2">
+        <div class="font-semibold">Raportează incident 404</div>
+        <button id="repClose" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-sm text-slate-300">Copiază sau descarcă detaliile incidentului. Dacă clipboard-ul este blocat de politicile browserului, folosește fallback-ul sau descarcă fișierul JSON.</p>
+      <textarea id="repTA" class="mt-3 w-full h-40 rounded-xl bg-white/5 border border-white/10 p-3 text-sm nice-scroll" readonly></textarea>
+      <div id="repHint" class="mt-2 text-xs text-slate-400 hidden">Selectarea textului a fost făcută. Apasă <kbd>Ctrl/⌘ + C</kbd> pentru a copia manual.</div>
+      <div class="mt-3 flex items-center gap-2 text-sm">
+        <button id="repCopy" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 font-semibold"><i class="fa-solid fa-copy mr-2"></i>Copiază</button>
+        <button id="repDownload" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-file-arrow-down mr-2"></i>Descarcă JSON</button>
+        <button id="repClose2" class="ml-auto rounded-xl px-3 py-2 border border-white/10 hover:border-white/20">Închide</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SITEMAP OVERLAY -->
+  <div id="map" class="fixed inset-0 hidden items-center justify-center bg-slate-950/80 backdrop-blur z-40 p-6">
+    <div class="max-w-6xl w-full glass rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-semibold text-lg">Hartă Site</div>
+        <button id="btnCloseMap" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
+        <a class="rounded-xl p-3 glass card-hover" href="/layout.html#dashboard">Dashboard</a>
+        <a class="rounded-xl p-3 glass card-hover" href="/investitii.html">Investiții</a>
+        <a class="rounded-xl p-3 glass card-hover" href="/retragere.html">Retrageri</a>
+        <a class="rounded-xl p-3 glass card-hover" href="/profil.html">Profil & Setări</a>
+        <a class="rounded-xl p-3 glass card-hover" href="/notificari.html">Notificări</a>
+        <a class="rounded-xl p-3 glass card-hover" href="/statistici.html">Statistici Globale</a>
+        <a class="rounded-xl p-3 glass card-hover" href="/help.html">Ajutor</a>
+        <a class="rounded-xl p-3 glass card-hover" href="/login.html">Login</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="absolute bottom-0 w-full py-4 border-t border-white/5 bg-slate-950/40 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 text-xs text-slate-400 flex items-center justify-between">
+      <div>© <span id="year"></span> Pariază Inteligent — Pagina 404</div>
+      <div class="hidden md:flex items-center gap-4">
+        <span class="text-slate-500">Scurtături:</span>
+        <span><kbd>H</kbd> Acasă</span>
+        <span><kbd>D</kbd> Diagnoză</span>
+        <span><kbd>R</kbd> Reload</span>
+        <span><kbd>/</kbd> Căutare</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ===== Utilitare UI =====
+    function toast(msg, type='ok'){ const t=document.createElement('div'); t.className='toast '+type; t.innerHTML = (type==='ok'?'<i class="fa-solid fa-circle-check text-emerald-300"></i>': type==='warn'?'<i class="fa-solid fa-triangle-exclamation text-amber-300"></i>':'<i class="fa-solid fa-circle-exclamation text-rose-300"></i>') + '<span>'+msg+'</span>'; document.getElementById('toasts').appendChild(t); setTimeout(()=>t.remove(), 3400); }
+
+    // Footprint
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const sig = (Math.random().toString(36).slice(2,8) + '-' + Date.now().toString(36).slice(-6)).toUpperCase();
+    document.getElementById('sig').textContent = 'trace:' + sig;
+
+    // Accent theme cycler — same DNA as preset
+    const themes = { ocean:['#2563eb','#06b6d4','#14b8a6'], sunset:['#f97316','#fb7185','#f59e0b'], royal:['#8b5cf6','#6366f1','#22d3ee'], forest:['#22c55e','#16a34a','#0ea5e9'], rose:['#e11d48','#ec4899','#f43f5e'] };
+    const themeKeys = Object.keys(themes); let themeIdx=0;
+    function applyTheme(name){ const rgb=themes[name]||themes.ocean; const r=document.documentElement.style; r.setProperty('--acc-1', rgb[0]); r.setProperty('--acc-2', rgb[1]); r.setProperty('--acc-3', rgb[2]); }
+    document.getElementById('btnTheme').addEventListener('click', ()=>{ themeIdx=(themeIdx+1)%themeKeys.length; applyTheme(themeKeys[themeIdx]); });
+
+    // NAV helpers
+    document.getElementById('btnBack').addEventListener('click', ()=> history.length>1 ? history.back() : location.assign('/'));
+
+    // Search router
+    document.getElementById('btnGo').addEventListener('click', routeSearch);
+    document.getElementById('search').addEventListener('keydown', (e)=>{ if(e.key==='Enter') routeSearch(); });
+    function routeSearch(){
+      const q=(document.getElementById('search').value||'').toLowerCase();
+      if(!q) return;
+      if(q.includes('invest')) location.assign('/investitii.html');
+      else if(q.includes('retrag')) location.assign('/retragere.html');
+      else if(q.includes('profil')) location.assign('/profil.html');
+      else if(q.includes('notif')) location.assign('/notificari.html');
+      else if(q.includes('stat')) location.assign('/statistici.html');
+      else location.assign('/');
+    }
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e)=>{
+      if(e.key==='/' && document.activeElement!==document.getElementById('search')){ e.preventDefault(); document.getElementById('search').focus(); return; }
+      if(e.key.toLowerCase()==='h') location.assign('/');
+      if(e.key.toLowerCase()==='d') toggleMap(false), runDiag();
+      if(e.key.toLowerCase()==='r') location.reload();
+    });
+
+    // Sitemap overlay
+    const mapEl=document.getElementById('map');
+    document.getElementById('btnSiteMap').addEventListener('click', ()=> toggleMap(true));
+    document.getElementById('btnCloseMap').addEventListener('click', ()=> toggleMap(false));
+    function toggleMap(v){ mapEl.classList.toggle('hidden', !v); if(v) mapEl.classList.add('flex'); else mapEl.classList.remove('flex'); }
+
+    // ===== Diagnoză & Teste =====
+    const diagEl=document.getElementById('diag');
+    function addDiag(k,v){ const li=document.createElement('li'); li.className='rounded-lg border border-white/10 bg-slate-900/60 p-2 flex items-center justify-between'; li.innerHTML = `<span class="text-slate-400">${k}</span><span class="text-slate-200">${v}</span>`; diagEl.appendChild(li); }
+    function runDiag(){ diagEl.innerHTML=''; document.getElementById('diagState').textContent='scan';
+      addDiag('User Agent', navigator.userAgent.split(') ')[0]+')');
+      addDiag('Online', navigator.onLine?'da':'nu');
+      addDiag('Lang', navigator.language||'—');
+      addDiag('Time', new Date().toLocaleString('ro-RO'));
+      addDiag('Secure', window.isSecureContext?'da':'nu');
+      addDiag('URL', location.href);
+      document.getElementById('diagState').textContent='ok';
+    }
+    runDiag();
+
+    document.getElementById('btnPing').addEventListener('click', async ()=>{
+      const b=document.getElementById('btnPing'); b.disabled=true; b.textContent='Ping...';
+      try{ const r= await fetch('/api/status', {cache:'no-store'}); addDiag('API /status', r.ok? 'alive '+r.status : 'down '+r.status); }
+      catch(e){ addDiag('API /status', 'down'); }
+      finally{ b.disabled=false; b.textContent='Ping API'; }
+    });
+    document.getElementById('btnTrace').addEventListener('click', ()=>{
+      const data = { trace: sig, time: Date.now(), path: location.pathname, ua:navigator.userAgent };
+      const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='trace_'+sig+'.json'; a.click(); URL.revokeObjectURL(a.href);
+      toast('Am generat fișierul trace_'+sig+'.json');
+    });
+
+    // ===== Clipboard Safe Layer =====
+    async function safeClipboardWrite(text){
+      // Respectă politicile Permissions-Policy: funcționează doar pe gest de utilizator și în contexte permise
+      if(!window.isSecureContext || !navigator.clipboard){ return legacyCopy(text); }
+      try{
+        // încercăm să verificăm permisiunea dacă API-ul există
+        if(navigator.permissions && navigator.permissions.query){
+          try{
+            const st = await navigator.permissions.query({name:'clipboard-write'});
+            if(st.state==='denied'){ return legacyCopy(text); }
+            // state poate fi 'prompt' — încercăm oricum, în context de click
+          }catch(_){ /* unele browsere nu suportă cheia exactă */ }
+        }
+        await navigator.clipboard.writeText(text);
+        toast('Copiat în clipboard');
+        return true;
+      }catch(err){
+        // NotAllowedError sau altele — fallback
+        return legacyCopy(text);
+      }
+    }
+
+    function legacyCopy(text){
+      try{
+        const ta=document.createElement('textarea'); ta.value=text; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.top='-9999px'; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, ta.value.length);
+        const ok=document.execCommand('copy'); document.body.removeChild(ta);
+        if(ok){ toast('Copiat cu fallback'); return true; }
+      }catch(_){ /* poate e blocat complet */ }
+      // Dacă tot nu merge: deschidem modalul cu text deja selectat și instructăm utilizatorul
+      const ta2=document.getElementById('repTA'); ta2.focus(); ta2.select();
+      document.getElementById('repHint').classList.remove('hidden');
+      toast('Clipboard blocat de politici — folosește Ctrl/⌘+C','warn');
+      return false;
+    }
+
+    // ===== Report Modal =====
+    const repOv=document.getElementById('repOv');
+    function openReportModal(payload){
+      const ta=document.getElementById('repTA');
+      ta.value = JSON.stringify(payload, null, 2);
+      document.getElementById('repHint').classList.add('hidden');
+      repOv.classList.add('show');
+      // focus pe butonul de copiere ca gest explicit
+      setTimeout(()=> document.getElementById('repCopy').focus(), 0);
+    }
+    function closeReportModal(){ repOv.classList.remove('show'); }
+    document.getElementById('repClose').addEventListener('click', closeReportModal);
+    document.getElementById('repClose2').addEventListener('click', closeReportModal);
+
+    document.getElementById('repCopy').addEventListener('click', async ()=>{
+      const val=document.getElementById('repTA').value; await safeClipboardWrite(val);
+    });
+    document.getElementById('repDownload').addEventListener('click', ()=>{
+      const val=document.getElementById('repTA').value; const blob=new Blob([val],{type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='incident_'+sig+'.json'; a.click(); URL.revokeObjectURL(a.href);
+    });
+
+    // ===== Teste manuale (cerute) =====
+    document.getElementById('btnTestClipboard').addEventListener('click', async ()=>{
+      const ok = await safeClipboardWrite('TEST_CLIPBOARD_'+sig);
+      addDiag('Clipboard API', ok? 'OK' : 'Fallback/Blocked');
+    });
+    document.getElementById('btnTestFallback').addEventListener('click', ()=>{
+      const ok = legacyCopy('TEST_FALLBACK_'+sig);
+      addDiag('Fallback copy', ok? 'OK' : 'Manual needed');
+    });
+
+    // ===== WARP canvas — hyper‑field star tunnel + orbits =====
+    const canvas = document.getElementById('bg'); const ctx = canvas.getContext('2d');
+    let W=canvas.width=innerWidth, H=canvas.height=innerHeight, CX=W/2, CY=H/2; let animId;
+    const DPR = Math.max(1, window.devicePixelRatio||1); canvas.width=W*DPR; canvas.height=H*DPR; ctx.scale(DPR,DPR);
+
+    let speed = 0.6; let warp=false;
+    const stars = Array.from({length: 420}, ()=> mkStar());
+    const orbs = Array.from({length: 60}, (_,i)=> ({ang:Math.random()*Math.PI*2, rad: 40+ i*4 + Math.random()*12, w: (Math.random()*0.6+0.2)*(Math.random()<.5?-1:1)}));
+
+    function mkStar(){ return { x:(Math.random()*2-1)*W, y:(Math.random()*2-1)*H, z: Math.random()*W, pz: 0 }; }
+
+    function draw(){ ctx.clearRect(0,0,W,H); ctx.save(); ctx.translate(CX, CY);
+      // star tunnel
+      for(const s of stars){ s.z -= speed*(warp?8:1); if(s.z<1){ s.x=(Math.random()*2-1)*W; s.y=(Math.random()*2-1)*H; s.z=W; s.pz=s.z; }
+        const k= 200 / s.z; const x = s.x * k; const y = s.y * k; const px = s.x * (200 / (s.pz||s.z)); const py = s.y * (200 / (s.pz||s.z)); s.pz = s.z;
+        ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(x,y); ctx.strokeStyle = `rgba(148,163,184,${warp?0.45:0.25})`; ctx.lineWidth = warp?2:1; ctx.stroke();
+      }
+      // portal rings
+      ctx.beginPath(); for(const o of orbs){ o.ang+=o.w*0.01*(warp?2.2:1); const x=Math.cos(o.ang)*o.rad, y=Math.sin(o.ang)*o.rad; ctx.moveTo(x,y); ctx.arc(0,0,o.rad, o.ang, o.ang+0.02); }
+      ctx.strokeStyle='rgba(34,211,238,.35)'; ctx.lineWidth=2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(0,0, 12 + Math.sin(Date.now()/400)*2, 0, Math.PI*2); ctx.fillStyle='rgba(20,184,166,.35)'; ctx.fill();
+      ctx.restore();
+      animId = requestAnimationFrame(draw);
+    }
+    draw();
+
+    function resize(){ W=innerWidth; H=innerHeight; CX=W/2; CY=H/2; canvas.width=W*DPR; canvas.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+    addEventListener('resize', resize);
+
+    // Warp button
+    document.getElementById('btnWarp').addEventListener('click', ()=>{ warp=!warp; speed = warp?1.4:0.6; document.getElementById('btnWarp').innerHTML = (warp?'<i class="fa-solid fa-jet-fighter-up mr-2"></i>WARP activ':'<i class="fa-solid fa-jet-fighter-up mr-2"></i>Activează WARP'); });
+
+    // Report flow — doar pe gest utilizator, cu fallback sigur
+    document.getElementById('btnReport').addEventListener('click', ()=>{
+      const payload = { message:'404 report', trace:sig, href:location.href, time:new Date().toISOString(), ua:navigator.userAgent };
+      openReportModal(payload);
+    });
+  </script>
+</body>
+</html>

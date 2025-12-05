@@ -1,0 +1,1680 @@
+[22:19:26] REQ 217.201.20.175 body={"amount_eur":5,"currency":"eur"}
+[22:19:26] STRIPE http=200 body={
+  "id": "cs_live_a1OJsPxNBzyselvonpuAV0DGVV3eQpZkeY0j9Lt54XppPASuJMgEVdISyD",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 500,
+  "amount_total": 500,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760825966,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760912366,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "email": "tomizeimihaita@gmail.com",
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1OJsPxNBzyselvonpuAV0DGVV3eQpZkeY0j9Lt54XppPASuJMgEVdISyD#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[22:20:54] REQ 217.201.20.175 body={"amount_eur":6,"currency":"eur"}
+[22:20:55] STRIPE http=200 body={
+  "id": "cs_live_a1uZpvfstmHOAqaQClpueBWV76vLBG7SQlTJX4dMGFdirIbxeMPVVej9X7",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 600,
+  "amount_total": 600,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760826055,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760912455,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "email": "tomizeimihaita@gmail.com",
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1uZpvfstmHOAqaQClpueBWV76vLBG7SQlTJX4dMGFdirIbxeMPVVej9X7#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[22:39:39] REQ 217.201.20.175 body={"amount_eur":1,"currency":"eur"}
+[22:39:40] STRIPE http=200 body={
+  "id": "cs_live_a1wh33E5JORYwfbeMi5yX7349JLUEH8Ecfe7TP4yEGvowAp2lKMAHwkLm8",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 100,
+  "amount_total": 100,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760827180,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760913580,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1wh33E5JORYwfbeMi5yX7349JLUEH8Ecfe7TP4yEGvowAp2lKMAHwkLm8#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[22:44:05] REQ 217.201.20.175 body={"amount_eur":0.5,"currency":"eur"}
+[22:44:07] STRIPE http=200 body={
+  "id": "cs_live_a1VX5QufIuoohwBdNgVPGtPspBCf90EHBZjoiyzbAxacXHscvNLi5Q69M8",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 50,
+  "amount_total": 50,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760827447,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760913846,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1VX5QufIuoohwBdNgVPGtPspBCf90EHBZjoiyzbAxacXHscvNLi5Q69M8#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[22:44:19] REQ 217.201.20.175 body={"amount_eur":0.1000000000000000055511151231257827021181583404541015625,"currency":"eur"}
+[22:44:19] ERR 400 amount_too_small amount_cents=10
+[22:44:27] REQ 217.201.20.175 body={"amount_eur":0.200000000000000011102230246251565404236316680908203125,"currency":"eur"}
+[22:44:27] ERR 400 amount_too_small amount_cents=20
+[22:44:31] REQ 217.201.20.175 body={"amount_eur":0.299999999999999988897769753748434595763683319091796875,"currency":"eur"}
+[22:44:31] ERR 400 amount_too_small amount_cents=30
+[22:44:34] REQ 217.201.20.175 body={"amount_eur":0.40000000000000002220446049250313080847263336181640625,"currency":"eur"}
+[22:44:34] ERR 400 amount_too_small amount_cents=40
+[22:44:39] REQ 217.201.20.175 body={"amount_eur":0.5,"currency":"eur"}
+[22:44:40] STRIPE http=200 body={
+  "id": "cs_live_a1RBPadGa3rhAi2C17C3cTavbUyzdPCSK5UMwY5hPQ4ZtZqtkgoE55g18g",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 50,
+  "amount_total": 50,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760827480,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760913879,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1RBPadGa3rhAi2C17C3cTavbUyzdPCSK5UMwY5hPQ4ZtZqtkgoE55g18g#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[23:24:53] REQ 217.201.20.175 body={"amount_eur":0.5,"currency":"eur"}
+[23:24:54] STRIPE http=200 body={
+  "id": "cs_live_a1u3nBdq24SOGFRQg7jQX2XXoaY6BQtOo9ZDk2Km2EkzXRg9YthcNFSSKH",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 50,
+  "amount_total": 50,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760829893,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760916293,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1u3nBdq24SOGFRQg7jQX2XXoaY6BQtOo9ZDk2Km2EkzXRg9YthcNFSSKH#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[23:39:09] REQ 217.201.20.175 body={"amount_eur":0.7600000000000000088817841970012523233890533447265625,"currency":"eur","desired_net_eur":0.5,"fee_estimate_eur":0.2600000000000000088817841970012523233890533447265625,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}
+[23:39:09] STRIPE http=200 body={
+  "id": "cs_live_a1pOm2uOi84YgjJ7HN34akZ4uA46vFfKgTXiqaJFIuQLRRNBU66zuC4eea",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 76,
+  "amount_total": 76,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760830749,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760917149,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1pOm2uOi84YgjJ7HN34akZ4uA46vFfKgTXiqaJFIuQLRRNBU66zuC4eea#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[23:41:40] REQ 217.201.20.175 body={"amount_eur":0.7600000000000000088817841970012523233890533447265625,"currency":"eur","desired_net_eur":0.5,"fee_estimate_eur":0.2600000000000000088817841970012523233890533447265625,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}
+[23:41:42] STRIPE http=200 body={
+  "id": "cs_live_a1MaVeYfRSYD6HMHoe4xc1AWLoANjVwIkEvfwZbo7p4g4qqKdHFs8d337L",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 76,
+  "amount_total": 76,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760830902,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760917302,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1MaVeYfRSYD6HMHoe4xc1AWLoANjVwIkEvfwZbo7p4g4qqKdHFs8d337L#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[23:42:09] REQ 217.201.20.175 body={"amount_eur":5.3300000000000000710542735760100185871124267578125,"currency":"eur","desired_net_eur":5,"fee_estimate_eur":0.330000000000000015543122344752191565930843353271484375,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}
+[23:42:10] STRIPE http=200 body={
+  "id": "cs_live_a1cSK9QaeZxi9KwBMgvlgT7pCaAdbPrNwXFnPIziedHOyTbRuC0zyvF4uJ",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 533,
+  "amount_total": 533,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760830930,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760917330,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1cSK9QaeZxi9KwBMgvlgT7pCaAdbPrNwXFnPIziedHOyTbRuC0zyvF4uJ#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[23:42:24] REQ 217.201.20.175 body={"amount_eur":0.7600000000000000088817841970012523233890533447265625,"currency":"eur","desired_net_eur":0.5,"fee_estimate_eur":0.2600000000000000088817841970012523233890533447265625,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}
+[23:42:24] STRIPE http=200 body={
+  "id": "cs_live_a1QcCPQGpHst2BOyizUIWjIQUa9XI3Wc2MD04CL9k1BdnnG6RPuvY2WAIO",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 76,
+  "amount_total": 76,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760830944,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760917344,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1QcCPQGpHst2BOyizUIWjIQUa9XI3Wc2MD04CL9k1BdnnG6RPuvY2WAIO#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+{"ts":"2025-10-18T23:47:15+00:00","data":{"req_from":"217.201.20.175","body":{"amount_eur":5.3300000000000000710542735760100185871124267578125,"currency":"eur","desired_net_eur":5,"fee_estimate_eur":0.330000000000000015543122344752191565930843353271484375,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}}}
+{"ts":"2025-10-18T23:47:15+00:00","data":{"stripe_error":"Invalid request (check that your POST content type is application/x-www-form-urlencoded). If you have any questions, we can help at https://support.stripe.com/.","fields":{"payment_method_types[0]":"card","mode":"payment","line_items[0][quantity]":1,"line_items[0][price_data][currency]":"eur","line_items[0][price_data][unit_amount]":533,"line_items[0][price_data][product_data][name]":"Investiție în Banca Comună","success_url":"https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}","cancel_url":"https://pariazainteligent.ro/v1/investitii.php?cancel=1","metadata[user_id]":7,"metadata[email]":"tomizeimihaita@gmail.com","metadata[source]":"investitii.php","metadata[mode]":"gross_mode","metadata[desired_net_eur]":"","metadata[gross_eur]":"5.33","metadata[fee_estimate_eur]":"","metadata[fee_model]":"pct:0.015+fixed:0.25"}}}
+{"ts":"2025-10-18T23:47:22+00:00","data":{"req_from":"217.201.20.175","body":{"amount_eur":5.3300000000000000710542735760100185871124267578125,"currency":"eur","desired_net_eur":5,"fee_estimate_eur":0.330000000000000015543122344752191565930843353271484375,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}}}
+{"ts":"2025-10-18T23:47:22+00:00","data":{"stripe_error":"Invalid request (check that your POST content type is application/x-www-form-urlencoded). If you have any questions, we can help at https://support.stripe.com/.","fields":{"payment_method_types[0]":"card","mode":"payment","line_items[0][quantity]":1,"line_items[0][price_data][currency]":"eur","line_items[0][price_data][unit_amount]":533,"line_items[0][price_data][product_data][name]":"Investiție în Banca Comună","success_url":"https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}","cancel_url":"https://pariazainteligent.ro/v1/investitii.php?cancel=1","metadata[user_id]":7,"metadata[email]":"tomizeimihaita@gmail.com","metadata[source]":"investitii.php","metadata[mode]":"gross_mode","metadata[desired_net_eur]":"","metadata[gross_eur]":"5.33","metadata[fee_estimate_eur]":"","metadata[fee_model]":"pct:0.015+fixed:0.25"}}}
+{"ts":"2025-10-18T23:47:30+00:00","data":{"req_from":"217.201.20.175","body":{"amount_eur":5.3300000000000000710542735760100185871124267578125,"currency":"eur","desired_net_eur":5,"fee_estimate_eur":0.330000000000000015543122344752191565930843353271484375,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}}}
+{"ts":"2025-10-18T23:47:31+00:00","data":{"stripe_error":"Invalid request (check that your POST content type is application/x-www-form-urlencoded). If you have any questions, we can help at https://support.stripe.com/.","fields":{"payment_method_types[0]":"card","mode":"payment","line_items[0][quantity]":1,"line_items[0][price_data][currency]":"eur","line_items[0][price_data][unit_amount]":533,"line_items[0][price_data][product_data][name]":"Investiție în Banca Comună","success_url":"https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}","cancel_url":"https://pariazainteligent.ro/v1/investitii.php?cancel=1","metadata[user_id]":7,"metadata[email]":"tomizeimihaita@gmail.com","metadata[source]":"investitii.php","metadata[mode]":"gross_mode","metadata[desired_net_eur]":"","metadata[gross_eur]":"5.33","metadata[fee_estimate_eur]":"","metadata[fee_model]":"pct:0.015+fixed:0.25"}}}
+[23:47:57] REQ 217.201.20.175 body={"amount_eur":5.3300000000000000710542735760100185871124267578125,"currency":"eur","desired_net_eur":5,"fee_estimate_eur":0.330000000000000015543122344752191565930843353271484375,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}
+[23:47:59] STRIPE http=200 body={
+  "id": "cs_live_a1pcEKSVXIz1SWxsUKgpJn54djW4ng9nkIZUonUXWsaFQRn89LjojNHxW8",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 533,
+  "amount_total": 533,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760831279,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760917679,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1pcEKSVXIz1SWxsUKgpJn54djW4ng9nkIZUonUXWsaFQRn89LjojNHxW8#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+{"ts":"2025-10-18T23:48:25+00:00","data":{"req_from":"217.201.20.175","body":{"amount_eur":5.3300000000000000710542735760100185871124267578125,"currency":"eur","desired_net_eur":5,"fee_estimate_eur":0.330000000000000015543122344752191565930843353271484375,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}}}
+{"ts":"2025-10-18T23:48:26+00:00","data":{"stripe_error":"Invalid request (check that your POST content type is application/x-www-form-urlencoded). If you have any questions, we can help at https://support.stripe.com/.","fields":{"payment_method_types[0]":"card","mode":"payment","line_items[0][quantity]":1,"line_items[0][price_data][currency]":"eur","line_items[0][price_data][unit_amount]":533,"line_items[0][price_data][product_data][name]":"Investiție în Banca Comună","success_url":"https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}","cancel_url":"https://pariazainteligent.ro/v1/investitii.php?cancel=1","metadata[user_id]":7,"metadata[email]":"tomizeimihaita@gmail.com","metadata[source]":"investitii.php","metadata[mode]":"gross_mode","metadata[desired_net_eur]":"","metadata[gross_eur]":"5.33","metadata[fee_estimate_eur]":"","metadata[fee_model]":"pct:0.015+fixed:0.25"}}}
+[23:49:07] REQ 217.201.20.175 body={"amount_eur":5.3300000000000000710542735760100185871124267578125,"currency":"eur","desired_net_eur":5,"fee_estimate_eur":0.330000000000000015543122344752191565930843353271484375,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}
+[23:49:08] STRIPE http=200 body={
+  "id": "cs_live_a1JQV82MPJQFpH9FPCUVsvBAkCQPNMQPT1JofR3Fs2GsXVPVVuO2MijmFy",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 533,
+  "amount_total": 533,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": null,
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760831348,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": null,
+  "customer_email": null,
+  "discounts": [],
+  "expires_at": 1760917748,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "source": "investitii.php",
+    "user_id": "7"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1JQV82MPJQFpH9FPCUVsvBAkCQPNMQPT1JofR3Fs2GsXVPVVuO2MijmFy#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[23:51:33] REQ 217.201.20.175 body={"amount_eur":5.3300000000000000710542735760100185871124267578125,"currency":"eur","desired_net_eur":5,"fee_estimate_eur":0.330000000000000015543122344752191565930843353271484375,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}
+[23:51:35] STRIPE http=200 body={
+  "id": "cs_live_a1l55sWThSEWBeZyqLjYcSLhBB4gkRk8pVCwZZI9ApoyOPeqrGmqqzuB4H",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 533,
+  "amount_total": 533,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": {
+    "business_name": null,
+    "individual_name": null,
+    "shipping_details": null
+  },
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760831495,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": {
+    "address": null,
+    "business_name": null,
+    "email": "tomizeimihaita@gmail.com",
+    "individual_name": null,
+    "name": null,
+    "phone": null,
+    "tax_exempt": "none",
+    "tax_ids": null
+  },
+  "customer_email": "tomizeimihaita@gmail.com",
+  "discounts": [],
+  "expires_at": 1760917895,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "currency": "eur",
+    "email": "tomizeimihaita@gmail.com",
+    "fee_est_eur": "0.33",
+    "gross_eur": "5.33",
+    "net_est_eur": "5.00",
+    "source": "investitii.php",
+    "user_id": "7",
+    "version": "v1-fee-aware"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1l55sWThSEWBeZyqLjYcSLhBB4gkRk8pVCwZZI9ApoyOPeqrGmqqzuB4H#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[23:51:47] REQ 217.201.20.175 body={"amount_eur":5.3300000000000000710542735760100185871124267578125,"currency":"eur","desired_net_eur":5,"fee_estimate_eur":0.330000000000000015543122344752191565930843353271484375,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}
+[23:51:47] STRIPE http=200 body={
+  "id": "cs_live_a1CdOMd2daglSjyX6RnbhGfMgoyCOmTjiq12f0wqQi6q37bXGUUcAPFuFq",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 533,
+  "amount_total": 533,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": {
+    "business_name": null,
+    "individual_name": null,
+    "shipping_details": null
+  },
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760831507,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": {
+    "address": null,
+    "business_name": null,
+    "email": "tomizeimihaita@gmail.com",
+    "individual_name": null,
+    "name": null,
+    "phone": null,
+    "tax_exempt": "none",
+    "tax_ids": null
+  },
+  "customer_email": "tomizeimihaita@gmail.com",
+  "discounts": [],
+  "expires_at": 1760917907,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "currency": "eur",
+    "email": "tomizeimihaita@gmail.com",
+    "fee_est_eur": "0.33",
+    "gross_eur": "5.33",
+    "net_est_eur": "5.00",
+    "source": "investitii.php",
+    "user_id": "7",
+    "version": "v1-fee-aware"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1CdOMd2daglSjyX6RnbhGfMgoyCOmTjiq12f0wqQi6q37bXGUUcAPFuFq#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-
+[23:54:55] REQ 217.201.20.175 body={"amount_eur":0.7600000000000000088817841970012523233890533447265625,"currency":"eur","desired_net_eur":0.5,"fee_estimate_eur":0.2600000000000000088817841970012523233890533447265625,"ui_fee_model":{"pct":0.01499999999999999944488848768742172978818416595458984375,"fixed":0.25}}
+[23:54:57] STRIPE http=200 body={
+  "id": "cs_live_a1ud1JnrA6MTNswVUrw8P9494hLW3p23P6Oa6tlUeUW7oVGM2PVHGSoJdZ",
+  "object": "checkout.session",
+  "adaptive_pricing": {
+    "enabled": true
+  },
+  "after_expiration": null,
+  "allow_promotion_codes": null,
+  "amount_subtotal": 76,
+  "amount_total": 76,
+  "automatic_tax": {
+    "enabled": false,
+    "liability": null,
+    "provider": null,
+    "status": null
+  },
+  "billing_address_collection": null,
+  "branding_settings": {
+    "background_color": "#ffffff",
+    "border_style": "rounded",
+    "button_color": "#0074d4",
+    "display_name": "INTELIGENT",
+    "font_family": "default",
+    "icon": null,
+    "logo": null
+  },
+  "cancel_url": "https://pariazainteligent.ro/v1/investitii.php?cancel=1",
+  "client_reference_id": null,
+  "client_secret": null,
+  "collected_information": {
+    "business_name": null,
+    "individual_name": null,
+    "shipping_details": null
+  },
+  "consent": null,
+  "consent_collection": null,
+  "created": 1760831697,
+  "currency": "eur",
+  "currency_conversion": null,
+  "custom_fields": [],
+  "custom_text": {
+    "after_submit": null,
+    "shipping_address": null,
+    "submit": null,
+    "terms_of_service_acceptance": null
+  },
+  "customer": null,
+  "customer_creation": "if_required",
+  "customer_details": {
+    "address": null,
+    "business_name": null,
+    "email": "tomizeimihaita@gmail.com",
+    "individual_name": null,
+    "name": null,
+    "phone": null,
+    "tax_exempt": "none",
+    "tax_ids": null
+  },
+  "customer_email": "tomizeimihaita@gmail.com",
+  "discounts": [],
+  "expires_at": 1760918096,
+  "invoice": null,
+  "invoice_creation": {
+    "enabled": false,
+    "invoice_data": {
+      "account_tax_ids": null,
+      "custom_fields": null,
+      "description": null,
+      "footer": null,
+      "issuer": null,
+      "metadata": {},
+      "rendering_options": null
+    }
+  },
+  "livemode": true,
+  "locale": null,
+  "metadata": {
+    "currency": "eur",
+    "email": "tomizeimihaita@gmail.com",
+    "fee_est_eur": "0.26",
+    "gross_eur": "0.76",
+    "net_est_eur": "0.50",
+    "source": "investitii.php",
+    "user_id": "7",
+    "version": "v1-fee-aware"
+  },
+  "mode": "payment",
+  "origin_context": null,
+  "payment_intent": null,
+  "payment_link": null,
+  "payment_method_collection": "if_required",
+  "payment_method_configuration_details": null,
+  "payment_method_options": {
+    "card": {
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": [
+    "card"
+  ],
+  "payment_status": "unpaid",
+  "permissions": null,
+  "phone_number_collection": {
+    "enabled": false
+  },
+  "recovered_from": null,
+  "saved_payment_method_options": null,
+  "setup_intent": null,
+  "shipping_address_collection": null,
+  "shipping_cost": null,
+  "shipping_details": null,
+  "shipping_options": [],
+  "status": "open",
+  "submit_type": null,
+  "subscription": null,
+  "success_url": "https://pariazainteligent.ro/v1/thanks.html?session_id={CHECKOUT_SESSION_ID}",
+  "total_details": {
+    "amount_discount": 0,
+    "amount_shipping": 0,
+    "amount_tax": 0
+  },
+  "ui_mode": "hosted",
+  "url": "https://checkout.stripe.com/c/pay/cs_live_a1ud1JnrA6MTNswVUrw8P9494hLW3p23P6Oa6tlUeUW7oVGM2PVHGSoJdZ#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdkdWxOYHwnPyd1blppbHNgWjA0SjExN3BJSFVRPWJQcEYyR113dW5URlBHQDdWZG18ZGxNanNkd1xraGxBTFBtMkpENmF0clZVaUdBSF9Sb1V3UUR9PV11TlE3QzR0aDUyYj19MHByVTZvNTVkY05rX2YzTCcpJ2N3amhWYHdzYHcnP3F3cGApJ2dkZm5id2pwa2FGamlqdyc%2FJyZjY2NjY2MnKSdpZHxqcHFRfHVgJz8ndmxrYmlgWmxxYGgnKSdga2RnaWBVaWRmYG1qaWFgd3YnP3F3cGB4JSUl",
+  "wallet_options": null
+} curlerr=-

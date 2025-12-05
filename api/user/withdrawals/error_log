@@ -1,0 +1,45 @@
+[30-Oct-2025 18:58:43 UTC] PHP Warning:  require(/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/user/withdrawals/processing_stats.php on line 9
+[30-Oct-2025 18:58:43 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/api/user/withdrawals/processing_stats.php:9
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/api/user/withdrawals/processing_stats.php on line 9
+[30-Oct-2025 18:59:00 UTC] PHP Warning:  require(/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/user/withdrawals/processing_stats.php on line 9
+[30-Oct-2025 18:59:00 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/api/user/withdrawals/processing_stats.php:9
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/api/user/withdrawals/processing_stats.php on line 9
+[30-Oct-2025 18:59:38 UTC] PHP Warning:  require(/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/user/withdrawals/processing_stats.php on line 9
+[30-Oct-2025 18:59:38 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/api/user/withdrawals/processing_stats.php:9
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/api/user/withdrawals/processing_stats.php on line 9
+[07-Nov-2025 19:20:42 UTC] PHP Warning:  require(/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:20:42 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:21:27 UTC] PHP Warning:  require(/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:21:27 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:22:17 UTC] PHP Warning:  require(/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:22:17 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:22:31 UTC] PHP Warning:  require(/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:22:31 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:22:54 UTC] PHP Warning:  require(/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:22:54 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:23:57 UTC] PHP Warning:  require(/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10
+[07-Nov-2025 19:23:57 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/u45947pari/public_html/api/user/withdrawals/../../api/db.php' (include_path='.:/opt/cpanel/ea-php84/root/usr/share/pear') in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/u45947pari/public_html/api/user/withdrawals/approved_totals.php on line 10

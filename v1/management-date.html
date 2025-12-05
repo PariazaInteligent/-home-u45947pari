@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Management Date & Pariuri — Banca Comună de Investiții</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{ --acc-1:#2563eb; --acc-2:#06b6d4; --acc-3:#14b8a6; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    /* Futuristic gradient & glow DNA (BancaComuna v1) */
+    .hero-gradient { background: linear-gradient(135deg, var(--acc-1), var(--acc-2), var(--acc-3)); background-size: 180% 180%; animation: gradientMove 10s ease infinite; }
+    .acc-gradient { background: linear-gradient(90deg, var(--acc-1), var(--acc-2), var(--acc-3)); }
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .glow { box-shadow: 0 10px 30px rgba(34,211,238,.25), inset 0 0 0 1px rgba(255,255,255,.06); }
+    .card-hover { transition: transform .25s ease, box-shadow .25s ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 15px 45px rgba(0,0,0,.35); }
+    .nice-scroll::-webkit-scrollbar{ width:8px;} .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.15); border-radius:8px;}
+    .badge { padding:.25rem .5rem; border-radius:.5rem; font-size:.75rem; }
+    .toast{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;border-radius:.75rem;border:1px solid rgba(255,255,255,.12);background:rgba(2,6,23,.95);backdrop-filter:blur(6px)}
+    .toast.success{border-color:rgba(34,197,94,.35)} .toast.warn{border-color:rgba(234,179,8,.35)} .toast.error{border-color:rgba(239,68,68,.35)}
+    .table-head { background: rgba(255,255,255,.04); position: sticky; top: 0; backdrop-filter: blur(6px); }
+    /* Neon grid background */
+    .grid-overlay:before{ content:''; position:absolute; inset:0; background: radial-gradient(ellipse at 20% -10%, rgba(14,165,233,.2), transparent 60%), radial-gradient(ellipse at 120% 10%, rgba(20,184,166,.15), transparent 55%), linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px; mask-image: radial-gradient(circle at 60% -20%, black 30%, transparent 70%); pointer-events:none; }
+    /* Glitch title */
+    .glitch{ position:relative; }
+    .glitch:before,.glitch:after{ content:attr(data-text); position:absolute; left:0; top:0; width:100%; overflow:hidden; clip-path: polygon(0 2%,100% 2%,100% 38%,0 38%); opacity:.6 }
+    .glitch:after{ clip-path: polygon(0 62%,100% 62%,100% 96%,0 96%); }
+    .glitch:before{ transform: translateX(1px); color:#22d3ee } .glitch:after{ transform: translateX(-1px); color:#34d399 }
+    /* Slide-over */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);display:none;}
+    .drawer{position:fixed;top:0;right:-560px;width:560px;max-width:100%;height:100%;background:rgba(15,23,42,.98);border-left:1px solid rgba(255,255,255,.08);transition:right .3s ease;}
+    .overlay.show{display:block;} .drawer.show{right:0;}
+    /* Mini graph dots */
+    .dot{width:6px;height:6px;border-radius:9999px;display:inline-block;margin-right:3px}
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 grid-overlay" data-role="USER" data-user-name="Andrei">
+  <!-- Toasts -->
+  <div id="toasts" class="fixed top-4 right-4 z-[90] space-y-2"></div>
+
+  <!-- NAV / TOPBAR -->
+  <header class="sticky top-0 z-50 bg-slate-950/70 backdrop-blur border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl acc-gradient text-slate-900 font-extrabold glow">PI</span>
+        <div>
+          <div class="font-semibold tracking-wide">Pariază Inteligent</div>
+          <div class="text-xs text-slate-400 -mt-0.5">Management Date & Pariuri</div>
+        </div>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+        <a class="hover:text-white" href="/layout.html#dashboard">Dashboard</a>
+        <a class="hover:text-white" href="/investitii.html">Investiții</a>
+        <a class="hover:text-white" href="/retragere.html">Retrageri</a>
+        <a class="hover:text-white" href="/profil.html">Profil</a>
+        <a class="text-white" href="/data-pariuri.html">Date & Pariuri</a>
+      </nav>
+      <div class="flex items-center gap-2 text-sm">
+        <a href="/layout.html#dashboard" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-arrow-left mr-2"></i>Înapoi</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 hero-gradient opacity-20"></div>
+    <canvas id="sky" class="absolute inset-0 opacity-30"></canvas>
+    <div class="max-w-7xl mx-auto px-4 py-8 md:py-12 relative">
+      <div class="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <h1 class="glitch text-3xl md:text-4xl font-extrabold" data-text="Management Date & Pariuri">Management Date & Pariuri</h1>
+          <p class="text-slate-300 max-w-2xl">Un cockpit de altă lume: orchestrarea datelor, pipeline‑uri ETL, reguli automate și un hub de pariuri cu analiză probabilistică, Kelly, acca‑calc și arbitrage detector — totul într‑o singură interfață.</p>
+        </div>
+        <div class="text-xs text-slate-400 flex items-center gap-2"><i class="fa-solid fa-database text-cyan-300"></i> <span id="dataSource">live</span></div>
+      </div>
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-4 pb-24 space-y-6">
+
+    <!-- CONTROL DECK -->
+    <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div class="flex items-center gap-3 text-sm">
+          <label class="text-slate-300">Dataset activ</label>
+          <select id="dsSelect" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+            <option value="bets">bets</option>
+            <option value="events">events</option>
+            <option value="users">users</option>
+          </select>
+          <button id="btnNewDataset" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-xs">Nou dataset</button>
+          <button id="btnDeleteDataset" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-xs">Șterge dataset</button>
+        </div>
+        <div class="flex items-center gap-2 text-sm">
+          <input id="q" placeholder="Căutare rapidă (titlu, user, event...)" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+          <select id="sort" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+            <option value="ts_desc">Noi → Vechi</option>
+            <option value="ts_asc">Vechi → Noi</option>
+            <option value="amount_desc">Sumă desc</option>
+            <option value="amount_asc">Sumă asc</option>
+          </select>
+          <button id="btnApply" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 font-semibold">Aplică</button>
+        </div>
+      </div>
+      <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+        <button id="btnImportCSV" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-file-csv mr-1"></i>Import CSV</button>
+        <button id="btnImportJSON" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-brands fa-js mr-1"></i>Import JSON</button>
+        <button id="btnExportCSV" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">CSV</button>
+        <button id="btnExportJSON" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">JSON</button>
+        <button id="btnGenDemo" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-sparkles mr-1"></i>Generează DEMO</button>
+        <span class="ml-auto text-slate-400">Rezultate: <span id="resCount">—</span></span>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- TABLA DATE / PREVIEW -->
+      <section class="lg:col-span-2 card-hover rounded-2xl border border-white/10 bg-white/5 overflow-hidden" id="cardData">
+        <div class="table-head px-4 py-2 text-xs text-slate-300 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="badge bg-white/10 text-slate-300" id="dsName">bets</span>
+            <span class="badge bg-emerald-500/15 text-emerald-200" id="dsRows">— rânduri</span>
+            <span class="badge bg-sky-500/15 text-sky-200" id="dsSchema">schemă: implicit</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnSchema" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Editează schemă</button>
+            <button id="btnPipeline" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Pipeline ETL</button>
+            <button id="btnValidate" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Validează</button>
+          </div>
+        </div>
+        <div id="tblBody" class="divide-y divide-white/5 max-h-[520px] overflow-auto nice-scroll"></div>
+        <div id="tblEmpty" class="hidden p-6 text-sm text-slate-400">Nicio înregistrare.</div>
+      </section>
+
+      <!-- PANOUL „BESTIA”: ANALIZĂ & KPI LIVE -->
+      <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5 space-y-4" id="cardBeast">
+        <div class="flex items-center justify-between">
+          <h2 class="font-semibold">Analiză Live</h2>
+          <button id="btnPulse" class="rounded-xl px-3 py-1.5 border border-white/10 hover:border-white/20 text-xs"><i class="fa-solid fa-wave-square mr-1"></i>Pulse</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs" id="kpiGrid"></div>
+        <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+          <div class="text-slate-400 text-xs mb-1">Profit simulare (Monte Carlo)</div>
+          <svg id="hist" viewBox="0 0 420 160" class="w-full h-40"></svg>
+          <div class="mt-1 text-[11px] text-slate-400">Distribuția rezultatelor pe baza probabilităților curente.</div>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+          <div class="text-slate-400 text-xs mb-1">Diag. corelații (mini‑heatmap)</div>
+          <div id="heat" class="grid grid-cols-10 gap-[2px]"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- HUB PARIURI: BILET, CALCULE, ARBITRAJ -->
+    <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" id="cardBetting">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold">Hub Pariuri</h2>
+        <div class="text-xs text-slate-400">Oddstream demo • EV • Kelly • Acca • Arbitrage</div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm">
+        <!-- Stream -->
+        <div class="lg:col-span-1">
+          <div class="flex items-center justify-between mb-2"><div class="font-medium">Flux cote</div><button id="btnLive" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Conectează</button></div>
+          <ul id="oddStream" class="space-y-2 max-h-80 overflow-auto nice-scroll"></ul>
+          <div id="oddEmpty" class="hidden text-xs text-slate-400">Flux inactiv. Apasă „Conectează”.</div>
+        </div>
+        <!-- Bilet Builder -->
+        <div class="lg:col-span-1">
+          <div class="font-medium mb-2">Bilet (selecții)</div>
+          <ul id="ticket" class="space-y-2"></ul>
+          <div class="mt-2 rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="flex items-center justify-between"><span>Stake (€)</span><input id="stake" type="number" value="50" min="1" class="w-24 rounded-lg bg-white/5 border border-white/10 px-2 py-1"/></div>
+            <div class="grid grid-cols-2 gap-2 text-xs mt-2">
+              <div>Odds combinate</div><div class="text-right" id="oddsCombined">—</div>
+              <div>Prob. combinată</div><div class="text-right" id="probCombined">—</div>
+              <div>EV estimat</div><div class="text-right" id="evCombined">—</div>
+            </div>
+            <div class="mt-2 text-[11px] text-slate-400">Introdu probabilitatea ta subiectivă pentru fiecare selecție pentru calcule EV & Kelly.</div>
+          </div>
+        </div>
+        <!-- Arbitrage & Kelly -->
+        <div class="lg:col-span-1 space-y-3">
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="font-medium mb-2">Kelly & EV (pe selecție)</div>
+            <div id="kellyList" class="space-y-2 text-xs"></div>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="font-medium mb-2">Arbitrage Detector</div>
+            <div class="grid grid-cols-3 gap-2 text-xs">
+              <input id="arb1" placeholder="odds 1" class="rounded bg-white/5 border border-white/10 px-2 py-1"/>
+              <input id="arb2" placeholder="odds 2" class="rounded bg-white/5 border border-white/10 px-2 py-1"/>
+              <input id="arb3" placeholder="odds 3 (opțional)" class="rounded bg-white/5 border border-white/10 px-2 py-1"/>
+            </div>
+            <div class="mt-2 flex items-center gap-2">
+              <button id="btnArb" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Calculează</button>
+              <span id="arbState" class="text-xs text-slate-400"></span>
+            </div>
+            <div id="arbPlan" class="mt-2 text-xs"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REGULI & PIPELINE BUILDER -->
+    <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" id="cardRules">
+      <div class="flex items-center justify-between mb-3"><h2 class="font-semibold">Reguli & Pipeline</h2><div class="text-xs text-slate-400">Auto‑acțiuni + transformări</div></div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm">
+        <div class="lg:col-span-1">
+          <div class="font-medium mb-1">Reguli</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+            <input id="ruleMatch" placeholder="ex: type:bet amount>=100 title~=Real" class="rounded bg-white/5 border border-white/10 px-2 py-1"/>
+            <select id="ruleAction" class="rounded bg-white/5 border border-white/10 px-2 py-1">
+              <option value="flag">Marchează</option>
+              <option value="drop">Elimină</option>
+              <option value="boost">Boost EV</option>
+            </select>
+            <button id="btnAddRule" class="rounded px-2 py-1 border border-white/10 hover:border-white/20">Adaugă</button>
+          </div>
+          <ul id="ruleList" class="mt-2 space-y-2"></ul>
+        </div>
+        <div class="lg:col-span-2">
+          <div class="font-medium mb-1">Pipeline ETL (demo)</div>
+          <div id="pipe" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3"><div class="font-medium">Sursă</div><div class="text-xs text-slate-400">dataset: <span id="pipeSrc">bets</span></div></div>
+            <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3"><div class="font-medium">Transform</div>
+              <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                <button data-step="filter" class="rounded px-2 py-1 border border-white/10 hover:border-white/20">Filter</button>
+                <button data-step="derive" class="rounded px-2 py-1 border border-white/10 hover:border-white/20">Derive</button>
+                <button data-step="map" class="rounded px-2 py-1 border border-white/10 hover:border-white/20">Map</button>
+                <button data-step="sample" class="rounded px-2 py-1 border border-white/10 hover:border-white/20">Sample 1%</button>
+              </div>
+              <ul id="steps" class="mt-2 space-y-2"></ul>
+            </div>
+            <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3"><div class="font-medium">Destinație</div>
+              <div class="text-xs text-slate-400">dataset: <span id="pipeDst">bets_clean</span></div>
+              <button id="btnRunPipe" class="mt-2 rounded px-2 py-1 acc-gradient text-slate-900 text-xs font-semibold">Rulează</button>
+              <div id="pipeState" class="text-xs text-slate-400 mt-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TERMINAL & AUDIT -->
+    <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" id="cardAudit">
+      <div class="flex items-center justify-between mb-3"><h2 class="font-semibold">Terminal & Audit</h2><button id="btnClearAudit" class="rounded px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Curăță</button></div>
+      <div id="audit" class="text-[12px] font-mono bg-slate-950/70 border border-white/10 rounded-xl p-3 h-48 overflow-auto nice-scroll"></div>
+    </section>
+  </main>
+
+  <footer class="py-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 text-sm text-slate-400 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>© <span id="year"></span> Pariază Inteligent — Data & Pariuri</div>
+      <div class="flex items-center gap-4">
+        <a class="hover:text-white" href="/layout.html#dashboard">Dashboard</a>
+        <a class="hover:text-white" href="/logout.php">Deconectare</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Slide-over Schema / Editor JSON -->
+  <div id="ov" class="overlay"></div>
+  <aside id="drawer" class="drawer">
+    <div class="h-full flex flex-col">
+      <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between"><div class="font-semibold" id="drawerTitle">Editor</div><button id="btnCloseDrawer" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="p-4 space-y-3 text-sm overflow-auto nice-scroll">
+        <textarea id="jsonEdit" class="w-full h-[60vh] rounded-xl bg-slate-950/60 border border-white/10 p-3 font-mono text-[12px]"></textarea>
+        <div class="flex items-center gap-2">
+          <button id="btnSaveJSON" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 text-xs font-semibold">Salvează</button>
+          <span id="jsonState" class="text-xs text-slate-400"></span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <input type="file" id="filePicker" accept=".csv,.json" class="hidden"/>
+  <audio id="snd" preload="auto"><source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a3f1d9a87.mp3?filename=correct-2-46134.mp3" type="audio/mpeg"></audio>
+
+  <script>
+    // ====== Bootstrap meta ======
+    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('dataSource').textContent = 'demo';
+
+    // ====== Futuristic starfield ======
+    (function sky(){ const c=document.getElementById('sky'); const ctx=c.getContext('2d'); const resize=()=>{ c.width=innerWidth; c.height=240; }; resize(); addEventListener('resize',resize); const stars=Array.from({length:140},()=>({x:Math.random()*c.width,y:Math.random()*c.height,z:Math.random()*1.2+.2})); function tick(){ ctx.clearRect(0,0,c.width,c.height); stars.forEach(s=>{ s.x += s.z; if(s.x>c.width) s.x=0; ctx.globalAlpha = s.z; ctx.fillStyle='#22d3ee'; ctx.fillRect(s.x, s.y, 2, 2); }); requestAnimationFrame(tick);} tick(); })();
+
+    // ====== Helpers ======
+    const LS = { DATA:'bcv1_data', RULES:'bcv1_rules_data', PIPE:'bcv1_pipe' };
+    const snd=document.getElementById('snd');
+    function toast(msg,type='success'){ const t=document.createElement('div'); t.className='toast '+type; t.innerHTML = "<i class='fa-solid "+(type==='success'?"fa-circle-check":type==='warn'?"fa-triangle-exclamation":"fa-circle-exclamation")+"'></i><span>"+msg+"</span>"; document.getElementById('toasts').appendChild(t); setTimeout(()=>t.remove(), 2600); }
+    function logAudit(s){ const a=document.getElementById('audit'); const line=document.createElement('div'); line.textContent = new Date().toLocaleTimeString('ro-RO')+' — '+s; a.appendChild(line); a.scrollTop=a.scrollHeight; }
+    function openDrawer(title,json){ document.getElementById('drawerTitle').textContent=title||'Editor'; document.getElementById('jsonEdit').value = (typeof json==='string')?json:JSON.stringify(json||{},null,2); document.getElementById('ov').classList.add('show'); document.getElementById('drawer').classList.add('show'); }
+    function closeDrawer(){ document.getElementById('ov').classList.remove('show'); document.getElementById('drawer').classList.remove('show'); }
+    function fmtEUR(v){ return new Intl.NumberFormat('ro-RO',{style:'currency',currency:'EUR'}).format(v); }
+
+    // ====== Data State ======
+    const state = { ds:'bets', all:{ bets:[], events:[], users:[] }, view:[], schema:{bets:{id:'string',title:'string',odds:'number',amount:'number',prob:'number',ts:'number',event:'string',status:'string'}, events:{id:'string',name:'string',league:'string',start:'number'}, users:{id:'string',name:'string',tier:'string'}}, rules:[], steps:[] };
+
+    function saveLocal(){ localStorage.setItem(LS.DATA, JSON.stringify(state.all)); }
+    function loadLocal(){ try{ const j=JSON.parse(localStorage.getItem(LS.DATA)||'null'); if(j) state.all=j; }catch(e){} }
+
+    // ====== Demo Generators ======
+    function id(){ return 'id'+Math.random().toString(36).slice(2,7)+Date.now().toString(36).slice(-3); }
+    function demoSeedBets(n){ const teams=['Real','Barça','PSG','City','Bayern','Inter','Milan','Ajax','Porto','Benfica']; const out=[]; const now=Date.now(); for(let i=0;i<n;i++){ const t1=teams[Math.floor(Math.random()*teams.length)], t2=teams[Math.floor(Math.random()*teams.length)]; const odds= +(1.5+Math.random()*3.2).toFixed(2); const prob= +(1/odds).toFixed(3); const amount= +(20+Math.random()*480).toFixed(2); const st=['OPEN','CASHED','LOST'][Math.floor(Math.random()*3)]; out.push({ id:id(), title:`${t1} vs ${t2}`, event:t1+'-'+t2, odds, prob, amount, status:st, ts: now - Math.floor(Math.random()*1000*60*60*72) }); } return out.sort((a,b)=> b.ts-a.ts); }
+    function demoSeedEvents(n){ const leagues=['UCL','UEL','EPL','LaLiga','SerieA','Ligue1']; const out=[]; const now=Date.now(); for(let i=0;i<n;i++){ const name='Match '+(i+1); out.push({ id:id(), name, league:leagues[Math.floor(Math.random()*leagues.length)], start: now + i*3600*1000 }); } return out; }
+    function demoSeedUsers(n){ const out=[]; const names=['Andrei','Mara','Ionuț','Daria','Luca','Sorin','Irina','Bianca']; for(let i=0;i<n;i++){ out.push({ id:id(), name: names[Math.floor(Math.random()*names.length)]+' '+(Math.random()<.5?'Popescu':'Ionescu'), tier: ['bronze','silver','gold'][Math.floor(Math.random()*3)] }); } return out; }
+
+    // ====== Rendering: Table ======
+    function renderTable(){
+      const wrap=document.getElementById('tblBody'); const empty=document.getElementById('tblEmpty'); wrap.innerHTML='';
+      const rows = (state.all[state.ds]||[]).filter(matchFilters).sort(sortItems); state.view=rows; document.getElementById('resCount').textContent=rows.length; document.getElementById('dsRows').textContent = rows.length+' rânduri';
+      document.getElementById('dsName').textContent = state.ds; document.getElementById('pipeSrc').textContent=state.ds;
+      if(rows.length===0){ empty.classList.remove('hidden'); return; } empty.classList.add('hidden');
+      const schema = state.schema[state.ds]||{}; const cols = Object.keys(schema);
+      // header
+      const head=document.createElement('div'); head.className='grid grid-cols-12 px-3 py-2 text-xs text-slate-300 table-head';
+      cols.slice(0,6).forEach((k,i)=>{ const d=document.createElement('div'); d.className='col-span-2'; d.textContent=k; head.appendChild(d); });
+      wrap.appendChild(head);
+      // body rows
+      rows.forEach(r=>{
+        const row=document.createElement('div'); row.className='grid grid-cols-12 px-3 py-2 text-sm hover:bg-white/5'; row.dataset.id=r.id;
+        cols.slice(0,6).forEach((k)=>{ const d=document.createElement('div'); d.className='col-span-2 text-slate-200 truncate'; d.title=String(r[k]); d.textContent=(k==='amount')?fmtEUR(r[k]): (k==='odds'||k==='prob')?String(r[k]): String(r[k]??'—'); row.appendChild(d); });
+        row.addEventListener('click',()=> openDrawer('Editează rând', r));
+        wrap.appendChild(row);
+      });
+    }
+
+    function matchFilters(r){ const q=(document.getElementById('q').value||'').toLowerCase(); if(!q) return true; const hay=JSON.stringify(r).toLowerCase(); return hay.includes(q); }
+    function sortItems(a,b){ const s=document.getElementById('sort').value; if(s==='ts_desc') return (b.ts||0)-(a.ts||0); if(s==='ts_asc') return (a.ts||0)-(b.ts||0); if(s==='amount_desc') return (b.amount||0)-(a.amount||0); if(s==='amount_asc') return (a.amount||0)-(b.amount||0); return 0; }
+
+    // ====== KPI + Heatmap + Histogram ======
+    function renderKPI(){ const grid=document.getElementById('kpiGrid'); grid.innerHTML=''; const data=state.all.bets||[]; const stake=data.reduce((s,x)=>s+(+x.amount||0),0); const open=data.filter(x=>x.status==='OPEN').length; const avgOdds = (data.reduce((s,x)=>s+(+x.odds||0),0)/(data.length||1)).toFixed(2); const meanProb=(data.reduce((s,x)=>s+(+x.prob||0),0)/(data.length||1)); const cards=[['Stake Total',fmtEUR(stake)],['Bilete Deschise',open],['Odds Mediu',avgOdds],['Prob. Medie',(meanProb*100).toFixed(1)+'%']]; cards.forEach(([k,v])=>{ const d=document.createElement('div'); d.className='rounded-lg border border-white/10 bg-slate-900/60 p-2'; d.innerHTML=`<div class='text-slate-400 text-[11px]'>${k}</div><div class='text-lg font-bold'>${v}</div>`; grid.appendChild(d); }); }
+
+    function drawHeat(){ const el=document.getElementById('heat'); el.innerHTML=''; const n=100; for(let i=0;i<n;i++){ const v=Math.random(); const cell=document.createElement('div'); cell.className='w-5 h-5 rounded-[4px]'; cell.style.background = `rgba(34,197,94,${0.15+0.7*v})`; el.appendChild(cell); } }
+
+    function histMonteCarlo(){ const svg=document.getElementById('hist'); svg.innerHTML=''; const W=420,H=160,pad=16; const trials=240; const data=state.all.bets||[]; // naive simulation: each bet wins w/ prob, return = stake*(odds-1) or -stake
+      const buckets=Array.from({length:24},()=>0); for(let t=0;t<trials;t++){ let total=0; data.forEach(b=>{ const win=Math.random()<(+b.prob||0.5); total += win? (b.amount*((b.odds||2)-1)) : -(b.amount); }); const idx=Math.max(0, Math.min(buckets.length-1, Math.floor((total+1000)/ (2000/buckets.length)))); buckets[idx]++; } const max=Math.max(...buckets,1); const barW=(W-2*pad)/buckets.length; buckets.forEach((v,i)=>{ const h=(H-2*pad)*(v/max); const r=document.createElementNS('http://www.w3.org/2000/svg','rect'); r.setAttribute('x', pad+i*barW); r.setAttribute('y', H-pad-h); r.setAttribute('width', barW-2); r.setAttribute('height', h); r.setAttribute('fill', '#22d3ee'); svg.appendChild(r); }); }
+
+    // ====== Live Oddstream + Ticket ======
+    const live={ on:false, timer:null };
+    function pushOdd(){ const teams=['Real','City','Bayern','PSG','Inter','Milan','Ajax','Porto']; const a=teams[Math.floor(Math.random()*teams.length)], b=teams[Math.floor(Math.random()*teams.length)]; const odds= +(1.4+Math.random()*3.6).toFixed(2); const prob= +(1/odds).toFixed(3); const item={ id:id(), title:`${a} vs ${b}`, odds, prob, event:a+'-'+b }; const ul=document.getElementById('oddStream'); const li=document.createElement('li'); li.className='rounded-xl border border-white/10 bg-slate-900/60 p-3 flex items-center justify-between'; li.innerHTML = `<div><div class='font-medium'>${item.title}</div><div class='text-xs text-slate-400'>${(prob*100).toFixed(1)}% • odds ${odds}</div></div><div class='flex items-center gap-2'><input type='number' min='0' max='1' step='0.01' placeholder='p subiectiv' class='w-24 rounded bg-white/5 border border-white/10 px-2 py-1 text-xs'/><button class='rounded px-2 py-1 acc-gradient text-slate-900 text-xs font-semibold'>Adaugă</button></div>`; ul.prepend(li); const btn=li.querySelector('button'); const inp=li.querySelector('input'); btn.addEventListener('click',()=>{ addToTicket({...item, userProb: parseFloat(inp.value||item.prob)}); snd.currentTime=0; snd.play().catch(()=>{}); }); }
+    function connect(){ if(live.on) return; live.on=true; document.getElementById('btnLive').textContent='Conectat'; document.getElementById('oddEmpty').classList.add('hidden'); pushOdd(); live.timer=setInterval(pushOdd, 3500); }
+    function disconnect(){ if(!live.on) return; live.on=false; clearInterval(live.timer); document.getElementById('btnLive').textContent='Conectează'; }
+
+    const ticket=[]; function addToTicket(sel){ ticket.push(sel); renderTicket(); }
+    function renderTicket(){ const ul=document.getElementById('ticket'); ul.innerHTML=''; const kellyWrap=document.getElementById('kellyList'); kellyWrap.innerHTML=''; if(ticket.length===0){ ul.innerHTML='<div class="text-xs text-slate-400">Nicio selecție.</div>'; document.getElementById('oddsCombined').textContent='—'; document.getElementById('probCombined').textContent='—'; document.getElementById('evCombined').textContent='—'; return; }
+      let combOdds=1, combProb=1; const stake=parseFloat(document.getElementById('stake').value||'0');
+      ticket.forEach((s,idx)=>{ combOdds*=s.odds; combProb*=s.userProb||s.prob; const li=document.createElement('li'); li.className='rounded-xl border border-white/10 bg-slate-900/60 p-3'; li.innerHTML=`<div class='flex items-center justify-between'><div><div class='font-medium'>${s.title}</div><div class='text-xs text-slate-400'>odds ${s.odds} • p_sub ${(((s.userProb||s.prob)*100)||0).toFixed(1)}%</div></div><button data-x='${idx}' class='rounded px-2 py-1 border border-white/10 hover:border-white/20 text-xs'>Elimină</button></div>`; ul.appendChild(li);
+        // Kelly card
+        const b = (s.odds-1); const p = Math.min(0.99, Math.max(0.01, s.userProb||s.prob)); const f = Math.max(0, Math.min(1, (b*p - (1-p))/b )); const ev = p*(stake*b) - (1-p)*stake; const item=document.createElement('div'); item.className='rounded-lg border border-white/10 bg-slate-900/60 p-2'; item.innerHTML=`<div class='flex items-center justify-between'><div>${s.title}</div><div class='text-xs text-slate-400'>Kelly: ${(f*100).toFixed(1)}%</div></div><div class='text-xs text-slate-400'>EV@${stake}€: ${fmtEUR(ev)}</div>`; kellyWrap.appendChild(item);
+      });
+      // Combined
+      const evComb = (()=>{ const b=(combOdds-1); const p=combProb; return p*(stake*b) - (1-p)*stake; })();
+      document.getElementById('oddsCombined').textContent = combOdds.toFixed(2);
+      document.getElementById('probCombined').textContent = (combProb*100).toFixed(2)+'%';
+      document.getElementById('evCombined').textContent = fmtEUR(evComb);
+      // remove handlers
+      ul.querySelectorAll('[data-x]').forEach(b=> b.addEventListener('click', ()=>{ const i=parseInt(b.getAttribute('data-x')); ticket.splice(i,1); renderTicket(); }));
+      // redraw analytics
+      renderKPI(); histMonteCarlo();
+    }
+
+    // ====== Arbitrage ======
+    function arbitrageCalc(){ const o1=parseFloat(document.getElementById('arb1').value||'0'); const o2=parseFloat(document.getElementById('arb2').value||'0'); const o3=parseFloat(document.getElementById('arb3').value||'0'); const odds=[o1,o2,o3].filter(x=>x>1.01); if(odds.length<2){ document.getElementById('arbState').textContent='Introdu cel puțin 2 cote valide.'; document.getElementById('arbPlan').innerHTML=''; return; } const sum = odds.reduce((s,o)=> s + 1/o, 0); const st=document.getElementById('arbState'); const plan=document.getElementById('arbPlan'); if(sum<1){ const inv = odds.map(o=> (1/o)/sum ); const bankroll=100; const stakes = inv.map(p=> +(p*bankroll).toFixed(2)); const ret = +(bankroll/Math.min(...odds)).toFixed(2); st.textContent='ARBITRAJ POSIBIL ✅'; plan.innerHTML = `<div>Stakes pt 100€: ${stakes.map((s,i)=>`O${i+1}: ${fmtEUR(s)}`).join(' • ')}</div><div>Return garantat ~ ${fmtEUR(ret)}</div>`; } else { st.textContent='Fără arbitraj'; plan.innerHTML=''; } }
+
+    // ====== Rules Engine (mini) ======
+    function renderRules(){ const ul=document.getElementById('ruleList'); ul.innerHTML=''; if(state.rules.length===0){ const li=document.createElement('li'); li.className='text-slate-400 text-xs'; li.textContent='Nicio regulă.'; ul.appendChild(li); return; } state.rules.forEach((r,i)=>{ const li=document.createElement('li'); li.className='rounded-lg border border-white/10 bg-slate-900/60 p-2 text-xs flex items-center justify-between'; li.innerHTML = `<div><span class='badge bg-white/10 text-slate-300'>IF</span> ${r.match} <span class='badge bg-white/10 text-slate-300'>THEN</span> ${r.action}</div><button data-rm='${i}' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'>Șterge</button>`; ul.appendChild(li); }); }
+    function applyRules(rec){ let acted=false; state.rules.forEach(r=>{ try{ const tokens=r.match.split(/\s+/).filter(Boolean); let ok=true; tokens.forEach(tok=>{ if(tok.includes(':')){ const [k,v]=tok.split(':'); ok = ok && String(rec[k]||'').toLowerCase().includes(String(v).toLowerCase()); } else if(tok.includes('>=')){ const [k,v]=tok.split('>=' ); ok = ok && ((+rec[k]||0) >= +v); } else if(tok.includes('~=')){ const [k,v]=tok.split('~='); ok = ok && new RegExp(v,'i').test(String(rec[k]||'')); } }); if(ok){ if(r.action==='drop'){ rec.__drop__=true; } if(r.action==='flag'){ rec.__flag__=true; } if(r.action==='boost'){ rec.prob = +(Math.min(0.99, (rec.prob||0)+0.05).toFixed(3)); } acted=true; } }catch(e){} }); return acted; }
+
+    // ====== Pipeline ======
+    function renderSteps(){ const ul=document.getElementById('steps'); ul.innerHTML=''; state.steps.forEach((s,i)=>{ const li=document.createElement('li'); li.className='rounded-lg border border-white/10 bg-slate-900/60 p-2 text-xs flex items-center justify-between'; li.innerHTML = `<div>${i+1}. ${s.type} ${s.arg?('• '+s.arg):''}</div><button data-del='${i}' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'>x</button>`; ul.appendChild(li); }); }
+    function runPipe(){ const src = (state.all[state.ds]||[]).slice(); let rows = src; state.steps.forEach(s=>{ if(s.type==='filter'){ const q=s.arg?.toLowerCase()||''; rows = rows.filter(r=> JSON.stringify(r).toLowerCase().includes(q)); } else if(s.type==='derive'){ rows = rows.map(r=> ({...r, ev: +( ( (r.prob||0.5)*((r.odds||2)-1) - (1-(r.prob||0.5)) ).toFixed(3) ) })); } else if(s.type==='map'){ rows = rows.map(r=> ({ id:r.id, title:r.title, event:r.event, odds:r.odds })); } else if(s.type==='sample'){ rows = rows.filter(()=> Math.random()<0.01); } }); state.all[state.ds+'_clean']=rows.filter(r=>!r.__drop__); document.getElementById('pipeDst').textContent = state.ds+'_clean'; document.getElementById('pipeState').textContent = 'Output: '+rows.length+' rânduri'; logAudit('Pipeline rulat: '+state.steps.map(s=>s.type).join('→')); saveLocal(); toast('Pipeline OK'); }
+
+    // ====== Schema / Validation ======
+    function editSchema(){ openDrawer('Scheamă '+state.ds, state.schema[state.ds]); }
+    function validate(){ const schema=state.schema[state.ds]||{}; const rows=state.all[state.ds]||[]; let errors=0; rows.forEach(r=>{ Object.keys(schema).forEach(k=>{ const t=schema[k]; const v=r[k]; if(v===undefined){ errors++; r.__flag__=true; } else if(t==='number' && typeof v!=='number'){ errors++; r.__flag__=true; } else if(t==='string' && typeof v!=='string'){ errors++; r.__flag__=true; } }); }); toast(errors?('Validați: '+errors+' probleme'):'Validați: OK'); logAudit('Validare '+(errors?'cu erori':'OK')); renderTable(); }
+
+    // ====== Imports / Exports ======
+    function parseCSV(text){ const lines=text.split(/\r?\n/).filter(Boolean); const header=lines.shift().split(',').map(s=>s.trim()); return lines.map(line=>{ const parts=line.split(','); const obj={}; header.forEach((h,i)=>{ const raw=(parts[i]||'').trim(); const num = +raw; obj[h] = (!isNaN(num) && raw!=='')? num : raw; }); obj.id=obj.id||id(); return obj; }); }
+    async function pickFile(kind){ return new Promise(res=>{ const fp=document.getElementById('filePicker'); fp.accept = (kind==='csv')?'.csv':'.json'; fp.onchange=(e)=>{ const f=e.target.files[0]; if(!f) return res(null); const rd=new FileReader(); rd.onload=()=>res({name:f.name, text:rd.result}); rd.readAsText(f); }; fp.click(); }); }
+
+    // ====== Events & Bindings ======
+    document.getElementById('btnApply').addEventListener('click', ()=>{ renderTable(); renderKPI(); });
+    document.getElementById('dsSelect').addEventListener('change', (e)=>{ state.ds=e.target.value; renderTable(); });
+    document.getElementById('btnNewDataset').addEventListener('click', ()=>{ const name=prompt('Nume dataset'); if(!name) return; if(!state.all[name]) state.all[name]=[]; state.schema[name]={}; toast('Dataset creat'); renderTable(); saveLocal(); });
+    document.getElementById('btnDeleteDataset').addEventListener('click', ()=>{ if(confirm('Ștergi datasetul curent?')){ delete state.all[state.ds]; renderTable(); saveLocal(); }});
+
+    document.getElementById('btnImportCSV').addEventListener('click', async ()=>{ const f=await pickFile('csv'); if(!f) return; const rows=parseCSV(f.text); rows.forEach(r=>{ applyRules(r); if(!r.__drop__) (state.all[state.ds]||[]).push(r); }); toast('CSV importat: '+rows.length); saveLocal(); renderTable(); });
+    document.getElementById('btnImportJSON').addEventListener('click', async ()=>{ const f=await pickFile('json'); if(!f) return; try{ const j=JSON.parse(f.text); const arr=Array.isArray(j)?j:(j.items||[]); arr.forEach(r=>{ applyRules(r); if(!r.__drop__) (state.all[state.ds]||[]).push(r); }); toast('JSON importat: '+arr.length); saveLocal(); renderTable(); }catch(e){ toast('JSON invalid','error'); }});
+    document.getElementById('btnExportCSV').addEventListener('click', ()=>{ const rows=state.view||[]; if(!rows.length){ toast('Nimic de exportat','warn'); return; } const header=Object.keys(rows[0]); const lines=[header.join(',')].concat(rows.map(r=> header.map(h=>`"${String(r[h]??'').replace(/"/g,'""')}"`).join(','))); const blob=new Blob([lines.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=state.ds+'.csv'; a.click(); URL.revokeObjectURL(a.href); });
+    document.getElementById('btnExportJSON').addEventListener('click', ()=>{ const blob=new Blob([JSON.stringify(state.view||[],null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=state.ds+'.json'; a.click(); URL.revokeObjectURL(a.href); });
+
+    document.getElementById('btnGenDemo').addEventListener('click', ()=>{ if(state.ds==='bets') state.all.bets.unshift(...demoSeedBets(18)); if(state.ds==='events') state.all.events.unshift(...demoSeedEvents(6)); if(state.ds==='users') state.all.users.unshift(...demoSeedUsers(8)); saveLocal(); renderTable(); renderKPI(); histMonteCarlo(); toast('DEMO adăugat'); });
+
+    document.getElementById('btnSchema').addEventListener('click', editSchema);
+    document.getElementById('btnValidate').addEventListener('click', validate);
+    document.getElementById('btnPipeline').addEventListener('click', ()=> openDrawer('Dataset JSON ('+state.ds+')', state.all[state.ds]||[]));
+    document.getElementById('btnSaveJSON').addEventListener('click', ()=>{ try{ const j=JSON.parse(document.getElementById('jsonEdit').value||'[]'); state.all[state.ds]=j; toast('Salvat'); logAudit('JSON salvat pt '+state.ds); saveLocal(); renderTable(); closeDrawer(); }catch(e){ document.getElementById('jsonState').textContent='JSON invalid'; }});
+    document.getElementById('btnCloseDrawer').addEventListener('click', closeDrawer); document.getElementById('ov').addEventListener('click', closeDrawer);
+
+    document.getElementById('btnPulse').addEventListener('click', ()=>{ renderKPI(); histMonteCarlo(); drawHeat(); toast('Pulse'); });
+    document.getElementById('btnLive').addEventListener('click', ()=> live.on?disconnect():connect());
+    document.getElementById('stake').addEventListener('input', renderTicket);
+    document.getElementById('btnArb').addEventListener('click', arbitrageCalc);
+
+    document.getElementById('btnAddRule').addEventListener('click', ()=>{ const m=document.getElementById('ruleMatch').value.trim(); if(!m){ toast('Regulă goală','warn'); return; } const a=document.getElementById('ruleAction').value; state.rules.push({match:m, action:a}); renderRules(); toast('Regulă adăugată'); });
+    document.getElementById('ruleList').addEventListener('click', (e)=>{ const b=e.target.closest('[data-rm]'); if(!b) return; const i=parseInt(b.dataset.rm,10); state.rules.splice(i,1); renderRules(); });
+
+    document.getElementById('pipe').addEventListener('click', (e)=>{ const b=e.target.closest('[data-step]'); if(!b) return; const t=b.dataset.step; if(t==='filter'){ const arg=prompt('Termen de căutare'); state.steps.push({type:'filter',arg}); } else if(t==='derive'){ state.steps.push({type:'derive'}); } else if(t==='map'){ state.steps.push({type:'map'}); } else if(t==='sample'){ state.steps.push({type:'sample'}); } renderSteps(); });
+    document.getElementById('steps').addEventListener('click', (e)=>{ const b=e.target.closest('[data-del]'); if(!b) return; const i=parseInt(b.dataset.del,10); state.steps.splice(i,1); renderSteps(); });
+    document.getElementById('btnRunPipe').addEventListener('click', runPipe);
+
+    document.getElementById('btnClearAudit').addEventListener('click', ()=>{ document.getElementById('audit').innerHTML=''; });
+
+    // ====== Init ======
+    (function init(){
+      loadLocal(); if((state.all.bets||[]).length===0){ state.all.bets = demoSeedBets(24); state.all.events = demoSeedEvents(8); state.all.users = demoSeedUsers(12); }
+      renderTable(); renderKPI(); drawHeat(); histMonteCarlo(); renderRules(); renderSteps();
+      logAudit('Page boot');
+    })();
+  </script>
+</body>
+</html>
