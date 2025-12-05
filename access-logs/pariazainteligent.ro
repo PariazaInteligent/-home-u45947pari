@@ -1,4 +1,0 @@
-51.68.111.238 - - [24/Nov/2025:15:15:54 +0200] "GET /robots.txt HTTP/1.1" 404 796 "-" "Mozilla/5.0 (compatible; MJ12bot/v2.0.4; http://mj12bot.com/)"
-51.68.111.238 - - [24/Nov/2025:15:15:54 +0200] "GET / HTTP/1.1" 200 2524 "-" "Mozilla/5.0 (compatible; MJ12bot/v2.0.4; http://mj12bot.com/)"
-173.252.70.25 - - [24/Nov/2025:15:49:41 +0200] "GET /robots.txt HTTP/1.1" 404 796 "-" "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
-192.178.6.96 - - [24/Nov/2025:16:56:57 +0200] "GET /robots.txt HTTP/1.1" 404 796 "-" "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
