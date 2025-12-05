@@ -429,7 +429,7 @@ $uid = (int) ($me['id'] ?? 0);
             <h3 class="font-orbitron text-sm text-gray-300">TRANZACȚII RECENTE</h3>
             <i class="fa-solid fa-grip-lines drag-handle text-slate-400 cursor-grab"></i>
         </div>
-        <div id="recentTxList" class="space-y-3">
+        <div id="recentTxList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
             <div class="text-center text-slate-500 text-xs py-4">Se încarcă...</div>
         </div>
     </div>
@@ -791,46 +791,57 @@ $uid = (int) ($me['id'] ?? 0);
         const list = document.getElementById('recentTxList');
         if(!list) return;
         try {
-            await ensureHistoryLoaded();
-            const events = [];
-            // Traverse from end (recent)
-            for(let i = dataAll.length - 1; i >= 0; i--) {
-                const d = dataAll[i];
-                if(d.deposit > 0) events.push({ type: 'deposit', amount: d.deposit, date: d.date, label: 'Depunere' });
-                if(d.withdraw > 0) events.push({ type: 'withdraw', amount: d.withdraw, date: d.date, label: 'Retragere' });
-                if(d.profitDelta !== 0) events.push({ type: 'profit', amount: d.profitDelta, date: d.date, label: d.profitDelta > 0 ? 'Profit' : 'Pierdere' });
-                if(events.length >= 10) break;
-            }
-            
-            recentTransactions = events; // Store for Gemini
+             const res = await fetch('/api/user/recent_transactions.php', { credentials: 'include' });
+            if(!res.ok) throw new Error('http ' + res.status);
+            const data = await res.json();
+            recentTransactions = Array.isArray(data.items) ? data.items : [];
             
             list.innerHTML = '';
-            if(!events.length) {
+            if(!data.ok || !recentTransactions.length) {
                 list.innerHTML = '<div class="text-center text-slate-500 text-xs py-4">Nu există tranzacții recente.</div>';
                 return;
             }
             
-            events.forEach(e => {
-                const isPos = e.type === 'deposit' || (e.type === 'profit' && e.amount > 0);
-                const color = e.type === 'withdraw' ? 'text-white' : (e.amount > 0 ? 'text-green-400' : 'text-rose-400');
-                const icon = e.type === 'deposit' ? 'fa-arrow-down' : (e.type === 'withdraw' ? 'fa-arrow-up' : 'fa-chart-line');
-                const dateStr = e.date.toLocaleDateString('ro-RO', {day:'numeric', month:'short'});
+           const renderItems = recentTransactions.slice(0, 6);
+            const esc = (s = '') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c));
+            renderItems.forEach(t => {
+                const isProfit = t.type === 'profit';
+                const isLoss = t.type === 'pierdere';
+                const isDeposit = t.type === 'deposit';
+                const isWithdraw = t.type === 'withdraw';
+
+                const badge = isDeposit
+                    ? '<span class="px-2 py-1 rounded text-[10px] font-semibold bg-green-500/10 text-green-300 border border-green-400/20">Depunere</span>'
+                    : isWithdraw
+                        ? '<span class="px-2 py-1 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-200 border border-amber-400/20">Retragere</span>'
+                        : isProfit
+                            ? '<span class="px-2 py-1 rounded text-[10px] font-semibold bg-cyan-500/10 text-cyan-200 border border-cyan-400/20">Profit</span>'
+                            : '<span class="px-2 py-1 rounded text-[10px] font-semibold bg-rose-500/10 text-rose-200 border border-rose-400/20">Pierdere</span>';
+
+                const icon = isDeposit ? 'fa-circle-plus' : isWithdraw ? 'fa-wallet' : isProfit ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
+                const signedAmount = (isWithdraw || isLoss) ? -Math.abs(Number(t.amount || 0)) : Math.abs(Number(t.amount || 0));
+                const color = signedAmount >= 0 ? 'text-green-400' : 'text-rose-400';
+                const signPrefix = signedAmount >= 0 ? '+' : '-';
+                const dateObj = t.date ? new Date(t.date) : null;
+                const dateStr = dateObj ? dateObj.toLocaleString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                const details = esc((t.details || '').trim());
                 
                 const div = document.createElement('div');
                 div.className = 'flex justify-between items-center p-3 rounded bg-white/5 border border-white/5 hover:bg-white/10 transition-colors';
                 div.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-xs ${color}">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-sm ${color}">
                             <i class="fa-solid ${icon}"></i>
                         </div>
-                        <div>
-                            <div class="text-xs font-bold text-white">${e.label}</div>
-                            <div class="text-[10px] text-gray-500">${dateStr}</div>
+                         <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                ${badge}
+                                ${details ? `<span class="text-xs text-slate-400 truncate max-w-[220px]">${details}</span>` : ''}
+                            </div>
+                            <div class="text-[11px] text-gray-500">${dateStr}</div>
                         </div>
                     </div>
-                    <div class="text-sm font-bold ${color}">
-                        ${e.amount > 0 ? '+' : ''}${NF_EUR.format(e.amount)}
-                    </div>
+                    <div class="text-sm font-bold ${color}">${signPrefix}${NF_EUR.format(Math.abs(signedAmount))}</div>
                 `;
                 list.appendChild(div);
             });
@@ -919,6 +930,9 @@ $uid = (int) ($me['id'] ?? 0);
       const btn = document.getElementById('chatSend');
       const csrfToken = document.body.dataset.csrfChat || '';
       const meName = document.body.dataset.userName || 'Eu';
+      const esc = (s = '') => String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c] || c));
 
       if (!feed || !form) return;
 
@@ -951,16 +965,18 @@ $uid = (int) ($me['id'] ?? 0);
           const bubbleClass = isMine
             ? 'bg-neon-blue/10 border border-neon-blue/30 text-white rounded-br-none'
             : (m.role === 'ADMIN' ? 'bg-neon-purple/10 border border-neon-purple/30 text-white rounded-bl-none' : 'bg-white/5 border border-white/10 text-gray-300 rounded-bl-none');
+            const timeStr = m.ts ? new Date(m.ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+          const bodyHtml = esc(m.body || '').replace(/\n/g, '<br>');
 
           div.innerHTML = `
                     <div class="flex items-end gap-2 max-w-[90%]">
                        ${!isMine ? `<div class="w-6 h-6 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-[10px] border border-white/10 shrink-0">${initial}</div>` : ''}
                        <div class="rounded-2xl px-4 py-2 text-sm shadow-lg ${bubbleClass}">
                           ${!isMine ? `<div class="flex items-center gap-2 mb-1">
-                                <span class="text-[10px] font-bold ${roleColor}">${e(m.user_name)}</span>
-                                <span class="text-[9px] text-gray-600">${new Date(m.ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span class="text-[10px] font-bold ${roleColor}">${esc(m.user_name || 'Investitor')}</span>
+                                <span class="text-[9px] text-gray-600">${timeStr}</span>
                              </div>` : ''}
-                          ${e(m.body)}
+                           ${bodyHtml}
                        </div>
                     </div>
                 `;
@@ -981,6 +997,7 @@ $uid = (int) ($me['id'] ?? 0);
           await fetch('/api/chat/send.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+            credentials: 'include',
             body: JSON.stringify({ text: txt, csrf_token: csrfToken })
           });
           loadMessages();
@@ -1003,12 +1020,25 @@ $uid = (int) ($me['id'] ?? 0);
         try {
             const range = document.getElementById('dateRange').value;
             const stats = computeStats(range);
-            
+            const txForContext = (recentTransactions || []).map(t => {
+                const isLoss = t.type === 'pierdere';
+                const isWithdraw = t.type === 'withdraw';
+                const signedAmount = (isLoss || isWithdraw) ? -Math.abs(Number(t.amount || 0)) : Math.abs(Number(t.amount || 0));
+                return {
+                    date: t.date,
+                    type: t.type,
+                    status: t.status || null,
+                    amount_eur: signedAmount,
+                    event: t.details || ''
+                };
+            });
+
+            const lastTrade = txForContext.find(t => t.type === 'profit' || t.type === 'pierdere') || txForContext[0] || null;
             const context = {
                 range,
                 history: stats.points.slice(-30),
-                last_trade: recentTransactions.length > 0 ? recentTransactions[0] : null,
-                trades_recent: recentTransactions.slice(0, 5),
+                last_trade: lastTrade,
+                recent_transactions: txForContext.slice(0, 15),
                 investors_count: document.getElementById('lumenInvestors')?.textContent || '800+',
                 question: q
             };
