@@ -1021,12 +1021,22 @@ $uid = (int) ($me['id'] ?? 0);
     })();
 
     // Gemini Logic
-    async function geminiAnalyze() {
-        const q = document.getElementById('geminiQ').value;
-        const out = document.getElementById('geminiOut');
-        if(!q.trim()) return;
-        out.textContent = 'Analizez...';
-        const asNumber = (v) => Number(v || 0);
+async function geminiAnalyze() {
+  kpi('kpi:gemini_click', {});
+  const q = document.getElementById('geminiQ').value.trim();
+  const out = document.getElementById('geminiOut');
+  const err = document.getElementById('geminiErr');
+
+  if (!q) {
+    out.textContent = 'Scrie o întrebare pentru analiză.';
+    return;
+  }
+
+  out.textContent = 'Generez analiză…';
+  if (err) err.classList.add('hidden');
+
+  const asNumber = (v) => Number(v || 0);
+
         
         try {
             await ensureHistoryLoaded();
@@ -1102,25 +1112,47 @@ $uid = (int) ($me['id'] ?? 0);
             };
 
             const r = await fetch('/api/ai/gemini_analyze.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ q, context })
-            });
-            const j = await r.json();
-            if(j && j.text) {
-                if(typeof formatGeminiResponse === 'function') {
-                    out.innerHTML = formatGeminiResponse(j.text);
-                } else {
-                    out.textContent = j.text;
-                }
-            } else {
-                out.textContent = 'Momentan nu pot calcula acest răspuns, încearcă din nou puțin mai târziu.';
-            }
-        } catch(e) {
-            out.textContent = 'Eroare de conexiune.';
-        }
-    }
-    document.getElementById('btnGemini')?.addEventListener('click', geminiAnalyze);
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ q, context })
+});
+
+const j = await r.json().catch(() => null);
+
+if (!r.ok || !j) {
+  throw new Error('http');
+}
+
+if (r.status === 502) {
+  out.textContent = 'Nu am reușit conexiunea către serviciul AI (502). Reîncearcă în câteva secunde.';
+  return;
+}
+
+if (j.ok && j.text) {
+  if (typeof formatGeminiResponse === 'function') {
+    out.innerHTML = formatGeminiResponse(j.text);
+  } else {
+    out.textContent = j.text;
+  }
+} else if (j.error === 'no_api_key' || j.error === 'missing_api_key') {
+  out.textContent = 'Serviciul AI nu este configurat pe server (lipsă API key).';
+} else if (j.error === 'rate_limited') {
+  out.textContent = 'Te rog încearcă din nou în câteva secunde.';
+} else if (j.answer) {
+  // nou: folosește mesajul de eroare prietenos din backend
+  out.textContent = j.answer;
+} else {
+  throw new Error('generic');
+}
+} catch (e) {
+  console.error('Gemini error:', e);
+  out.textContent = '';
+  const err = document.getElementById('geminiErr');
+  if (err) err.classList.remove('hidden');
+}
+}
+document.getElementById('btnGemini')?.addEventListener('click', geminiAnalyze);
+
 
   </script>
 </body>

@@ -5,24 +5,6 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 session_start();
 
-function log_gemini_error(string $message, array $context = []): void
-{
-  $logFile = __DIR__ . '/logs/gemini_analyze.log';
-  $line = '[' . date('Y-m-d H:i:s') . '] ' . $message;
-  if (!empty($context)) {
-    $line .= "\n" . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-  }
-  $line .= "\n" . str_repeat('-', 80) . "\n";
-  file_put_contents($logFile, $line, FILE_APPEND);
-}
-
-function respond(array $payload): void
-{
-  http_response_code(200);
-  echo json_encode($payload, JSON_UNESCAPED_UNICODE);
-  exit;
-}
-
 /* ---------- UTIL ---------- */
 function read_env_value(string $file, string $key): ?string
 {
@@ -105,229 +87,143 @@ $envPath = __DIR__ . '/../config/.env';
 // gemini 2.5 folosește în docuri v1beta
 $API_VER = 'v1beta';
 
+
 $key = read_env_value($envPath, 'GEMINI_API_KEY');
 if (!$key) {
-  respond(['ok' => false, 'answer' => 'Cheia API Gemini nu este configurată.', 'error' => 'missing_api_key']);
+  http_response_code(503);
+  echo json_encode(['ok' => false, 'error' => 'missing_api_key', '.env' => $envPath]);
+  exit;
 }
 
-$userId = (int) ($_SESSION['user']['id'] ?? 0);
-if (!$userId) {
-  respond(['ok' => false, 'answer' => 'Trebuie să fii autentificat pentru a folosi acest serviciu.', 'error' => 'unauthorized']);
-}
-session_write_close();
+/* ---------- CONTEXT ---------- */
+$ctx = ['stage' => 'context'];
 
-require __DIR__ . '/../db.php';
+// Dacă avem context de la frontend, îl folosim
+if ($frontendContext !== null) {
+  $ctx['investor_data'] = $frontendContext;
 
-function scalar_query(PDO $pdo, string $sql, array $params = []): int
-{
-  $st = $pdo->prepare($sql);
-  $st->execute($params);
-  $v = $st->fetchColumn();
-  return (int) ($v === null ? 0 : $v);
-}
-
-try {
-  // ---- global stats ----
-  $total_deposits_cents = scalar_query(
-    $pdo,
-    "SELECT COALESCE(SUM(amount_cents),0) FROM investments WHERE user_id=:uid AND status='succeeded'",
-    ['uid' => $userId]
-  );
-  $count_deposits = scalar_query(
-    $pdo,
-    "SELECT COUNT(*) FROM investments WHERE user_id=:uid AND status='succeeded'",
-    ['uid' => $userId]
-  );
-
-  $total_withdrawals_cents = scalar_query(
-    $pdo,
-    "SELECT COALESCE(SUM(amount_cents + fee_cents),0) FROM withdrawal_requests WHERE user_id=:uid AND status='APPROVED'",
-    ['uid' => $userId]
-  );
-  $count_withdrawals = scalar_query(
-    $pdo,
-    "SELECT COUNT(*) FROM withdrawal_requests WHERE user_id=:uid AND status='APPROVED'",
-    ['uid' => $userId]
-  );
-
-  $pending_withdrawals_cents = scalar_query(
-    $pdo,
-    "SELECT COALESCE(SUM(amount_cents + fee_cents),0) FROM withdrawal_requests WHERE user_id=:uid AND status='PENDING'",
-    ['uid' => $userId]
-  );
-
-  $net_profit_cents = scalar_query(
-    $pdo,
-    "SELECT COALESCE(SUM(amount_cents),0) FROM profit_distributions WHERE user_id=:uid",
-    ['uid' => $userId]
-  );
-
-  $roi_total = $total_deposits_cents > 0
-    ? ($net_profit_cents / $total_deposits_cents) * 100
-    : 0.0;
-
-  $current_balance_cents = ($total_deposits_cents + $net_profit_cents) - $total_withdrawals_cents - $pending_withdrawals_cents;
-  if ($current_balance_cents < 0) {
-    $current_balance_cents = 0;
+  // Adăugăm descriere umană pentru perioada
+  $range = $frontendContext['range'] ?? 'all';
+  switch ($range) {
+    case 'today':
+      $rangeLabel = 'doar ziua de azi';
+      break;
+    case '7d':
+      $rangeLabel = 'ultimele 7 zile';
+      break;
+    case '30d':
+      $rangeLabel = 'ultima lună';
+      break;
+    default:
+      $rangeLabel = 'toată perioada (de la început)';
   }
+  $ctx['period_description'] = "Datele sunt filtrate pentru: {$rangeLabel}";
 
-  // ---- transactions summary ----
-  $profit_positive_cents = scalar_query(
-    $pdo,
-    "SELECT COALESCE(SUM(amount_cents),0) FROM profit_distributions WHERE user_id=:uid AND amount_cents > 0",
-    ['uid' => $userId]
-  );
-  $profit_negative_cents = scalar_query(
-    $pdo,
-    "SELECT COALESCE(SUM(amount_cents),0) FROM profit_distributions WHERE user_id=:uid AND amount_cents < 0",
-    ['uid' => $userId]
-  );
-  $count_profit = scalar_query(
-    $pdo,
-    "SELECT COUNT(*) FROM profit_distributions WHERE user_id=:uid AND amount_cents > 0",
-    ['uid' => $userId]
-  );
-  $count_loss = scalar_query(
-    $pdo,
-    "SELECT COUNT(*) FROM profit_distributions WHERE user_id=:uid AND amount_cents < 0",
-    ['uid' => $userId]
-  );
 
-  // ---- trades ----
-  $tradesStmt = $pdo->prepare(
-    "SELECT pd.created_at, pd.amount_cents, bg.event
-     FROM profit_distributions pd
-     LEFT JOIN bet_groups bg ON pd.bet_group_id = bg.id
-     WHERE pd.user_id = :uid
-     ORDER BY pd.created_at DESC
-     LIMIT 15"
-  );
-  $tradesStmt->execute(['uid' => $userId]);
-  $recent_trades = [];
-  while ($row = $tradesStmt->fetch(PDO::FETCH_ASSOC)) {
-    $amt = (int) $row['amount_cents'];
-    $type = $amt >= 0 ? 'profit' : 'pierdere';
-    $recent_trades[] = [
-      'datetime' => $row['created_at'],
-      'type' => $type,
-      'amount' => round(abs($amt) / 100, 2),
-      'event' => $row['event'] ?? '',
-    ];
-  }
+} else {
+  // Fallback: încercăm să obținem datele direct (comportament vechi)
+  $cookieHdr = 'Cookie: PHPSESSID=' . session_id();
 
-  $last_trade = null;
-  if (!empty($recent_trades)) {
-    $last_trade = $recent_trades[0];
-  }
+  list($c1, $r1) = http_json('https://pariazainteligent.ro/api/user/summary.php?range=today', [$cookieHdr]);
+  if ($c1 === 200 && ($j = json_decode($r1, true)) && !empty($j['ok']))
+    $ctx['today'] = $j;
 
-  $modelData = [
-    'global_stats' => [
-      'total_deposits' => round($total_deposits_cents / 100, 2),
-      'count_deposits' => $count_deposits,
-      'total_withdrawals' => round($total_withdrawals_cents / 100, 2),
-      'count_withdrawals' => $count_withdrawals,
-      'net_profit' => round($net_profit_cents / 100, 2),
-      'roi_total' => round($roi_total, 2),
-      'current_balance' => round($current_balance_cents / 100, 2),
-    ],
-    'transactions_summary' => [
-      'by_type' => [
-        'depunere' => [
-          'count' => $count_deposits,
-          'sum' => round($total_deposits_cents / 100, 2),
-        ],
-        'retragere' => [
-          'count' => $count_withdrawals,
-          'sum' => round($total_withdrawals_cents / 100, 2),
-        ],
-        'profit' => [
-          'count' => $count_profit,
-          'sum' => round($profit_positive_cents / 100, 2),
-        ],
-        'pierdere' => [
-          'count' => $count_loss,
-          'sum' => round(abs($profit_negative_cents) / 100, 2),
-        ],
-      ],
-    ],
-    'last_trade' => $last_trade,
-    'recent_trades' => $recent_trades,
-  ];
+  list($c2, $r2) = http_json('https://pariazainteligent.ro/api/user/summary.php?range=all', [$cookieHdr]);
+  if ($c2 === 200 && ($k = json_decode($r2, true)) && !empty($k['ok']))
+    $ctx['all'] = $k;
 
-  if ($frontendContext !== null) {
-    $modelData['frontend_context'] = $frontendContext;
-  }
-} catch (Throwable $e) {
-  log_gemini_error('db_error', ['message' => $e->getMessage()]);
-  respond(['ok' => false, 'answer' => 'Nu s-au putut încărca datele necesare pentru analiză. Te rugăm să încerci din nou.', 'error' => 'db_error']);
+  list($c3, $r3) = http_json('https://pariazainteligent.ro/api/user/withdrawals/processing_stats.php', [$cookieHdr]);
+  if ($c3 === 200 && ($m = json_decode($r3, true)) && !empty($m['ok']))
+    $ctx['avgProc'] = $m;
 }
 
 /* ---------- PROMPT ---------- */
-$systemPrompt = <<<TXT
-Ești modulul „Analiză Avansată Gemini" pentru platforma Pariază Inteligent.
-Primești întotdeauna un obiect JSON cu:
-- global_stats: depuneri, retrageri, profit net, ROI, sold curent, număr investitori etc.
-- transactions_summary: sumar pe tipuri (depuneri, retrageri, profit, pierderi).
-- last_trade: ultimul trade cu data, tip, sumă și nume eveniment (echipele).
-- recent_trades: lista ultimelor tranzacții de tip profit/pierdere.
+$basePrompt = <<<TXT
+Ești Lumen AI, asistent financiar conversațional pentru platforma Pariază Inteligent.
 
-Rolul tău este să răspunzi la întrebări ale investitorului despre:
-- Ce depuneri are (număr și sumă totală)
-- Câte retrageri a făcut și în ce valoare
-- Ce profit total a obținut până acum
-- Sold curent, randament, evoluția generală
-- Ultimul trade și trade-urile recente (echipe, dată, profit/pierdere)
-- Comparații pe perioade, dacă sunt disponibile în JSON.
+Contextul în care lucrezi:
+- Utilizatorul este INVESTITOR, nu parior. Pariurile sunt plasate exclusiv de administratori.
+- Investitorul poate doar: depune bani, crește/scade investiția, retrage fonduri.
+- Primești un CONTEXT JSON cu date FILTRATE pentru o perioadă specifică (vezi câmpurile "range" și "period_description").
+- În câmpul "investor_data" din acest CONTEXT vei găsi, de regulă:
+  - "range" (perioada selectată),
+  - "kpis" (sume investite, profit, balanță, creștere procentuală),
+  - "history" (evoluția în timp a profitului și a balanței),
+  - "last_trade" (ultimul trade, cu câmpuri: date, type, status, amount_eur, details),
+  - "recent_transactions" (lista ultimelor tranzacții, structurate similar).
+- Dacă întrebarea investitorului este despre ultimul trade sau despre ultimele tranzacții, folosește explicit câmpurile "last_trade" și "recent_transactions".
+- Dacă "details" conține numele echipelor sau tipul pariului, menționează-le clar împreună cu profitul/pierderea "amount_eur".
 
-REGULI:
-- Folosește DOAR datele din JSON-ul primit. Nu inventa sume, date sau evenimente.
-- Dacă o informație lipsește din JSON, spune direct „nu există această informație în datele primite", nu „nu am primit un răspuns valid".
-- Răspunde mereu în limba română, clar și concis, în 2–5 fraze.
-- Când utilizatorul întreabă:
-  - „ce depuneri am?" → răspunzi cu numărul de depuneri și suma totală (ex.: „Ai 5 depuneri, în valoare totală de 1.250 EUR").
-  - „câte retrageri am făcut și în valoare de cât?" → număr retrageri + suma totală.
-  - „cât profit am obținut până în prezent?" → profitul net all time.
-  - „care sunt echipele implicate în ultimul trade și ce profit am făcut?" → folosești câmpul last_trade (event + amount + data).
+IMPORTANT - Stilul tău de răspuns:
+- Răspunde DIRECT și CONCIS la întrebarea investitorului. Nu urmări un template fix.
+- Dacă întrebarea e simplă ("Cât profit am făcut?"), răspunde în 1-3 propoziții scurte cu cifra exactă și context minimal.
+- Dacă întrebarea e complexă ("De ce a scăzut balanța?"), oferă explicația cauzală în 3-5 bullet-uri.
+- NU oferi informații nesolicitate. Investitorul întreabă ce vrea să știe; dacă vrea mai mult, va întreba din nou.
+- Fii UMAN și conversațional, nu robotic. Vorbește ca un analist prietenos care își respectă timpul clientului.
+
+Reguli de conținut:
+- LUCREZI doar cu datele din CONTEXT. Nu inventa valori numerice noi.
+- NU cere date suplimentare și NU te plângi că "lipsesc informații". Lucrează cu ce ai.
+- Dacă în context există "last_trade" sau "recent_transactions", NU spune că „nu ai informații despre echipe” și NU repeta că „platforma lucrează doar cu date agregate”. În schimb, construiește răspunsul pe baza câmpurilor primite (în special "details" și "amount_eur").
+- NU da recomandări despre plasarea pariurilor (mize, cote, bilete, stake plan, stop-loss).
+- Recomandările pot fi DOAR la nivel de investitor: capital investit, risc, orizont de timp, frecvență retrageri/depuneri.
+- Răspunzi în română, clar, fără promisiuni sau garanții.
+
+Formatare:
+- Folosește rânduri noi între idei pentru lizibilitate.
+- Bold (** **) doar pentru 2-3 cifre sau concepte cheie esențiale (profit, creștere %, perioadă, echipe).
+- Dacă răspunsul tău are mai mult de 5 bullet-uri, probabil oferi prea multe informații nesolicitate – revizuiește.
+
+ATENȚIE: Citește cu atenție întrebarea investitorului și răspunde STRICT la ea, folosind cât mai bine datele din CONTEXT JSON.
 TXT;
 
-$promptData = json_encode($modelData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
-// Construim mesajul complet: system prompt + context + întrebarea investitorului
-$fullPrompt = $systemPrompt . "\n\n---\n\nDATE DE CONTEXT (JSON):\n" . $promptData . "\n\n---\n\nÎNTREBARE INVESTITOR:\n" . $q;
+$prompt =
+  $basePrompt
+  . "\n\n=== CONTEXT JSON ===\n"
+  . json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+  . "\n\n=== ÎNTREBAREA INVESTITORULUI ===\n"
+  . $q;
 
-// Payload corect pentru API-ul Gemini (v1beta/generateContent)
-// IMPORTANT: Nu folosim systemInstruction pentru că nu este suportat în v1beta
-// În schimb, combinăm totul într-un singur mesaj de tip user
+
+/* ---------- GEMINI CALL (cu fallback) ---------- */
+$models = [
+  'gemini-2.5-flash',      // default: rapid + ieftin
+  'gemini-2.5-flash-lite', // fallback mai ieftin
+  'gemini-2.5-pro',        // fallback mai „deștept”
+];
+
+
 $payload = [
   'contents' => [
     [
-      'role' => 'user',
       'parts' => [
-        ['text' => $fullPrompt],
+        ['text' => $prompt],
       ],
     ],
   ],
   'generationConfig' => [
     'temperature' => 0.4,
     'topP' => 0.9,
+    // îi dăm mai mult loc de răspuns textual
     'maxOutputTokens' => 1024,
+    // dezactivăm thinking-ul care mănâncă tot bugetul
+    'thinkingConfig' => [
+      'thinkingBudget' => 0,
+    ],
   ],
+
 ];
 
-/* ---------- GEMINI CALL (cu fallback) ---------- */
-$models = [
-  'gemini-1.5-flash',      // model stabil și rapid
-  'gemini-1.5-pro',        // fallback mai puternic
-];
 
 $gc = 0;
 $gr = '';
 $ge = null;
 $usedModel = null;
-
 foreach ($models as $m) {
   $endpoint = "https://generativelanguage.googleapis.com/{$API_VER}/models/{$m}:generateContent";
 
+  // cheie în header, cum cere docul actual
   list($gc, $gr, $ge) = http_json(
     $endpoint,
     ["x-goog-api-key: {$key}"],
@@ -340,44 +236,25 @@ foreach ($models as $m) {
     break;
   }
 
-  // Dacă nu e 404 (model inexistent), oprim încercările
+  // dacă nu e 404 (model inexistent), nu mai are sens să încercăm altele
   if ($gc !== 404) {
     break;
   }
 }
 
-// Tratăm erorile HTTP
 if ($gc !== 200) {
-  $errorBody = substr((string) $gr, 0, 2000);
-  log_gemini_error('gemini_http_error', [
-    'status' => $gc,
-    'body' => $errorBody,
-    'curl_err' => $ge,
-    'payload_sent' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
-  ]);
-
-  $userMessage = 'Momentan există o problemă tehnică cu serviciul de analiză AI. Echipa noastră a fost notificată și lucrează la rezolvare.';
-
-  if ($gc === 400) {
-    $userMessage = 'Formatul cererii către AI este incorect. Am înregistrat eroarea pentru investigare.';
-  } elseif ($gc === 401 || $gc === 403) {
-    $userMessage = 'Există o problemă cu autentificarea serviciului AI. Te rugăm să contactezi suportul tehnic.';
-  } elseif ($gc === 429) {
-    $userMessage = 'Am atins limita de cereri către serviciul AI. Te rugăm să încerci din nou în câteva minute.';
-  } elseif ($gc >= 500) {
-    $userMessage = 'Serviciul AI este temporar indisponibil. Te rugăm să încerci din nou în câteva momente.';
-  }
-
-  respond([
+  http_response_code(502);
+  echo json_encode([
     'ok' => false,
-    'answer' => $userMessage,
     'error' => "gemini_http_{$gc}",
-  ]);
+    'detail' => $gr ? substr($gr, 0, 800) : null,
+  ], JSON_UNESCAPED_UNICODE);
+  exit;
 }
 
 $resp = json_decode($gr, true);
 
-// Încercăm să extragem primul text non-gol din candidați
+// încercăm să extragem primul text non-gol din candidați
 $text = '';
 
 if (isset($resp['candidates']) && is_array($resp['candidates'])) {
@@ -394,29 +271,31 @@ if (isset($resp['candidates']) && is_array($resp['candidates'])) {
   }
 }
 
-// Dacă modelul a blocat răspunsul (safety), trimitem eroare clară
+// dacă modelul a blocat răspunsul (safety), trimitem eroare clară
 if ($text === '' && isset($resp['promptFeedback']['blockReason'])) {
-  log_gemini_error('gemini_blocked', ['feedback' => $resp['promptFeedback']]);
-  respond([
+  http_response_code(502);
+  echo json_encode([
     'ok' => false,
-    'answer' => 'Cererea ta a fost blocată de filtrul de siguranță al AI-ului. Te rugăm să reformulezi întrebarea.',
     'error' => 'gemini_blocked',
-  ]);
+    'detail' => $resp['promptFeedback'],
+  ], JSON_UNESCAPED_UNICODE);
+  exit;
 }
 
-// Dacă tot nu avem text, considerăm răspuns gol și dăm detalii pentru debug
+// dacă tot nu avem text, considerăm răspuns gol și dăm detalii pentru debug
 if ($text === '') {
-  log_gemini_error('gemini_empty_response', ['body' => substr((string) $gr, 0, 2000)]);
-  respond([
+  http_response_code(502);
+  echo json_encode([
     'ok' => false,
-    'answer' => 'AI-ul nu a putut genera un răspuns. Te rugăm să încerci din nou cu o altă întrebare.',
     'error' => 'gemini_empty_response',
-  ]);
+    'detail' => substr($gr ?? '', 0, 800),
+  ], JSON_UNESCAPED_UNICODE);
+  exit;
 }
 
-respond([
+// succes: trimitem textul către frontend
+echo json_encode([
   'ok' => true,
-  'answer' => $text,
-  'error' => null,
   'model' => $usedModel,
-]);
+  'text' => $text,
+], JSON_UNESCAPED_UNICODE);
