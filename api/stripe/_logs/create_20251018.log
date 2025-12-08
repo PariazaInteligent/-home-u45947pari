@@ -1,1 +1,0 @@
-[2025-10-18 22:14:02] PHP[2] require(/home/u45947pari/public_html/api/stripe/../config.php): Failed to open stream: No such file or directory at /home/u45947pari/public_html/api/stripe/create_checkout_session.php:34
