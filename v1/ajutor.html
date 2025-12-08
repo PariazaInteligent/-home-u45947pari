@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Centrul de Ajutor & Feedback — Banca Comună de Investiții</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{ --acc-1:#2563eb; --acc-2:#06b6d4; --acc-3:#14b8a6; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .hero-gradient { background: radial-gradient(1200px 600px at 10% -10%, rgba(37,99,235,.35), transparent 50%),
+                                  radial-gradient(900px 500px at 110% 10%, rgba(6,182,212,.25), transparent 50%),
+                                  linear-gradient(135deg, rgba(20,184,166,.18), transparent 60%); }
+    .acc-gradient { background: linear-gradient(90deg, var(--acc-1), var(--acc-2), var(--acc-3)); }
+    .glass { background: rgba(15,23,42,.75); backdrop-filter: blur(10px); }
+    .glow { box-shadow: 0 10px 30px rgba(34,211,238,.25), inset 0 0 0 1px rgba(255,255,255,.06); }
+    .card { border: 1px solid rgba(255,255,255,.08); border-radius: 1rem; background: rgba(2,6,23,.5); }
+    .card-hover { transition: transform .25s ease, box-shadow .25s ease, background .25s ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 18px 50px rgba(0,0,0,.35); background: rgba(2,6,23,.65); }
+    .nice-scroll::-webkit-scrollbar{ width:8px;} .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.15); border-radius:8px;}
+    .badge { padding:.25rem .5rem; border-radius:.5rem; font-size:.75rem; }
+    .toast{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;border-radius:.75rem;border:1px solid rgba(255,255,255,.12);background:rgba(2,6,23,.95);backdrop-filter:blur(6px)}
+    .toast.success{border-color:rgba(34,197,94,.35)}
+    .toast.warn{border-color:rgba(234,179,8,.35)}
+    .toast.error{border-color:rgba(239,68,68,.35)}
+    .table-head { background: rgba(255,255,255,.04); position: sticky; top: 0; backdrop-filter: blur(6px); }
+    .kbd{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);padding:.15rem .35rem;border-radius:.4rem;font-size:.75rem}
+    .pulse{ position:relative; }
+    .pulse:after{ content:""; position:absolute; inset:-2px; border-radius:inherit; border:2px solid rgba(34,211,238,.25); animation:pulse 2s infinite; }
+    @keyframes pulse{ 0%{transform:scale(1); opacity:.9} 70%{transform:scale(1.07); opacity:0} 100%{transform:scale(1.07); opacity:0} }
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);display:none;}
+    .overlay.show{display:block;}
+    .sheet{position:fixed;right:-520px;top:0;height:100%;width:520px;max-width:100%;background:rgba(2,6,23,.96);border-left:1px solid rgba(255,255,255,.08);transition:right .25s ease;}
+    .sheet.show{right:0}
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <!-- Toasts -->
+  <div id="toasts" class="fixed top-4 right-4 z-[80] space-y-2"></div>
+
+  <!-- NAV / TOPBAR -->
+  <header class="sticky top-0 z-50 bg-slate-950/70 backdrop-blur border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl acc-gradient text-slate-900 font-extrabold glow">PI</span>
+        <div>
+          <div class="font-semibold tracking-wide">Pariază Inteligent</div>
+          <div class="text-xs text-slate-400 -mt-0.5">Centrul de Ajutor & Feedback</div>
+        </div>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+        <a class="hover:text-white" href="/layout.html#dashboard">Dashboard</a>
+        <a class="hover:text-white" href="/investitii.html">Investiții</a>
+        <a class="hover:text-white" href="/retragere.html">Retrageri</a>
+        <a class="hover:text-white" href="/profil.html">Profil</a>
+      </nav>
+      <div class="flex items-center gap-2 text-sm">
+        <a href="/layout.html#dashboard" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-arrow-left mr-2"></i>Înapoi</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 hero-gradient"></div>
+    <div class="max-w-7xl mx-auto px-4 py-8 md:py-12 relative">
+      <div class="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold">Centrul de Ajutor & Feedback</h1>
+          <p class="text-slate-300 max-w-2xl">Răspunsuri instant, depanare inteligentă și canale directe către echipă. Totul într-o singură scenă — estetică BancaComuna v1, nivel „altă lume”.</p>
+        </div>
+        <div class="text-sm text-slate-400 flex items-center gap-3">
+          <i class="fa-solid fa-signal text-emerald-300"></i> Status: <span id="statusDot" class="inline-flex w-2 h-2 rounded-full bg-emerald-400"></span><span id="statusText">operational</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-4 pb-24 space-y-6">
+    <!-- Comenzi rapide -->
+    <section class="card card-hover p-4">
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <span class="text-slate-400">Comenzi rapide:</span>
+        <button data-qa="notif" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-bell mr-1"></i>Rezolvă Alerte Desktop & Sunet</button>
+        <button data-qa="cache" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-broom mr-1"></i>Curăță cache local</button>
+        <button data-qa="ticket" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-ticket mr-1"></i>Creează tichet</button>
+        <button data-qa="export" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-file-export mr-1"></i>Exportă tichete</button>
+        <span class="ml-auto text-slate-500">Apasă <span class="kbd">?</span> pentru scurtături.</span>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Coloana 1: Căutare & Bază de cunoștințe -->
+      <section class="lg:col-span-1 card card-hover p-5" id="cardKB">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold">Bază de cunoștințe</h2>
+          <button id="btnOpenAllArticles" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Toate articolele</button>
+        </div>
+        <div>
+          <input id="kbSearch" placeholder="Caută (ex: sunet, retragere, taxă)" class="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm"/>
+          <div id="kbHints" class="mt-2 flex flex-wrap gap-2 text-xs">
+            <button data-kbhint="sunet" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">sunet</button>
+            <button data-kbhint="notificări" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">notificări</button>
+            <button data-kbhint="retragere" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">retragere</button>
+            <button data-kbhint="taxă dinamică" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">taxă dinamică</button>
+          </div>
+        </div>
+        <div id="kbResults" class="mt-3 space-y-2 max-h-[360px] overflow-auto nice-scroll"></div>
+      </section>
+
+      <!-- Coloana 2: Lumen AI (demo local) + Ghiduri interactive -->
+      <section class="lg:col-span-2 card card-hover p-5" id="cardAI">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold">Lumen AI — Asistentul tău</h2>
+          <div class="text-xs text-slate-400">Răspunsuri locale + legături către pagini</div>
+        </div>
+        <div id="aiThread" class="rounded-xl border border-white/10 bg-slate-900/60 p-3 space-y-3 max-h-[340px] overflow-auto nice-scroll"></div>
+        <div class="mt-3 flex items-center gap-2">
+          <input id="aiInput" placeholder="Întreabă: „Nu aud sunetele alertelor” sau „Cum fac o retragere?”" class="flex-1 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm"/>
+          <button id="aiSend" class="rounded-xl px-4 py-2 acc-gradient text-slate-900 font-semibold text-sm">Trimite</button>
+        </div>
+        <div class="mt-2 text-xs text-slate-400">Sugestii: <button data-aiq="nu aud sunetele alertelor" class="underline hover:text-white">nu aud sunetele alertelor</button> • <button data-aiq="explică taxa dinamică la retrageri" class="underline hover:text-white">explică taxa dinamică</button> • <button data-aiq="cum export istoricul de tranzacții" class="underline hover:text-white">export istoric</button></div>
+      </section>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Coloana 1: Raportează & Feedback -->
+      <section class="card card-hover p-5" id="cardTicket">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold">Raportează & Feedback</h2>
+          <span id="ticketCount" class="text-xs text-slate-400">—</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <div>
+            <label class="text-slate-300">Tip</label>
+            <select id="tType" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <option>Bug</option>
+              <option>Îmbunătățire</option>
+              <option>Întrebare</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-slate-300">Severitate</label>
+            <select id="tSev" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <option>minor</option>
+              <option>major</option>
+              <option>critic</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-slate-300">Subiect</label>
+            <input id="tTitle" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2" placeholder="Ex: Nu aud sunetul notificărilor"/>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-slate-300">Descriere</label>
+            <textarea id="tBody" rows="4" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2" placeholder="Pași de reproducere, ce ai încercat, ce te așteptai să se întâmple..."></textarea>
+          </div>
+          <div>
+            <label class="text-slate-300">Atașamente</label>
+            <input id="tFiles" type="file" multiple class="mt-1 w-full text-xs"/>
+          </div>
+          <div class="flex flex-col justify-end">
+            <label class="inline-flex items-center gap-2 text-xs"><input id="tSys" type="checkbox" checked> Include info sistem</label>
+            <label class="inline-flex items-center gap-2 text-xs mt-1"><input id="tLogs" type="checkbox" checked> Include jurnal local</label>
+          </div>
+          <div>
+            <label class="text-slate-300">Email (opțional)</label>
+            <input id="tEmail" type="email" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2" placeholder="pentru follow‑up"/>
+          </div>
+          <div>
+            <label class="text-slate-300">NPS</label>
+            <input id="tNps" type="range" min="0" max="10" value="9" class="w-full"/>
+            <div class="text-xs text-slate-400"><span id="tNpsVal">9</span>/10 — cât de probabil recomanzi PI unui prieten?</div>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="btnSendTicket" class="rounded-xl px-4 py-2 acc-gradient text-slate-900 font-semibold">Trimite tichet</button>
+          <button id="btnExportTickets" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-xs"><i class="fa-solid fa-file-export mr-1"></i>Exportă JSON</button>
+          <button id="btnClearTickets" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-xs"><i class="fa-solid fa-trash mr-1"></i>Șterge locale</button>
+          <span id="ticketState" class="ml-auto text-xs text-slate-400"></span>
+        </div>
+        <div class="mt-4">
+          <div class="table-head grid grid-cols-12 px-3 py-2 text-xs text-slate-300">
+            <div class="col-span-3">ID</div>
+            <div class="col-span-3">Subiect</div>
+            <div class="col-span-2">Tip</div>
+            <div class="col-span-2">Severitate</div>
+            <div class="col-span-2">Stare</div>
+          </div>
+          <div id="ticketList" class="divide-y divide-white/5 max-h-56 overflow-auto nice-scroll text-sm"></div>
+          <div id="ticketEmpty" class="hidden text-sm text-slate-400 p-3">Niciun tichet local. Trimite unul și îl vei vedea aici.</div>
+        </div>
+      </section>
+
+      <!-- Coloana 2: Status & Diagnostic Center -->
+      <section class="lg:col-span-2 card card-hover p-5" id="cardDiag">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold">Diagnostic Center</h2>
+          <div class="text-xs text-slate-400">Instrumente de depanare & status live</div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="font-medium mb-1">Status Sistem</div>
+            <ul id="statusList" class="space-y-1 text-sm"></ul>
+            <div class="flex gap-2 mt-2">
+              <button id="btnRefreshStatus" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Reîmprospătează</button>
+              <button id="btnRunTests" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Rulează self‑tests</button>
+              <span id="testBadge" class="ml-auto badge bg-white/10">—</span>
+            </div>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="font-medium mb-1">Verificator Notificări & Sunet</div>
+            <div class="space-y-2 text-sm">
+              <div>Notificări desktop: <span id="notifPerm" class="badge bg-white/10">—</span></div>
+              <div class="flex items-center gap-2 text-xs">
+                <button id="btnReqNotify" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Permite</button>
+                <button id="btnTestNotify" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Test notificare</button>
+              </div>
+              <div class="pt-2 border-t border-white/10">Sunet alertă: <span id="audioState" class="badge bg-white/10">—</span></div>
+              <div class="flex items-center gap-2 text-xs">
+                <button id="btnUnlockAudio" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Dezblochează audio</button>
+                <button id="btnTestBeep" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Test beep</button>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="font-medium mb-1">Informații Sistem</div>
+            <ul id="sysInfo" class="text-xs text-slate-300 space-y-1"></ul>
+            <button id="btnCopySys" class="mt-2 rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Copiază</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Changelog -->
+    <section class="card card-hover p-5" id="cardChangelog">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="font-semibold">Changelog & Noutăți</h2>
+        <div class="text-xs text-slate-400">Demo local</div>
+      </div>
+      <ul id="logList" class="space-y-2 text-sm"></ul>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 text-sm text-slate-400 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>© <span id="year"></span> Pariază Inteligent — Centrul de Ajutor & Feedback</div>
+      <div class="flex items-center gap-4">
+        <a class="hover:text-white" href="/layout.html#dashboard">Dashboard</a>
+        <a class="hover:text-white" href="/profil.html">Profil</a>
+        <a class="hover:text-white" href="/logout.php">Deconectare</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Article sheet -->
+  <div id="ov" class="overlay"></div>
+  <aside id="sheet" class="sheet">
+    <div class="h-full flex flex-col">
+      <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+        <div class="font-semibold">Articol</div>
+        <button id="btnCloseSheet" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="sheetBody" class="p-4 text-sm overflow-auto nice-scroll space-y-3"></div>
+    </div>
+  </aside>
+
+  <script>
+  (async function(){
+    'use strict';
+    // ===== Bootstrap =====
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // ===== Toast helper =====
+    function toast(msg, type='success'){
+      const t=document.createElement('div');
+      t.className='toast '+type;
+      t.innerHTML = "<i class='fa-solid "+(type==='success'?"fa-circle-check":type==='warn'?"fa-triangle-exclamation":"fa-circle-exclamation")+"'></i><span>"+msg+"</span>";
+      document.getElementById('toasts').appendChild(t);
+      setTimeout(()=>t.remove(), 3200);
+    }
+
+    // ===== Local store keys =====
+    const LS_TICKETS='bcv1_tickets';
+
+    // ===== Demo content: Knowledge base =====
+    const KB=[
+      {id:'kb-notify-sound', title:'Nu aud sunetele notificărilor', tags:['sunet','notificări','audio','permisiuni'], body:`
+        <p>Verificări rapide:</p>
+        <ol class="list-decimal ml-5 space-y-1">
+          <li>Asigură-te că ai apăsat <em>Dezblochează audio</em> în <strong>Diagnostic Center</strong>.</li>
+          <li>Permite <em>Notificări desktop</em> (HTTPS sau localhost).</li>
+          <li>În sistemul tău de operare, verifică dacă site-ul nu este pe <em>mute</em>.</li>
+          <li>În <em>Centrul de Notificări</em>, setează <em>Sunete: Toate</em> și apasă <em>Sunet test</em>.</li>
+        </ol>
+        <p class="mt-2 text-xs text-slate-400">Dacă persistă, atașează un tichet cu <em>Include jurnal local</em>.</p>
+      `},
+      {id:'kb-withdraw-fee', title:'Cum se calculează taxa dinamică la retrageri (model on-top)', tags:['taxă','retragere','dinamic','surge'], body:`
+        <p>Taxa de Platformă este dinamică și depinde de trei factori: <strong>numărul de investitori</strong>, <strong>cererile în așteptare</strong> și <strong>lichiditatea</strong>. În <em>modelul on‑top</em> primești suma integrală, iar balanța scade cu <em>sumă + taxă</em>.</p>
+        <p>Vezi <a class='underline' href='/retragere.html' target='_blank'>Pagina de Retrageri</a> &rarr; <em>Laborator Taxă Dinamică</em> pentru un simulator interactiv.</p>
+      `},
+      {id:'kb-export-history', title:'Cum export istoricul de tranzacții (CSV / PDF / XLSX)', tags:['export','istoric','profil'], body:`
+        <p>Deschide <a class='underline' href='/profil.html' target='_blank'>Profil & Setări</a> și folosește butoanele din <em>Istoric Tranzacții</em>. Pentru PDF, pagina generează un snapshot al tabelului cu <em>html2canvas + jsPDF</em>.</p>
+      `},
+      {id:'kb-security-login', title:'Am detectat o autentificare nouă — ce fac?', tags:['securitate','autentificare'], body:`
+        <p>Dacă nu ești tu, schimbă parola imediat și activează alertele. Verifică mesajele din <em>Profil & Setări</em> și marchează alertă ca citită.</p>
+      `}
+    ];
+
+    // ===== UI helpers =====
+    function renderKB(list){
+      const box=document.getElementById('kbResults'); box.innerHTML='';
+      if(!list.length){ const d=document.createElement('div'); d.className='text-sm text-slate-400'; d.textContent='Niciun rezultat. Încearcă alt termen.'; box.appendChild(d); return; }
+      list.slice(0,20).forEach(a=>{
+        const it=document.createElement('div'); it.className='rounded-xl border border-white/10 bg-slate-900/60 p-3 card-hover';
+        it.innerHTML = `<div class='flex items-center justify-between'>
+          <div class='font-medium'>${a.title}</div>
+          <button data-open='${a.id}' class='rounded-lg px-2 py-1 text-xs border border-white/10 hover:border-white/20'>Deschide</button>
+        </div>
+        <div class='mt-1 text-xs text-slate-400'>${(a.tags||[]).map(t=>`<span class='badge bg-white/10 mr-1'>#${t}</span>`).join('')}</div>`;
+        box.appendChild(it);
+      });
+    }
+    function openArticle(id){
+      const a = KB.find(x=>x.id===id); if(!a) return; const s=document.getElementById('sheet'); const o=document.getElementById('ov');
+      const body=document.getElementById('sheetBody'); body.innerHTML = `<div class='text-xl font-semibold'>${a.title}</div><div class='prose prose-invert max-w-none'>${a.body}</div>`;
+      o.classList.add('show'); s.classList.add('show');
+    }
+    function closeArticle(){ document.getElementById('ov').classList.remove('show'); document.getElementById('sheet').classList.remove('show'); }
+
+    // Simple search scoring
+    function scoreArticle(a,q){ q=q.toLowerCase(); const hay = (a.title+' '+(a.tags||[]).join(' ')+' '+a.body.replace(/<[^>]+>/g,' ')).toLowerCase(); let s=0; q.split(/\s+/).forEach(t=>{ if(!t) return; if(hay.includes(t)) s+= hay.split(t).length-1; }); return s; }
+
+    // ===== Lumen AI (local demo) =====
+    const aiThread=document.getElementById('aiThread');
+    function pushMsg(author,html){
+      const wrap=document.createElement('div'); const isAI=author==='ai';
+      wrap.className='flex '+(isAI?'justify-start':'justify-end');
+      wrap.innerHTML = `<div class='max-w-[85%] rounded-xl border border-white/10 ${isAI?'bg-slate-900/60':'acc-gradient text-slate-900'} px-3 py-2 text-sm'>${html}</div>`;
+      aiThread.appendChild(wrap); aiThread.scrollTop=aiThread.scrollHeight;
+    }
+    function aiReply(q){
+      const t=q.trim().toLowerCase();
+      if(!t){ pushMsg('ai',`Întrebare goală. Îți pot explica <em>taxa dinamică</em> sau te pot ghida să <em>pornești notificările</em>.`); return; }
+      if(t.includes('sunet')||t.includes('alert')||t.includes('notific')){
+        pushMsg('ai',`Sună a problemă de permisiuni / audio. Deschide <strong>Diagnostic Center</strong>, apasă <em>Permite</em> la notificări și <em>Dezblochează audio</em>. Poți testa cu butoanele <em>Test notificare</em> și <em>Test beep</em>.`);
+        return;
+      }
+      if(t.includes('tax')||t.includes('retrag')){
+        pushMsg('ai',`Taxa de platformă este <em>dinamică</em> și <em>on‑top</em>: primești suma integrală, iar balanța scade cu <em>sumă + taxă</em>. Deschide <a class='underline' href='/retragere.html' target='_blank'>Retrageri</a> și folosește <em>Laborator Taxă</em> pentru a simula.`);
+        return;
+      }
+      if(t.includes('export')){ pushMsg('ai',`Exportul se face din <a class='underline' href='/profil.html' target='_blank'>Profil & Setări</a> → <em>Istoric Tranzacții</em>. Ai opțiuni CSV, XLSX, PDF.`); return; }
+      // fallback: căutare în KB
+      const res = KB.map(a=>({a, s:scoreArticle(a,t)})).filter(x=>x.s>0).sort((x,y)=>y.s-x.s).map(x=>x.a);
+      if(res.length){ pushMsg('ai', `Am găsit ceva relevant: <button data-open='${res[0].id}' class='underline'>${res[0].title}</button>.`); }
+      else { pushMsg('ai',`Încă învăț. Poți <button data-qa='ticket' class='underline'>crea un tichet</button> și atașa detalii.`); }
+    }
+
+    // ===== Tickets =====
+    function uid(){ return 'T-'+Math.random().toString(36).slice(2,6)+Date.now().toString(36).slice(-4); }
+    function loadTickets(){ try{ return JSON.parse(localStorage.getItem(LS_TICKETS)||'[]'); }catch(e){ return []; } }
+    function saveTickets(list){ localStorage.setItem(LS_TICKETS, JSON.stringify(list)); }
+    function sysFingerprint(){
+      return {
+        userAgent: navigator.userAgent,
+        lang: navigator.language,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        screen: `${screen.width}x${screen.height}@${window.devicePixelRatio||1}`,
+        platform: navigator.platform,
+        cookies: navigator.cookieEnabled,
+        url: location.href,
+        now: new Date().toISOString()
+      };
+    }
+    function localLogs(){
+      try{
+        return {
+          localStorageKeys: Object.keys(localStorage).filter(k=>k.startsWith('bcv1_')),
+          notifyPerm: (window.Notification?Notification.permission:'unsupported'),
+        };
+      }catch(e){ return {}; }
+    }
+    function renderTickets(){
+      const list = loadTickets(); const body=document.getElementById('ticketList'); const empty=document.getElementById('ticketEmpty'); body.innerHTML='';
+      document.getElementById('ticketCount').textContent = list.length+" locale";
+      if(!list.length){ empty.classList.remove('hidden'); return; } empty.classList.add('hidden');
+      list.slice().reverse().forEach(t=>{
+        const row=document.createElement('div'); row.className='grid grid-cols-12 px-3 py-2';
+        row.innerHTML = `<div class='col-span-3 text-xs'>${t.id}</div><div class='col-span-3 truncate'>${t.title}</div><div class='col-span-2 text-xs'>${t.type}</div><div class='col-span-2 text-xs'>${t.sev}</div><div class='col-span-2 text-xs'>${t.state}</div>`;
+        body.appendChild(row);
+      });
+    }
+
+    // ===== Status =====
+    async function loadStatus(){
+      try{ const r=await fetch('/api/status'); if(!r.ok) throw 0; const j=await r.json(); return j.components||[{name:'API',status:'operational'},{name:'DB',status:'operational'},{name:'Plăți',status:'operational'}]; }
+      catch(e){ return [
+        {name:'API', status:'operational'},
+        {name:'DB', status: 'degraded'},
+        {name:'Plăți', status:'operational'}
+      ]; }
+    }
+    function renderStatus(items){
+      const ul=document.getElementById('statusList'); ul.innerHTML='';
+      let global='operational';
+      items.forEach(c=>{
+        const color = c.status==='operational'?'text-emerald-300':(c.status==='degraded'?'text-amber-300':'text-rose-300');
+        const li=document.createElement('li'); li.innerHTML = `<i class='fa-solid fa-circle ${color} mr-2'></i>${c.name} — <span class='text-slate-300'>${c.status}</span>`;
+        ul.appendChild(li);
+        if(c.status!=='operational') global=c.status;
+      });
+      const dot=document.getElementById('statusDot'); const txt=document.getElementById('statusText');
+      dot.className = 'inline-flex w-2 h-2 rounded-full '+(global==='operational'?'bg-emerald-400':global==='degraded'?'bg-amber-400':'bg-rose-400');
+      txt.textContent = global;
+    }
+
+    // ===== Notifications & Audio =====
+    const audio = { ctx:null };
+    function updateNotifPerm(){
+      const el=document.getElementById('notifPerm');
+      if(!('Notification' in window)){ el.textContent='nesuportat'; el.className='badge bg-rose-500/15 text-rose-200'; return; }
+      el.textContent = Notification.permission; el.className = 'badge '+(Notification.permission==='granted'?'bg-emerald-500/15 text-emerald-200':Notification.permission==='denied'?'bg-rose-500/15 text-rose-200':'bg-amber-500/15 text-amber-200');
+    }
+    async function reqNotify(){
+      try{
+        if(!('Notification' in window)){ toast('Browserul tău nu suportă notificări','warn'); return; }
+        if(!window.isSecureContext){ toast('Permisiunea necesită HTTPS sau localhost.','warn'); updateNotifPerm(); return; }
+        const p=await Notification.requestPermission(); updateNotifPerm();
+        if(p==='granted'){ new Notification('Notificări activate',{ body:'Vei primi alerte în colțul ecranului.'}); toast('Notificările au fost activate.'); }
+      }catch(e){ toast('Eroare: '+e.message,'error'); }
+    }
+    function testNotify(){ if('Notification' in window && Notification.permission==='granted'){ new Notification('Test notificare',{ body:'Dacă vezi asta, permisiunea funcționează.'}); } else { toast('Permisiune neacordată.','warn'); } }
+
+    function ensureAudioCtx(){ if(!audio.ctx){ try{ audio.ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return audio.ctx; }
+    function unlockAudio(){ try{ const ctx=ensureAudioCtx(); if(ctx && ctx.state==='suspended'){ ctx.resume(); } document.getElementById('audioState').textContent='ready'; document.getElementById('audioState').className='badge bg-emerald-500/15 text-emerald-200'; toast('Audio gata de redare'); }catch(e){ toast('Audio indisponibil','warn'); } }
+    function beep(){ try{ const ctx=ensureAudioCtx(); if(!ctx) throw 0; const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='square'; o.frequency.value=880; g.gain.value=0.1; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.15); }catch(e){ toast('Nu am putut reda beep.','warn'); } }
+
+    // ===== Changelog demo =====
+    const CHANGELOG=[
+      {ts:'2025-10-01', title:'Lansare Centrul de Ajutor', body:'AI local + tichete + diagnostic notificări/audio.'},
+      {ts:'2025-09-21', title:'Status public', body:'Afișare status componente cu degrade/operational.'},
+      {ts:'2025-09-05', title:'Export tichete', body:'Export JSON pentru raportare rapidă.'}
+    ];
+    function renderLog(){ const ul=document.getElementById('logList'); ul.innerHTML=''; CHANGELOG.forEach(l=>{ const li=document.createElement('li'); li.className='rounded-xl border border-white/10 bg-slate-900/60 p-3'; li.innerHTML = `<div class='text-xs text-slate-400'>${l.ts}</div><div class='font-medium'>${l.title}</div><div class='text-sm text-slate-300'>${l.body}</div>`; ul.appendChild(li); }); }
+
+    // ===== System info =====
+    function renderSys(){ const ul=document.getElementById('sysInfo'); const f=sysFingerprint(); ul.innerHTML=''; Object.keys(f).forEach(k=>{ const li=document.createElement('li'); li.innerHTML = `<span class='text-slate-400 mr-2'>${k}</span><span class='text-slate-200'>${String(f[k])}</span>`; ul.appendChild(li); }); }
+
+    // ===== Mini self-tests (non-intrusive) =====
+    function assert(name, cond){ if(!cond) throw new Error('Test failed: '+name); }
+    function runSelfTests(){
+      try{
+        // scoreArticle should match for a known tag
+        const s1 = scoreArticle(KB[0], 'sunet'); assert('score sunet > 0', s1>0);
+        // uid uniqueness (probabilistic)
+        const set=new Set(); for(let i=0;i<200;i++){ set.add(uid()); } assert('uid uniqueness ~200', set.size===200);
+        // aiReply routing: should not throw
+        aiReply('nu aud sunetele alertelor'); aiReply('explică taxa');
+        // Notification API presence detection
+        const perm = ('Notification' in window) ? Notification.permission : 'unsupported'; assert('notif perm defined', typeof perm==='string');
+        document.getElementById('testBadge').textContent='OK'; document.getElementById('testBadge').className='badge bg-emerald-500/15 text-emerald-200';
+        toast('Self-tests: toate OK');
+      }catch(e){ document.getElementById('testBadge').textContent='FAIL'; document.getElementById('testBadge').className='badge bg-rose-500/15 text-rose-200'; toast(e.message,'error'); }
+    }
+
+    // ===== Bindings =====
+    document.getElementById('btnOpenAllArticles').addEventListener('click', ()=> renderKB(KB));
+    document.getElementById('kbResults').addEventListener('click', (e)=>{ const b=e.target.closest('[data-open]'); if(!b) return; openArticle(b.dataset.open); });
+    document.getElementById('kbHints').addEventListener('click', (e)=>{ const b=e.target.closest('[data-kbhint]'); if(!b) return; const t=b.dataset.kbhint; document.getElementById('kbSearch').value=t; document.getElementById('kbSearch').dispatchEvent(new Event('input')); });
+    document.getElementById('kbSearch').addEventListener('input', (e)=>{ const q=e.target.value.trim(); if(!q){ renderKB(KB); return; } const ranked=KB.map(a=>({a,s:scoreArticle(a,q)})).filter(x=>x.s>0).sort((x,y)=>y.s-x.s).map(x=>x.a); renderKB(ranked); });
+
+    document.getElementById('aiSend').addEventListener('click', ()=>{ const v=document.getElementById('aiInput').value; if(!v.trim()) return; pushMsg('me', v); document.getElementById('aiInput').value=''; setTimeout(()=> aiReply(v), 250); });
+    document.getElementById('aiThread').addEventListener('click', (e)=>{ const b=e.target.closest('[data-open]'); if(b) openArticle(b.dataset.open); const c=e.target.closest('[data-qa]'); if(c) quickAction(c.dataset.qa); });
+    document.querySelectorAll('[data-aiq]').forEach(b=> b.addEventListener('click', ()=>{ const v=b.getAttribute('data-aiq'); document.getElementById('aiInput').value=v; document.getElementById('aiSend').click(); }));
+
+    document.getElementById('btnSendTicket').addEventListener('click', ()=>{
+      const title=tTitle.value.trim(); const body=tBody.value.trim(); if(!title||!body){ toast('Completează subiect și descriere','warn'); return; }
+      const t={ id:uid(), type:tType.value, sev:tSev.value, title, body, email:tEmail.value.trim()||null, nps:parseInt(tNps.value,10), state:'draft', ts:Date.now() };
+      if(tSys.checked) t.sys=sysFingerprint(); if(tLogs.checked) t.logs=localLogs();
+      const files=[...tFiles.files||[]]; if(files.length){ t.attachments = files.map(f=>({name:f.name,size:f.size,type:f.type})); }
+      const list=loadTickets(); list.push(t); saveTickets(list); renderTickets();
+      document.getElementById('ticketState').textContent = 'Tichet local creat ('+t.id+').'; toast('Tichet creat: '+t.id);
+      // try to POST if API exists
+      fetch('/api/support/tickets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(t)}).then(r=>{ if(r.ok){ document.getElementById('ticketState').textContent = 'Tichet trimis la server ('+t.id+').'; } });
+    });
+    document.getElementById('btnExportTickets').addEventListener('click', ()=>{
+      const list=loadTickets(); const blob=new Blob([JSON.stringify(list,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='tichete.json'; a.click(); URL.revokeObjectURL(a.href);
+    });
+    document.getElementById('btnClearTickets').addEventListener('click', ()=>{ localStorage.removeItem(LS_TICKETS); renderTickets(); toast('Tichetele locale au fost șterse'); });
+
+    document.getElementById('btnRefreshStatus').addEventListener('click', async ()=>{ renderStatus(await loadStatus()); toast('Status reîmprospătat'); });
+    document.getElementById('btnRunTests').addEventListener('click', runSelfTests);
+    document.getElementById('btnReqNotify').addEventListener('click', reqNotify);
+    document.getElementById('btnTestNotify').addEventListener('click', testNotify);
+    document.getElementById('btnUnlockAudio').addEventListener('click', unlockAudio);
+    document.getElementById('btnTestBeep').addEventListener('click', beep);
+    document.getElementById('btnCopySys').addEventListener('click', ()=>{ const t=JSON.stringify(sysFingerprint(),null,2); navigator.clipboard.writeText(t).then(()=> toast('Copiat în clipboard')); });
+
+    document.getElementById('btnCloseSheet').addEventListener('click', closeArticle); document.getElementById('ov').addEventListener('click', closeArticle);
+
+    // Shortcut overlay (basic): press ? to hint
+    window.addEventListener('keydown', (e)=>{ if(e.key==='?' || (e.shiftKey && e.key==='/' )){ toast('Scurtături: G (KB), A (Asistent), D (Diagnostic), T (Tichet)'); } });
+
+    // Quick actions
+    function quickAction(q){
+      if(q==='cache'){ Object.keys(localStorage).forEach(k=>{ if(k.startsWith('bcv1_')) localStorage.removeItem(k); }); toast('Cache local PI curățat'); return; }
+      if(q==='notif'){ document.getElementById('btnReqNotify').click(); setTimeout(()=> document.getElementById('btnTestNotify').click(), 600); return; }
+      if(q==='ticket'){ document.getElementById('tTitle').focus(); return; }
+      if(q==='export'){ document.getElementById('btnExportTickets').click(); return; }
+    }
+    document.querySelectorAll('[data-qa]').forEach(b=> b.addEventListener('click', ()=> quickAction(b.getAttribute('data-qa'))));
+
+    // ===== Initial renders =====
+    renderKB(KB);
+    renderTickets();
+    renderSys();
+    updateNotifPerm();
+    renderStatus(await loadStatus());
+    renderLog();
+    pushMsg('ai',`Salut! Sunt <strong>Lumen</strong>. Pot să te ajut cu notificări, taxe dinamice sau exporturi. Întreabă-mă orice.`);
+
+    // Keep NPS label in sync
+    document.getElementById('tNps').addEventListener('input', (e)=> document.getElementById('tNpsVal').textContent=e.target.value);
+
+  })();
+  </script>
+</body>
+</html>

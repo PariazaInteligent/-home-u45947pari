@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Prompt Master Framework — Builder</title>
+<style>
+  :root{
+    --bg:#0b1220;--card:#111a2f;--muted:#7c8aa5;--text:#eaf1ff;--accent:#00f39a;--accent2:#43b3ff;--danger:#ff6961;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#091427,#0d1b2a 40%,#0a1629);color:var(--text)}
+  .wrap{max-width:1100px;margin:32px auto;padding:0 16px}
+  .header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
+  h1{font-size:28px;margin:0;letter-spacing:.3px}
+  .sub{color:var(--muted);font-size:14px}
+  .grid{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:920px){.grid{grid-template-columns:1fr 1fr}}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;box-shadow:0 5px 18px rgba(0,0,0,.25)}
+  .card h2{font-size:16px;margin:0 0 10px 0;color:#d9e6ff}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+  input[type=text], input[type=number], textarea, select{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);
+    background:#0c1527;color:var(--text);outline:none
+  }
+  textarea{min-height:82px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{padding:8px 10px;border-radius:999px;border:1px dashed rgba(255,255,255,.2);font-size:12px;cursor:pointer}
+  .chip.active{border-color:transparent;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#00151a;font-weight:700}
+  .btnBar{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  button{border:1px solid rgba(255,255,255,.12);background:#0c1527;color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer}
+  button.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#00151a;font-weight:800;border:none}
+  button.ghost{background:transparent}
+  button.warn{background:#2a0e0e;border-color:#5b1a1a;color:#ffdede}
+  .output{white-space:pre-wrap;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;background:#081223;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:14px;min-height:180px}
+  .tiny{font-size:11px;color:var(--muted)}
+  .badge{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:999px}
+  .presets{display:grid;grid-template-columns:1fr;gap:10px}
+  @media(min-width:920px){.presets{grid-template-columns:repeat(4,1fr)}}
+  .hr{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);margin:14px 0}
+  .footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  a.link{color:var(--accent2);text-decoration:none}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <h1>Prompt Master Framework — Builder</h1>
+        <div class="sub">Scrii o singură dată ca un brief complet. AI-ul execută, nu întreabă.</div>
+      </div>
+      <div class="badge"><span id="clock">—</span> <span class="tiny">(Europe/Rome)</span></div>
+    </div>
+
+    <!-- Preseturi rapide -->
+    <div class="card">
+      <h2>Preseturi rapide (umplu câmpurile automat)</h2>
+      <div class="presets">
+        <button onclick="presetPHP()">Dev • PHP + MySQL (badge mesaje)</button>
+        <button onclick="presetReactFirebase()">Dev • React + Firebase (Admin Page)</button>
+        <button onclick="presetTikTok()">Content • TikTok (Veo3 compliant)</button>
+        <button onclick="presetAudit()">Analiză • Audit & Optimizare cod</button>
+      </div>
+      <div class="hr"></div>
+      <div class="tiny">Tip: poți combina un preset cu propriile tale completări, apoi apeși <b>Generează prompt</b>.</div>
+    </div>
+
+    <div class="grid" style="margin-top:14px">
+      <!-- Stânga: Colectare date -->
+      <div class="card">
+        <h2>1) Rol & Context</h2>
+        <label for="role">Rolul AI-ului (fii specific)</label>
+        <textarea id="role" placeholder="Ex: programator PHP senior + MySQL + securitate sesiuni; sau copywriter TikTok cu stil agresiv, conform regulilor platformei"></textarea>
+
+        <label for="context" style="margin-top:8px">Context (1–2 fraze despre proiect)</label>
+        <textarea id="context" placeholder="Ex: lucrez la platforma Pariază Inteligent (PHP/React/Firebase), cu utilizatori autentificați și pagini publice/private."></textarea>
+
+        <div class="row" style="margin-top:8px">
+          <div>
+            <label for="language">Limbă răspuns</label>
+            <select id="language">
+              <option>Română</option>
+              <option>Engleză</option>
+              <option>Italiană</option>
+            </select>
+          </div>
+          <div>
+            <label for="tone">Ton</label>
+            <select id="tone">
+              <option>profesionist, scurt, precis</option>
+              <option>pedagogic, cu explicații</option>
+              <option>agresiv, stil military drill</option>
+              <option>calm, empatic</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dreapta: Obiectiv & Limite -->
+      <div class="card">
+        <h2>2) Obiectiv & Limitări</h2>
+        <label for="objective">Obiectivul final (ce rezultat concret vrei)</label>
+        <textarea id="objective" placeholder="Ex: creează 3 fișiere PHP complete (sidebar.php, messages.php, admin_messages.php) cu badge-uri de mesaje necitite."></textarea>
+
+        <label for="limits" style="margin-top:8px">Condiții / Limitări (listează reguli clare)</label>
+        <textarea id="limits" placeholder="Ex: fără frameworke externe; verifică sesiunea; minim queries; cod complet fără '…'; doar Tailwind; fără localStorage; compatibil mobil."></textarea>
+
+        <label for="format" style="margin-top:8px">Formatul livrării</label>
+        <input id="format" type="text" placeholder="Ex: fișiere complete + scurtă notă finală de 2 rânduri" />
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>3) Date disponibile</h2>
+        <label for="have">Am deja</label>
+        <textarea id="have" placeholder="Ex: tabele SQL users, messages; autentificare prin $_SESSION['user_id'] și $_SESSION['role']; structuri JSON Firestore; link repo GitHub."></textarea>
+
+        <label for="need" style="margin-top:8px">Lipsește / Vreau să adaugi</label>
+        <textarea id="need" placeholder="Ex: interogări optimizate; controale de permisiuni; handler erori; UI minimal pentru badge."></textarea>
+      </div>
+
+      <div class="card">
+        <h2>4) Criterii de reușită</h2>
+        <label for="success">Promptul e bun dacă… (măsurabil)</label>
+        <textarea id="success" placeholder="Ex: codul rulează fără erori; adminul vede tot, userul doar al lui; badge-ul numără corect; niciun loc de completat."></textarea>
+
+        <div style="margin-top:8px">
+          <label>Detalii opționale</label>
+          <div class="chips">
+            <div class="chip" data-chip="use_cases">Adaugă exemple de cazuri-limită</div>
+            <div class="chip" data-chip="avoid">Include ce NU vreau</div>
+            <div class="chip" data-chip="tests">Propune teste rapide</div>
+            <div class="chip" data-chip="perf">Sugerează optimizări performanță</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acțiuni -->
+    <div class="card">
+      <h2>5) Generează promptul</h2>
+      <div class="btnBar">
+        <button class="primary" onclick="generate()">Generează prompt</button>
+        <button onclick="copyOut()">Copiază</button>
+        <button onclick="downloadOut()">Descarcă .txt</button>
+        <button class="ghost" onclick="clearAll()">Curăță câmpurile</button>
+        <button class="warn" onclick="presetReset()">Reset la valori implicite</button>
+      </div>
+      <div class="hr"></div>
+      <div id="out" class="output" aria-live="polite"></div>
+      <div class="footer">
+        <div class="tiny">Shortcut-uri: <b>Ctrl/Cmd + Enter</b> — Generează • <b>Ctrl/Cmd + B</b> — Copiază</div>
+        <a class="link" href="#" onclick="fillShort()">Folosește formula scurtă</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Formula scurtă (pentru taskuri rapide)</h2>
+      <div class="tiny">„Acționează ca <b>[rol]</b>. Context: <b>[1 frază]</b>. Scop: <b>[rezultat]</b>. Respectă: <b>[3–5 reguli]</b>. Livrare: <b>[format]</b>. Limbă: <b>[ro/en/it]</b>. Ton: <b>[stil]</b>. Include: <b>[exemple/teste/opțional]</b>.”</div>
+    </div>
+
+    <div class="card">
+      <h2>Notițe utile pentru brandul tău</h2>
+      <ul class="tiny">
+        <li>Public TikTok: evită termeni interziși (ex. „pariază”, „cote”) — folosește metafore („strategie”, „disciplină”, „analiză live”).</li>
+        <li>Dev: cere mereu „cod complet, fără locuri de completat” + „optimizat pentru performanță și securitate”.</li>
+        <li>React/Firebase: cere importuri corecte, fallback-uri pentru date lipsă, și compatibilitate mobil.</li>
+      </ul>
+    </div>
+
+  </div>
+<script>
+  const $ = (id)=>document.getElementById(id);
+  const chips = ()=>[...document.querySelectorAll('.chip')];
+
+  function nowRome(){
+    try{
+      const t = new Date();
+      const s = new Intl.DateTimeFormat('ro-RO', {dateStyle:'medium', timeStyle:'short', timeZone:'Europe/Rome'}).format(t);
+      $("clock").textContent = s;
+    }catch(e){ $("clock").textContent = new Date().toLocaleString(); }
+  }
+  setInterval(nowRome, 1000); nowRome();
+
+  chips().forEach(c=>{
+    c.addEventListener('click',()=>c.classList.toggle('active'))
+  })
+
+  function section(label, content){
+    return content?`[${label}]\n${content.trim()}\n`:'';
+  }
+
+  function generate(){
+    const role = $("role").value;
+    const context = $("context").value;
+    const language = $("language").value;
+    const tone = $("tone").value;
+    const objective = $("objective").value;
+    const limits = $("limits").value;
+    const format = $("format").value;
+    const have = $("have").value;
+    const need = $("need").value;
+    const success = $("success").value;
+
+    const opts = chips().filter(c=>c.classList.contains('active')).map(c=>c.dataset.chip);
+    const extras = [];
+    if(opts.includes('use_cases')) extras.push('- Include 2–3 cazuri-limită relevante.');
+    if(opts.includes('avoid')) extras.push('- Menționează ce NU trebuie făcut/folosit.');
+    if(opts.includes('tests')) extras.push('- Propune 3 teste rapide de verificare.');
+    if(opts.includes('perf')) extras.push('- Sugerează 2 optimizări de performanță.');
+
+    const out = [
+      section('ROL ȘI CONTEXT', `Te comporți ca un ${role}.\nContext: ${context}.`),
+      section('OBIECTIV FINAL', objective),
+      section('CONDIȚII / LIMITĂRI', limits),
+      section('DATE DISPONIBILE', `Am deja: ${have}\nLipsește: ${need}`),
+      section('CRITERII DE REUȘITĂ', success + (extras.length?`\n\nDetalii opționale:\n${extras.join('\n')}`:'')),
+      section('OUTPUT DORIT', `Livrare finală: ${format}\nLimbă: ${language}\nTon: ${tone}`)
+    ].join('\n');
+    $("out").textContent = out.trim();
+  }
+
+  function copyOut(){
+    const text = $("out").textContent.trim();
+    if(!text){generate();}
+    navigator.clipboard.writeText($("out").textContent).then(()=>{
+      flash('Prompt copiat în clipboard.');
+    })
+  }
+
+  function downloadOut(){
+    if(!$("out").textContent.trim()) generate();
+    const blob = new Blob([$("out").textContent], {type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'prompt.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function clearAll(){
+    ['role','context','objective','limits','format','have','need','success'].forEach(id=>$(id).value='');
+    chips().forEach(c=>c.classList.remove('active'));
+    $("out").textContent='';
+  }
+
+  function presetReset(){ clearAll(); fillDefaults(); }
+
+  function fillDefaults(){
+    $("language").value='Română';
+    $("tone").value='profesionist, scurt, precis';
+  }
+
+  function fillShort(){
+    $("role").value='expert în [subiect]';
+    $("context").value='lucrez la [proiect]';
+    $("objective").value='vreau [rezultat concret]';
+    $("limits").value='respectă [3–5 reguli clare]';
+    $("format").value='oferă [format exact]';
+    $("have").value='am [resurse existente]';
+    $("need").value='lipsește [ce vrei să adauge]';
+    $("success").value='este bun dacă [criterii măsurabile]';
+    flash('Formula scurtă a fost inserată.');
+  }
+
+  function flash(msg){
+    const d=document.createElement('div');
+    d.textContent=msg;d.style.position='fixed';d.style.bottom='20px';d.style.left='50%';d.style.transform='translateX(-50%)';d.style.background='linear-gradient(90deg,var(--accent),var(--accent2))';d.style.color='#00151a';d.style.padding='10px 14px';d.style.borderRadius='999px';d.style.fontWeight='800';d.style.boxShadow='0 8px 24px rgba(0,0,0,.4)';
+    document.body.appendChild(d); setTimeout(()=>d.remove(),1500);
+  }
+
+  // --- Preseturi ---
+  function presetPHP(){
+    fillDefaults();
+    $("role").value='programator PHP + MySQL senior, specializat în autentificare și interfețe dinamice';
+    $("context").value='platforma Pariază Inteligent (site PHP), cu pagini separate (sidebar.php, messages.php, admin_messages.php) și sesiuni active';
+    $("objective").value='creează 3 fișiere PHP complete: 1) sidebar.php — badge cu numărul total de mesaje necitite (user+admin), 2) messages.php — vizibil doar userilor logați (mesajele lor), 3) admin_messages.php — vizibil doar adminilor (toate mesajele)';
+    $("limits").value='fără frameworke externe; pornește sesiunea în siguranță; minimizează numărul de interogări; controlează permisiunile pe rol; cod complet, fără „…”';
+    $("format").value='3 fișiere PHP gata de upload + 2 rânduri notițe';
+    $("have").value='tabele SQL: users, messages(id, user_id, is_read); autentificare: $_SESSION[\'user_id\'], $_SESSION[\'role\']';
+    $("need").value='interogări optimizate + UI minimal pentru badge';
+    $("success").value='badge-ul se vede doar logat; adminul vede toate, userul doar pe ale lui; rulare fără erori';
+  }
+
+  function presetReactFirebase(){
+    fillDefaults();
+    $("role").value='senior React + Firebase (Firestore + Auth), orientat pe performanță și UX minimalist';
+    $("context").value='aplicația Pariază Inteligent (React/Vite, Firestore), se dorește AdminDataManagementPage cu update în timp real';
+    $("objective").value='creează componenta AdminDataManagementPage complet funcțională, cu listare users/transactions/dailyHistory/globalStats din Firestore, CRUD pentru admin (role-based), și onSnapshot pentru realtime';
+    $("limits").value='fără localStorage; tipuri TypeScript; fallback pentru câmpuri lipsă; layout responsive; tratează erorile; importuri corecte din firebase/app și firebase/firestore';
+    $("format").value='fișier(e) .tsx complete + mici explicații';
+    $("have").value='colecții Firestore existente (users, transactions, dailyHistory, globalStats)';
+    $("need").value='guard pe rol ADMIN, utilitare pentru normalizare date, onSnapshot pentru live-update';
+    $("success").value='build fără erori; realtime funcțional; permisiuni respectate; UI curat';
+  }
+
+  function presetTikTok(){
+    fillDefaults();
+    $("role").value='copywriter TikTok pentru nișă de educație în „value betting”, stil feminin, agresiv & captivant, 7–8 secunde, conform politicilor (fără termeni interziși)';
+    $("context").value='clipuri scurte generate cu Veo3, personaj feminin sexy, interacțiune directă (bate în ecran, contact vizual), CTA criptat pentru canalul Telegram';
+    $("objective").value='generează 4 micro-scripuri (8 sec. fiecare) care se pot lipi într-un clip de 32 sec., fiecare cu hook puternic, analiză realistă, CTA: „Dă follow dacă vrei să fii mereu cu un pas înainte!”';
+    $("limits").value='evită „pont”, „pariază”, „cotă”; folosește metafore („strategie”, „disciplină”); menține 7–8 secunde; doar voice-over, fără text pe ecran; ton puternic, provocator, sexy controlat';
+    $("format").value='text final pentru Veo3 + descriere TikTok + 5 hashtaguri conforme';
+    $("have").value='stilul brandului Pariază Inteligent, exemple performante anterioare';
+    $("need").value='4 părți numerotate + indicații de gesturi + timing aproximativ';
+    $("success").value='respectă lungimea; fără termeni interziși; hook în primele 3 secunde; CTA clar';
+  }
+
+  function presetAudit(){
+    fillDefaults();
+    $("role").value='auditor tehnic full‑stack (React/TS, PHP, SQL, securitate, performanță)';
+    $("context").value='analizez un repo cu crash pe dashboard când lipsește globalStats.activeInvestors';
+    $("objective").value='identifică problemele critice în 3 puncte și oferă patch complet (cod final), incluzând fallback-uri și normalizări de date';
+    $("limits").value='fără divagații; livrează soluția minimă stabilă; cod complet, testabil, fără TODO';
+    $("format").value='listă scurtă + blocuri de cod finale';
+    $("have").value='descrierea bugului și contextul structurii datelor';
+    $("need").value='patchuri sigure + teste rapide de verificare';
+    $("success").value='app nu mai crapă; datele lipsă nu mai produc erori; build curat';
+  }
+
+  // Shortcuts
+  document.addEventListener('keydown', (e)=>{
+    if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); generate(); }
+    if((e.ctrlKey||e.metaKey) && (e.key.toLowerCase()==='b')){ e.preventDefault(); copyOut(); }
+  });
+
+  // Inițial
+  fillDefaults();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+    "reply_to": 205,
+    "reply": {
+        "id": 205,
+        "user_id": 8,
+        "user_name": "test",
+        "body": "chiar dacă backend-ul nu trimite deloc presence, vei vedea:"
+    }
+}
