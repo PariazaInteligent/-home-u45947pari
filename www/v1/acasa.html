@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Banca Comună de Investiții — Pagina Principală</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    /* Font smoothing for crisp look */
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    /* Subtle glow */
+    .glow { box-shadow: 0 10px 30px rgba(34,211,238,.25), inset 0 0 0 1px rgba(255,255,255,.06); }
+    /* Animated gradient background for hero */
+    .hero-gradient { background: linear-gradient(135deg, #2563eb, #06b6d4, #14b8a6); background-size: 180% 180%; animation: gradientMove 10s ease infinite; }
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    /* Soft card hover */
+    .card-hover { transition: transform .25s ease, box-shadow .25s ease; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 15px 45px rgba(0,0,0,.35); }
+    /* Nice scrollbar for live chat */
+    .nice-scroll::-webkit-scrollbar { width: 8px; }
+    .nice-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 8px; }
+    .nice-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.15) transparent; }
+  </style>
+</head>
+<!--
+  Integrare rol utilizator (fără localStorage):
+  1) Implicit este "GUEST".
+  2) Dacă folosești PHP sesiuni, poți seta server-side:
+     <body data-role="<?= isset($_SESSION['user']) ? ($_SESSION['user']['role']==='ADMIN' ? 'ADMIN' : 'USER') : 'GUEST' ?>">
+-->
+<body class="min-h-screen bg-slate-950 text-slate-100" data-role="GUEST">
+  <!-- NAV / LOGO -->
+  <header class="sticky top-0 z-50 bg-slate-950/70 backdrop-blur border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-3 group">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 text-white glow">
+          <i class="fa-solid fa-chess-knight text-lg"></i>
+        </span>
+        <div>
+          <div class="font-semibold tracking-wide">Pariază Inteligent</div>
+          <div class="text-xs text-slate-400 -mt-0.5">Banca Comună de Investiții</div>
+        </div>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+        <a class="hover:text-white" href="/v1/despre.html">Despre</a>
+        <a class="hover:text-white" href="#live">Activitate Live</a>
+        <a class="hover:text-white" href="/v1/cum-functioneaza.html">Cum Funcționează</a>
+        <a class="hover:text-white" href="/v1/statistici.html">Statistici</a>
+      </nav>
+      <a id="ctaTop" href="/v1/login.html" class="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 font-semibold hover:opacity-90 transition">
+        <i class="fa-solid fa-right-to-bracket"></i>
+        <span>Login sau Înregistrează-te</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 hero-gradient opacity-20"></div>
+    <div class="max-w-6xl mx-auto px-4 py-16 md:py-24 relative">
+      <div class="grid md:grid-cols-2 gap-10 items-center">
+        <!-- Left: Text -->
+        <div class="space-y-6">
+          <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-cyan-300">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Transparență & Disciplină</span>
+          </div>
+          <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">
+            Bun venit la <span class="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent">Banca Comună de Investiții!</span>
+          </h1>
+          <p class="text-slate-300 max-w-xl">
+            Comunitatea unde capitalul crește prin <strong>value betting</strong>, management strict al banilor și rapoarte zilnice. Nu promitem noroc — livrăm <em>proces</em>, date și disciplină.
+          </p>
+          <div class="flex flex-wrap items-center gap-3">
+            <a id="ctaHero" href="/v1/login.html" class="inline-flex items-center gap-2 rounded-2xl px-5 py-3 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 text-slate-900 font-semibold shadow-lg hover:opacity-90 transition">
+              <i class="fa-solid fa-right-to-bracket"></i>
+              <span id="ctaHeroText">Login sau Înregistrează-te</span>
+            </a>
+            <a href="#despre" class="inline-flex items-center gap-2 rounded-2xl px-5 py-3 border border-white/10 hover:border-white/20 text-slate-200">
+              <i class="fa-regular fa-circle-play"></i>
+              <span>Vezi cum funcționează</span>
+            </a>
+          </div>
+          <div class="flex items-center gap-6 pt-2 text-sm text-slate-400">
+            <div class="flex items-center gap-2"><i class="fa-solid fa-lock text-teal-300"></i> Fonduri sigure</div>
+            <div class="flex items-center gap-2"><i class="fa-solid fa-chart-line text-cyan-300"></i> Rapoarte zilnice</div>
+            <div class="flex items-center gap-2"><i class="fa-solid fa-bolt text-blue-300"></i> Live activity</div>
+          </div>
+        </div>
+        <!-- Right: Big Card -->
+        <div class="rounded-3xl glow p-0.5 bg-gradient-to-br from-blue-600/40 via-cyan-500/30 to-teal-400/40">
+          <div class="rounded-3xl bg-slate-900/80 p-6 md:p-8 h-full">
+            <div class="flex items-center gap-3">
+              <span class="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 flex items-center justify-center text-slate-900 font-extrabold glow">PI</span>
+              <div>
+                <div class="text-sm text-slate-400">Slogan</div>
+                <div class="font-semibold">Pariază Inteligent</div>
+              </div>
+            </div>
+            <div class="mt-6 grid grid-cols-3 gap-4">
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-center"><div class="text-2xl font-bold">12.1%</div><div class="text-xs text-slate-400">ROI mediu</div></div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-center"><div class="text-2xl font-bold">+126.5</div><div class="text-xs text-slate-400">Creștere (%)</div></div>
+              <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-center"><div class="text-2xl font-bold">7345€</div><div class="text-xs text-slate-400">Turnover</div></div>
+            </div>
+            <p class="text-sm text-slate-400 mt-4">*Valori exemplificative din rapoartele zilnice. Actualizează din API/Firestore.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GRID CARDS -->
+  <section id="despre" class="py-16 md:py-20">
+    <div class="max-w-6xl mx-auto px-4">
+      <h2 class="text-2xl md:text-3xl font-bold mb-8">De ce Banca Comună?</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Card 1 -->
+        <article class="card-hover rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div class="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 flex items-center justify-center text-slate-900 mb-4"><i class="fa-solid fa-chart-line"></i></div>
+          <h3 class="font-semibold">Performanță Transparentă</h3>
+          <p class="text-sm text-slate-400 mt-2">Rapoarte zilnice cu ROI, profit și evoluția băncii. Fără fum și oglinzi.</p>
+        </article>
+        <!-- Card 2 -->
+        <article class="card-hover rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div class="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 flex items-center justify-center text-slate-900 mb-4"><i class="fa-solid fa-users"></i></div>
+          <h3 class="font-semibold">Pentru Investitori</h3>
+          <p class="text-sm text-slate-400 mt-2">Tu alegi contribuția. Profitul se împarte proporțional și este documentat.</p>
+        </article>
+        <!-- Card 3 -->
+        <article class="card-hover rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div class="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 flex items-center justify-center text-slate-900 mb-4"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+          <h3 class="font-semibold">Administrare Eficientă</h3>
+          <p class="text-sm text-slate-400 mt-2">Panou clar pentru admini: monitorizare, rapoarte și operațiuni fără fricțiune.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACTIVITATE LIVE (chat-like) -->
+  <section id="live" class="py-16 md:py-20 bg-slate-900/40 border-y border-white/5">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl md:text-3xl font-bold">Activitate Live pe Platformă</h2>
+        <div class="text-sm text-slate-400">Flux actualizat în timp real*</div>
+      </div>
+      <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Live stream -->
+        <div class="lg:col-span-2 rounded-2xl border border-white/10 bg-white/5 p-0.5 glow">
+          <div class="rounded-2xl bg-slate-950/70 p-4 md:p-6 h-[380px] overflow-y-auto nice-scroll" id="liveFeed" aria-live="polite">
+            <!-- Evenimente injectate din JS -->
+          </div>
+        </div>
+        <!-- Legend / Stats -->
+        <aside class="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h3 class="font-semibold mb-4">Tipuri de evenimente</h3>
+          <ul class="space-y-3 text-sm text-slate-300">
+            <li class="flex items-start gap-3"><i class="fa-solid fa-trophy text-yellow-300 mt-0.5"></i><span><strong>Pariu câștigat</strong> — profit marcat și raportat în bancă.</span></li>
+            <li class="flex items-start gap-3"><i class="fa-solid fa-coins text-emerald-300 mt-0.5"></i><span><strong>Investiție nouă</strong> — capital nou intrat în bancă.</span></li>
+            <li class="flex items-start gap-3"><i class="fa-solid fa-arrows-rotate text-cyan-300 mt-0.5"></i><span><strong>Actualizare ROI</strong> — recalcul pe baza pariurilor închise.</span></li>
+          </ul>
+          <p class="text-xs text-slate-400 mt-4">*Demo cu date mock. Conectează la WebSocket/API pentru feed live real.</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- CUM FUNCȚIONEAZĂ -->
+  <section id="cum-functioneaza" class="py-16 md:py-20">
+    <div class="max-w-6xl mx-auto px-4">
+      <h2 class="text-2xl md:text-3xl font-bold mb-8">Cum Funcționează</h2>
+    <ol class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 counter-reset">
+        <li class="relative rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div class="absolute -top-3 -left-3 h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 text-slate-900 font-bold flex items-center justify-center glow">1</div>
+          <h3 class="font-semibold">Înregistrare</h3>
+          <p class="text-sm text-slate-400 mt-2">Creezi contul și treci KYC intern (acolo unde e cazul).</p>
+        </li>
+        <li class="relative rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div class="absolute -top-3 -left-3 h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 text-slate-900 font-bold flex items-center justify-center glow">2</div>
+          <h3 class="font-semibold">Adaugi Fonduri</h3>
+          <p class="text-sm text-slate-400 mt-2">Aloci o sumă inițială. Fondurile sunt evidențiate și raportate.</p>
+        </li>
+        <li class="relative rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div class="absolute -top-3 -left-3 h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 text-slate-900 font-bold flex items-center justify-center glow">3</div>
+          <h3 class="font-semibold">Plasare Pariuri (Value)</h3>
+          <p class="text-sm text-slate-400 mt-2">Traderii operează după strategii validate. Fără „bilete sigure”.</p>
+        </li>
+        <li class="relative rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div class="absolute -top-3 -left-3 h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-400 text-slate-900 font-bold flex items-center justify-center glow">4</div>
+          <h3 class="font-semibold">Împarți Profitul</h3>
+          <p class="text-sm text-slate-400 mt-2">Profitul se distribuie proporțional. Poți cere retrageri conform regulilor.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-8 border-t border-white/5">
+    <div class="max-w-6xl mx-auto px-4 text-sm text-slate-400 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>© <span id="year"></span> Pariază Inteligent — Banca Comună de Investiții</div>
+      <div class="flex items-center gap-4">
+        <a class="hover:text-white" href="https://t.me/pariazainteligent" target="_blank" rel="noopener">Telegram</a>
+        <a class="hover:text-white" href="/v1/termeni.html">Termeni</a>
+        <a class="hover:text-white" href="/v1/confidentialitate.html">Politica de Confidențialitate</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT: CTA dinamic + Live feed demo -->
+  <script>
+  // Year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // ===== CTA dinamic pe baza rolului =====
+  function applyCtas(role){
+    role = (role || 'GUEST').toUpperCase();
+    const map = {
+      GUEST: { href:'/v1/login.html',                label:'Login sau Înregistrează-te', icon:'fa-right-to-bracket' },
+      USER:  { href:'/v1/dashboard-investitor.php', label:'Dashboard',                  icon:'fa-gauge-high' },
+      ADMIN: { href:'/v1/dashboard-admin.html',      label:'Dashboard',                  icon:'fa-gauge-high' },
+    };
+    const cfg = map[role] || map.GUEST;
+
+    const ctaHero = document.getElementById('ctaHero');
+    const ctaTop  = document.getElementById('ctaTop');
+    const ctaHeroText = document.getElementById('ctaHeroText');
+
+    if (ctaHero) {
+      ctaHero.href = cfg.href;
+      const i = ctaHero.querySelector('i'); if(i) i.className = 'fa-solid ' + cfg.icon;
+      if (ctaHeroText) ctaHeroText.textContent = cfg.label;
+    }
+    if (ctaTop) {
+      ctaTop.href = cfg.href;
+      const i = ctaTop.querySelector('i');   if(i) i.className = 'fa-solid ' + cfg.icon;
+      const s = ctaTop.querySelector('span');if(s) s.textContent = cfg.label;
+    }
+  }
+
+  // 1) Setare inițială din dataset (dacă pagina e servită ca .php și setezi data-role server-side)
+  applyCtas((document.body.dataset.role || 'GUEST').toUpperCase());
+
+  // 2) Hidratare din server (funcționează și pentru .html static)
+  (async function hydrateRoleFromServer(){
+    try{
+      const r = await fetch('/api/session.php', { credentials:'include', cache:'no-store' });
+      const d = await r.json();
+      if (d && d.loggedIn) {
+        const role = (d.role || 'USER').toUpperCase();
+        document.body.dataset.role = role;
+        applyCtas(role);
+      }
+    }catch(e){}
+  })();
+
+  // === KPI & Telemetrie (identic) ===
+  function trackCTA(position){
+    const payload = { type: 'kpi:cta_click', position, role: (document.body.dataset.role||'GUEST').toUpperCase(), ts: Date.now() };
+    if (window.dispatchEvent) window.dispatchEvent(new CustomEvent('kpi:cta_click', { detail: payload }));
+    console.log('[KPI]', payload);
+  }
+  document.getElementById('ctaTop')?.addEventListener('click', () => trackCTA('top'));
+  document.getElementById('ctaHero')?.addEventListener('click', () => trackCTA('hero'));
+
+  const __start = Date.now();
+  window.addEventListener('beforeunload', () => {
+    const payload = { type: 'kpi:time_spent', ms: Date.now() - __start, role: (document.body.dataset.role||'GUEST').toUpperCase() };
+    if (window.dispatchEvent) window.dispatchEvent(new CustomEvent('kpi:time_spent', { detail: payload }));
+    console.log('[KPI]', payload);
+  });
+
+  // === Live Activity — demo (identic cu ce aveai) ===
+  const liveFeed = document.getElementById('liveFeed');
+  const mockEvents = [
+    { type: 'win',    text: 'Pariu câștigat: Over 2.5 @ 2.10', profit: '+57€',  user: 'Trader #3' },
+    { type: 'invest', text: 'Investiție nouă confirmată',      amount: '+300€', user: 'Anca D.' },
+    { type: 'roi',    text: 'ROI actualizat: 12.3% → 12.6%',   user: 'Sistem' },
+    { type: 'badge',  text: "Ecuson 'Investitorul Lunii' deblocat", user: 'Sistem' },
+    { type: 'win',    text: 'Pariu câștigat: Handicap +1.5 @ 1.85', profit: '+42€', user: 'Trader #1' },
+    { type: 'invest', text: 'Investiție recurentă', amount: '+100€', user: 'Mihai T.' },
+  ];
+  function renderEvent(evt) {
+    const row = document.createElement('div');
+    const isRight = evt.type === 'win';
+    row.className = `w-full flex ${isRight ? 'justify-end' : 'justify-start'} mb-3`;
+    const bubble = document.createElement('div');
+    bubble.className = `max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed border ${isRight ? 'bg-emerald-500/15 border-emerald-400/30 text-emerald-200' : 'bg-white/5 border-white/10 text-slate-200'}`;
+    const iconMap = { win:'fa-trophy', invest:'fa-coins', roi:'fa-arrows-rotate', badge:'fa-award' };
+    const meta = evt.profit || evt.amount || '';
+    bubble.innerHTML = `<div class="flex items-center gap-2 mb-1 text-xs opacity-80"><i class="fa-solid ${iconMap[evt.type]}"></i><span>${evt.user}</span></div><div class="font-medium">${evt.text} ${meta ? `<span class='opacity-80'>(${meta})</span>` : ''}</div>`;
+    row.appendChild(bubble);
+    liveFeed.appendChild(row);
+    liveFeed.scrollTo({ top: liveFeed.scrollHeight, behavior: 'smooth' });
+  }
+  mockEvents.slice(0, 3).forEach(renderEvent);
+  let idx = 3;
+  setInterval(() => { renderEvent(mockEvents[idx % mockEvents.length]); idx++; }, 2500);
+  window.addLiveEvent = (evt) => renderEvent(evt);
+</script>
+
+</body>
+</html>

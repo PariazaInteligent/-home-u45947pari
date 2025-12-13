@@ -1,0 +1,5 @@
+[31-Oct-2025 23:25:26 UTC] PHP Deprecated:  curl_json(): Implicitly marking parameter $post as nullable is deprecated, the explicit nullable type must be used instead in /home/u45947pari/public_html/api/ai/gemini_analyze.php on line 19
+[05-Dec-2025 19:06:35 UTC] PHP Warning:  Undefined variable $systemPrompt in /home/u45947pari/public_html/api/ai/gemini_analyze.php on line 166
+[05-Dec-2025 21:27:00 UTC] PHP Warning:  file_put_contents(/home/u45947pari/public_html/api/ai/logs/gemini_analyze.log): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/ai/gemini_analyze.php on line 16
+[05-Dec-2025 21:39:16 UTC] PHP Warning:  file_put_contents(/home/u45947pari/public_html/api/ai/logs/gemini_analyze.log): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/ai/gemini_analyze.php on line 16
+[05-Dec-2025 21:40:17 UTC] PHP Warning:  file_put_contents(/home/u45947pari/public_html/api/ai/logs/gemini_analyze.log): Failed to open stream: No such file or directory in /home/u45947pari/public_html/api/ai/gemini_analyze.php on line 16

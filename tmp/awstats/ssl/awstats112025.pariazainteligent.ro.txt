@@ -1,0 +1,757 @@
+AWSTATS DATA FILE 8.0 (build 20240604)
+# If you remove this file, all statistics for date 202511 will be lost/reset.
+# Last config file used to build this data file was /home/u45947pari/tmp/awstats/ssl/awstats.pariazainteligent.ro.conf.
+
+# Position (offset in bytes) in this file for beginning of each section for
+# direct I/O access. If you made changes somewhere in this file, you should
+# also remove completely the MAP section (AWStats will rewrite it at next
+# update).
+BEGIN_MAP 28
+POS_GENERAL 2094                
+POS_TIME 2772                
+POS_VISITOR 14422               
+POS_DAY 18175               
+POS_DOMAIN 3624                
+POS_LOGIN 4069                
+POS_ROBOT 4224                
+POS_WORMS 4619                
+POS_EMAILSENDER 4750                
+POS_EMAILRECEIVER 4893                
+POS_SESSION 19025               
+POS_FILESIZE 21465               
+POS_REQUESTTIME 21619               
+POS_SIDER 19232               
+POS_FILETYPES 5028                
+POS_DOWNLOADS 5294                
+POS_OS 5439                
+POS_BROWSER 5693                
+POS_SCREENSIZE 6447                
+POS_UNKNOWNREFERER 6521                
+POS_UNKNOWNREFERERBROWSER 6950                
+POS_ORIGIN 7288                
+POS_SEREFERRALS 7432                
+POS_PAGEREFS 7576                
+POS_SEARCHWORDS 7750                
+POS_KEYWORDS 7902                
+POS_MISC 2436                
+POS_ERRORS 7961                
+POS_CLUSTER 3925                
+POS_SIDER_404 8141                
+END_MAP
+
+# LastLine    = Date of last record processed - Last record line number in last log - Last record offset in last log - Last record signature value
+# FirstTime   = Date of first visit for history file
+# LastTime    = Date of last visit for history file
+# LastUpdate  = Date of last update - Nb of parsed records - Nb of parsed old records - Nb of parsed new records - Nb of parsed corrupted - Nb of parsed dropped
+# TotalVisits = Number of visits
+# TotalUnique = Number of unique visitors
+# MonthHostsKnown   = Number of hosts known
+# MonthHostsUnKnown = Number of hosts unknown
+BEGIN_GENERAL 8
+LastLine 20251201001522 88 18750 4878991938140
+FirstTime 20251101001742
+LastTime 20251130234521
+LastUpdate 20251201155251 88 0 87 0 0
+TotalVisits 146                 
+TotalUnique 94                  
+MonthHostsKnown 0                   
+MonthHostsUnknown 94                  
+END_GENERAL
+
+# Misc ID - Pages - Hits - Bandwidth
+BEGIN_MISC 10
+WindowsMediaPlayerSupport 0 0 0
+PDFSupport 0 0 0
+JavascriptDisabled 0 0 0
+QuickTimeSupport 0 0 0
+TotalMisc 0 0 0
+AddToFavourites 0 8 0
+DirectorSupport 0 0 0
+JavaEnabled 0 0 0
+RealPlayerSupport 0 0 0
+FlashSupport 0 0 0
+END_MISC
+
+# Hour - Pages - Hits - Bandwidth - Not viewed Pages - Not viewed Hits - Not viewed Bandwidth
+BEGIN_TIME 24
+0 4802 4803 6121868 65 75 6980
+1 2836 2845 4237645 38 48 13611
+2 755 756 10223242 7 9 5572
+3 63 63 184280 5 8 33367
+4 61 61 169092 6 8 6314
+5 65 65 179684 8 16 53712
+6 63 63 174388 5 13 25156
+7 63 63 174636 185 190 185702
+8 184 191 9689019 18 26 12231
+9 278 278 481517 13 21 6525
+10 573 576 1419969 44 50 10014
+11 1171 1173 2570686 3 6 650
+12 883 883 3335851 4 9 7300
+13 985 986 4156301 6 13 5849
+14 889 889 1138453 8 10 4084
+15 1141 1143 1491487 240 251 20456
+16 1689 1689 2068262 11 21 7470
+17 1356 1358 2025687 24 44 18835
+18 2181 2187 28845145 10 17 3329
+19 3516 3518 23988819 40 48 28498
+20 4176 4183 15896100 24 35 13680
+21 5198 5203 9296537 55 67 23788
+22 5278 5283 7727391 58 63 24464
+23 4479 4480 6017062 11 13 1022
+END_TIME
+
+# Domain - Pages - Hits - Bandwidth
+# The 25 first Pages must be first (order not required for others)
+BEGIN_DOMAIN 17
+it 40680 40734 94287535
+ro 1914 1914 4715345
+us 55 55 186439
+in 9 9 23737
+se 6 6 16136
+cn 4 4 10344
+ru 3 3 9643
+be 2 2 14219
+hk 2 2 5544
+ca 2 2 22894
+nl 2 2 24842
+eu 1 1 2772
+jp 1 1 2772
+gr 1 1 2772
+rs 1 1 11447
+gb 1 1 2772
+de 1 1 0
+END_DOMAIN
+
+# Cluster ID - Pages - Hits - Bandwidth
+BEGIN_CLUSTER 0
+END_CLUSTER
+
+# Login - Pages - Hits - Bandwidth - Last visit
+# The 10 first Pages must be first (order not required for others)
+BEGIN_LOGIN 0
+END_LOGIN
+
+# Robot ID - Hits - Bandwidth - Last visit - Hits on robots.txt
+# The 25 first Hits must be first (order not required for others)
+BEGIN_ROBOT 7
+no_user_agent 17 27727 20251128181217 0
+Googlebot/ 14 34347 20251130152614 0
+GPTBot/ 8 21217 20251129103211 0
+facebookexternalhit/ 5 39389 20251128134625 0
+survey 3 60454 20251115070841 0
+bot[\s_+:,\.\;\/\\-] 1 2772 20251112154506 0
+bingbot/ 1 0 20251108105630 0
+END_ROBOT
+
+# Worm ID - Hits - Bandwidth - Last visit
+# The 5 first Hits must be first (order not required for others)
+BEGIN_WORMS 0
+END_WORMS
+
+# EMail - Hits - Bandwidth - Last visit
+# The 20 first Hits must be first (order not required for others)
+BEGIN_EMAILSENDER 0
+END_EMAILSENDER
+
+# EMail - Hits - Bandwidth - Last visit
+# The 20 first hits must be first (order not required for others)
+BEGIN_EMAILRECEIVER 0
+END_EMAILRECEIVER
+
+# Files type - Hits - Bandwidth - Bandwidth without compression - Bandwidth after compression
+BEGIN_FILETYPES 11
+css 3 2924 0 0
+js 24 14639 0 0
+mp3 10 2309027 0 0
+php 41063 51191824 0 0
+html 1604 5108697 0 0
+png 5 185831 0 0
+jpg 1 105954 0 0
+Unknown 18 365986 0 0
+mp4 5 29555888 0 0
+svg 2 722 0 0
+webp 4 88728 0 0
+END_FILETYPES
+
+# Downloads - Hits - Bandwidth
+BEGIN_DOWNLOADS 2
+/uploads/chat/4356185e78b25443.mp3 7 68 2450760
+/uploads/chat/dde3a190f1a29cc9.mp4 2 74 39823148
+END_DOWNLOADS
+
+# OS ID - Hits
+BEGIN_OS ID - Hits - Pages 13
+ios_iphone 2 2
+win7 1 1
+androidpie 2 2
+android 805 787
+Unknown 1449 1449
+macosx6 1 1
+linux 29 29
+android10 5 5
+androidoreo 1 1
+linuxubuntu 1 1
+win10 40564 40386
+macosx15 20 20
+macosx5 1 1
+END_OS
+
+# Browser ID - Hits - Pages
+BEGIN_BROWSER 35
+chrome58.0.3029.110 2 2
+chrome105.0.0.0 4 4
+firefox120.0 3 3
+safari16.1 1 1
+opera120.0.0.0 11734 11733
+chrome136.0.0.0 2 2
+chrome92.0.4515.107 2 2
+itunes 1 1
+chrome117.0.0.0 4 4
+chrome4.0.302.2 1 1
+firefox129.0 1 1
+chrome126.0.6478.107 1 1
+firefox144.0 337 337
+chrome75.0.3770.143 2 2
+chrome133.0.0.0 3 3
+Unknown 1446 1446
+chrome126.0.6264.129 2 2
+chrome22.0.1207.1 1 1
+mozilla 3 3
+chrome131.0.0.0 16 16
+chrome134.0.0.0 1 1
+chrome129.0.0.0 1 1
+chrome116.0.0.0 15 15
+opera124.0.0.0 52 48
+firefox145.0 467 449
+chrome139.0.0.0 7 7
+firefox134.0 1 1
+edge126 1 1
+chrome137.0.0.0 3 3
+chrome141.0.0.0 5441 5434
+chrome120.0.0.0 2 2
+chrome91.0.4472.124 3 3
+firefox139.0 9 9
+safari 2 2
+chrome142.0.0.0 23310 23144
+END_BROWSER
+
+# Screen size - Hits
+BEGIN_SCREENSIZE 0
+END_SCREENSIZE
+
+# Unknown referer OS - Last visit date
+BEGIN_UNKNOWNREFERER 5
+quic-go-HTTP/3 20251121153516
+Hello_from_Palo_Alto_Networks,_find_out_more_about_our_scans_in_https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity 20251115012014
+PI-Gemini/1.0 20251101004645
+Mozilla/5.0_(compatible;_CensysInspect/1.1;__https://about.censys.io/) 20251115151523
+Python/3.11_aiohttp/3.9.2 20251130234521
+END_UNKNOWNREFERER
+
+# Unknown referer Browser - Last visit date
+BEGIN_UNKNOWNREFERERBROWSER 4
+Python/3.11_aiohttp/3.9.2 20251130234521
+quic-go-HTTP/3 20251121153516
+PI-Gemini/1.0 20251101004645
+Hello_from_Palo_Alto_Networks,_find_out_more_about_our_scans_in_https://docs-cortex.paloaltonetworks.com/r/1/Cortex-Xpanse/Scanning-activity 20251115012014
+END_UNKNOWNREFERERBROWSER
+
+# Origin - Pages - Hits 
+BEGIN_ORIGIN 6
+From0 1653 1653
+From1 0 0
+From2 0 0
+From3 1 1
+From4 41031 41227
+From5 0 0
+END_ORIGIN
+
+# Search engine referers ID - Pages - Hits
+BEGIN_SEREFERRALS 0
+END_SEREFERRALS
+
+# External page referers - Pages - Hits
+# The 25 first Pages must be first (order not required for others)
+BEGIN_PAGEREFS 1
+http://m.facebook.com 1 1
+END_PAGEREFS
+
+# Search keyphrases - Number of search
+# The 10 first number of search must be first (order not required for others)
+BEGIN_SEARCHWORDS 0
+END_SEARCHWORDS
+
+# Search keywords - Number of search
+# The 25 first number of search must be first (order not required for others)
+BEGIN_KEYWORDS 0
+END_KEYWORDS
+
+# Errors - Hits - Bandwidth
+BEGIN_ERRORS 9
+400 3 156
+405 2 88
+401 54 1797
+429 3 399
+502 13 2776
+403 27 12475
+302 52 0
+500 368 11455
+404 384 303136
+END_ERRORS
+
+# URL with 404 errors - Hits - Last URL referrer
+BEGIN_SIDER_404 223
+/api/ai/gemini_analyze.php 4 https://pariazainteligent.ro/v1/dashboard-investitor.php
+/system/.env 1 -
+/lib/.env 1 -
+/tmp/info.php 1 -
+/.env.production 1 -
+/info1.php 1 -
+/public/.env.save 1 -
+/includes/phpinfo.php.save 1 -
+/check.php 1 -
+/php_info.php.tmp 1 -
+/dev/info.php 1 -
+/api/user_prefs/save_layout 1 https://pariazainteligent.ro/v1/dashboard-investitor.php
+/test.php~ 1 -
+/api/passkeys/start-assertion 1 https://pariazainteligent.ro/v1/login.html
+/.env 1 -
+/api/chat/presence_snapshot.php 1 https://pariazainteligent.ro/v1/dashboard-investitor.php
+/src/.env.old 1 -
+/assets/.env.old 1 -
+/phpinfo.php~ 1 -
+/api/admin/users 7 https://pariazainteligent.ro/v1/dashboard-admin.html
+/api/chat/edit.php 3 https://pariazainteligent.ro/v1/dashboard-investitor.php
+/admin/phpinfo.php 1 -
+/info.php.save 1 -
+/test.php.bak 1 -
+/.env.development 1 -
+/v1/dashboard-investitor.html 2 https://accounts.google.com/
+/core/.env.bak 1 -
+/php_version.php 1 -
+/api/chat/users.php 4 https://pariazainteligent.ro/v1/dashboard-investitor.php
+/includes/.env.old 1 -
+/test.php.old 1 -
+/api/user/profile 6 https://pariazainteligent.ro/v1/profil.html
+/.env.orig 1 -
+/admin/info.php.save 1 -
+/assets/.env.save 1 -
+/php_info.php 1 -
+/src/.env.bak 1 -
+/lib/.env.save 1 -
+/img/wall.jpg 5 -
+/dasboard-investitor.php 1 -
+/v2/index.php 1 -
+/modules/.env.old 1 -
+/info.php 1 -
+/.env.dev 1 -
+/admin.html 1 https://pariazainteligent.ro/v1/dashboard-admin.html
+/www/phpinfo.php.save 1 -
+/plugins/.env 1 -
+/system/.env.bak 1 -
+/public/.env.old 1 -
+/.env.test 1 -
+/.env.staging 1 -
+/modules/.env.bak 1 -
+/phpinfo.php.swp 1 -
+/.env.old 1 -
+/info.php.tmp 1 -
+/info.php.orig 1 -
+/web/phpinfo.php.save 1 -
+/wiki/api.php 2 -
+/phpinfo.php.bak 1 -
+/info.php.backup 1 -
+/tmp/info.php.save 1 -
+/scripts/info.php 1 -
+/.env.backup 1 -
+/cgi-bin/info.php.save 1 -
+/info2.php 1 -
+/site/phpinfo.php 1 -
+/api/public/daily-history 8 https://pariazainteligent.ro/v1/statistici.html
+/themes/.env.old 1 -
+/dev/info.php.save 1 -
+/php_info.php.orig 1 -
+/includes/phpinfo.php 1 -
+/includes/.env.bak 1 -
+/config/.env.bak 1 -
+/retragere.html 1 https://pariazainteligent.ro/v1/dashboard-admin.html
+/enhancecp 1 -
+/application/.env 1 -
+/phpinfo.php.tmp 1 -
+/app/.env.bak 1 -
+/storage/.env.old 1 -
+/vendor/.env.save 1 -
+/includes/info.php 1 -
+/storage/.env.bak 1 -
+/api/.env.old 1 -
+/.env.save 1 -
+/info.php.swp 1 -
+/cgi-bin/phpinfo.php 1 -
+/api.php 1 -
+/php_info.php.backup 1 -
+/.env.dist 1 -
+/api/.env.bak 1 -
+/www/phpinfo.php 1 -
+/config/.env 1 -
+/debug.php 1 -
+/php_info.php.save 1 -
+/vendor/.env.old 1 -
+/app/.env.old 1 -
+/core/.env.save 1 -
+/web/phpinfo.php 1 -
+/admin/.env.bak 1 -
+/pi.php 1 -
+/test/phpinfo.php 1 -
+/application/.env.bak 1 -
+/phpinfo.php 1 -
+/plugins/.env.save 1 -
+/w/api.php 2 -
+/themes/.env.save 1 -
+/sidebar.html 2 -
+/v1/list.php 1 -
+/_profiler/phpinfo 1 -
+/includes/info.php.save 1 -
+/public/.env.bak 1 -
+/system/.env.old 1 -
+/admin/dashboard-admin.php 2 -
+/phpversion.php 1 -
+/api/chat/reactions_bulk.php 8 https://pariazainteligent.ro/v1/dashboard-investitor.php
+/dev/phpinfo.php 1 -
+/test/info.php 1 -
+/tmp/phpinfo.php 1 -
+/public/phpinfo.php 1 -
+/serverinfo.php 1 -
+/site/info.php.save 1 -
+/public/info.php 1 -
+/api/.env.save 1 -
+/v2/index.html 1 -
+/profil.html 1 https://pariazainteligent.ro/v1/dashboard-admin.html
+/modules/.env.save 1 -
+/phpinfo.php.orig 1 -
+/https%3A/t.me/Pariaza_Inteligent%3Ftext%3DSalut%21%20Am%20nevoie%20de%20asisten%C8%9B%C4%83 3 -
+/api/admin/overview 7 https://pariazainteligent.ro/v1/dashboard-admin.html
+/public/phpinfo.php.save 1 -
+/https%3A/t.me/pariazainteligent 3 -
+/assets/.env 1 -
+/app/.env 1 -
+/phpinfo 1 -
+/includes/.env.save 1 -
+/api/user/messages 6 https://pariazainteligent.ro/v1/profil.html
+/.env~ 1 -
+/robots.txt 61 -
+/assets/.env.bak 1 -
+/includes/.env 1 -
+/web/info.php.save 1 -
+/api/.env 1 -
+/.env.local 1 -
+/cgi-bin/phpinfo.php.save 1 -
+/test.php.backup 1 -
+/www/info.php.save 1 -
+/diagnostic.php 1 -
+/site/info.php 1 -
+/api/admin/queues 7 https://pariazainteligent.ro/v1/dashboard-admin.html
+/system/.env.save 1 -
+/test/info.php.save 1 -
+/public/.env 1 -
+/test.php.swp 1 -
+/php_info.php~ 1 -
+/storage/.env 1 -
+/admin/info.php 1 -
+/php_info.php.swp 1 -
+/.env.prod 1 -
+/phptest.php 1 -
+/.env.sample 1 -
+/app/.env.save 1 -
+/v1/dashboard-admin.php 1 https://pariazainteligent.ro/v1/login.html
+/src/.env.save 1 -
+/lib/.env.bak 1 -
+/php.php 1 -
+/admin/phpinfo.php.save 1 -
+/phpinfo.php.save 1 -
+/admin/.env.save 1 -
+/php_info.php.bak 1 -
+/admin/dashboard-admin.html 1 -
+/themes/.env 1 -
+/php_info.php.old 1 -
+/application/.env.old 1 -
+/info.php.old 1 -
+/.env.bak 1 -
+/api/chat/presence.php 1 https://pariazainteligent.ro/v1/dashboard-investitor.php
+/investitii.html 1 https://pariazainteligent.ro/v1/dashboard-admin.html
+/modules/.env 1 -
+/dashboard 11 https://pariazainteligent.ro/layout.html
+/dev/phpinfo.php.save 1 -
+/phpinfo.php.backup 1 -
+/config/.env.save 1 -
+/.well-known/security.txt 1 -
+/plugins/.env.old 1 -
+/test.php.orig 1 -
+/test.php.tmp 1 -
+/i.php 1 -
+/test.php 1 -
+/api/admin/security-alerts 7 https://pariazainteligent.ro/v1/dashboard-admin.html
+/plugins/.env.bak 1 -
+/tmp/phpinfo.php.save 1 -
+/api/user/badges 6 https://pariazainteligent.ro/v1/profil.html
+/vendor/.env.bak 1 -
+/test/phpinfo.php.save 1 -
+/public/info.php.save 1 -
+/admin/.env.old 1 -
+/admin/.env 1 -
+/core/.env 1 -
+/config/.env.old 1 -
+/web/info.php 1 -
+/site/phpinfo.php.save 1 -
+/src/.env 1 -
+/api/user/recent_transactions.php 4 https://pariazainteligent.ro/v1/dashboard-investitor.php
+/vendor/.env 1 -
+/cgi-bin/info.php 1 -
+/www/info.php 1 -
+/scripts/info.php.save 1 -
+/server.php 1 -
+/.env.swp 1 -
+/api/chat/presence_list.php 15 https://pariazainteligent.ro/v1/dashboard-investitor.php
+/test.php.save 1 -
+/info.php.bak 1 -
+/phpinfo.php.old 1 -
+/.well-known/passkey-endpoints 1 -
+/.env.tmp 1 -
+/scripts/phpinfo.php 1 -
+/storage/.env.save 1 -
+/info.php~ 1 -
+/core/.env.old 1 -
+/scripts/phpinfo.php.save 1 -
+/application/.env.save 1 -
+/themes/.env.bak 1 -
+/lib/.env.old 1 -
+END_SIDER_404
+
+# Host - Pages - Hits - Bandwidth - Last visit date - [Start date of last visit] - [Last page of last visit]
+# [Start date of last visit] and [Last page of last visit] are saved only if session is not finished
+# The 25 first Hits must be first (order not required for others)
+BEGIN_VISITOR 94
+217.201.1.147 16282 16294 25282391 20251123020713
+109.55.236.212 8410 8515 31656999 20251130082728
+109.55.228.55 4194 4194 5673701 20251109084859
+109.52.251.39 3685 3685 4055817 20251117013405
+2.195.128.26 2735 2737 3546551 20251108210358
+109.52.77.61 2343 2387 13218648 20251127232210
+109.52.65.135 1493 1493 1701996 20251109231746
+85.9.45.213 1443 1443 3989966 20251130234521
+109.55.248.117 1290 1317 8722445 20251127001959
+89.46.15.107 467 467 714771 20251109220757
+109.52.72.50 140 145 229953 20251107213552
+109.55.228.115 49 49 112334 20251101014108
+109.52.252.151 41 42 80947 20251130224347
+104.164.126.190 4 4 10609 20251102021115
+104.164.126.84 4 4 10608 20251106002746
+103.4.251.192 4 4 10606 20251102002738
+2.195.141.249 4 4 188 20251119220025
+23.226.16.32 3 3 8084 20251116221840
+77.36.125.103 3 3 8084 20251104221654
+23.80.157.245 3 3 8082 20251122222003
+45.147.63.125 3 3 8083 20251128222028
+23.81.59.59 3 3 8082 20251110221740
+185.177.72.11 3 3 9643 20251116202525
+109.52.71.156 3 3 2618 20251118212837
+34.238.126.90 2 2 5544 20251102165934
+109.52.103.30 1 1 47 20251125175025
+154.28.229.115 1 1 2524 20251102021049
+68.183.144.87 1 1 2772 20251103084953
+5.133.192.87 1 1 2772 20251121062249
+34.76.18.182 1 1 2524 20251113152933
+47.115.90.194 2 2 5048 20251104210843
+54.196.147.64 1 1 2772 20251117003623
+47.100.37.34 1 1 2772 20251107063204
+109.55.250.158 2 2 47 20251101131556
+133.242.174.119 1 1 2772 20251102032722
+149.57.180.131 1 1 2772 20251101083123
+172.233.62.72 1 1 2772 20251102002731
+103.249.34.166 2 2 5544 20251126001922
+35.205.154.205 1 1 2524 20251120202139
+185.65.134.195 2 2 5048 20251102152339
+68.183.29.28 1 1 2772 20251129110144
+209.38.156.175 1 1 12424 20251102114309
+144.172.107.17 1 1 2772 20251115121338
+46.101.220.192 1 1 12423 20251116100633
+104.252.191.159 1 1 2524 20251102002730
+84.232.244.116 1 1 2524 20251109050854
+31.97.153.61 1 1 2772 20251102003027
+45.55.33.170 1 1 2772 20251105083038
+164.92.250.32 1 1 12416 20251123032118
+159.65.151.6 1 1 2772 20251119094816
+157.245.15.120 1 1 2772 20251104102844
+154.28.229.42 2 2 5048 20251102020533
+178.62.229.181 1 1 2772 20251105075049
+5.133.192.88 1 1 2772 20251112215738
+5.133.192.160 1 1 2772 20251129113037
+147.182.196.149 1 1 2772 20251102094424
+159.203.105.46 1 1 2772 20251108094407
+109.55.250.185 1 1 47 20251120184538
+149.57.180.191 1 1 2772 20251104055441
+13.209.64.42 1 1 2772 20251116074523
+109.52.66.45 1 1 47 20251124190648
+138.246.253.7 1 1 0 20251121153516
+104.252.62.135 1 1 2772 20251128002529
+147.93.155.10 1 1 2772 20251102021054
+149.57.180.184 1 1 2772 20251101045244
+178.128.41.222 1 1 2772 20251115051859
+167.99.125.121 1 1 12423 20251109160438
+2.195.134.17 1 1 47 20251113210854
+68.183.94.77 1 1 2772 20251101102851
+217.201.4.59 1 1 47 20251104180734
+16.176.19.23 1 1 2772 20251115000706
+34.79.31.123 1 1 2524 20251127225853
+205.210.31.33 1 1 11447 20251105132042
+167.94.138.191 1 1 2772 20251102231033
+47.100.198.18 1 1 2524 20251107063206
+103.196.9.240 1 1 2524 20251102020525
+159.65.201.30 1 1 2772 20251122175803
+104.252.191.137 1 1 2524 20251106002740
+147.93.129.190 1 1 11447 20251129015029
+35.90.221.149 1 1 11447 20251123135644
+34.228.26.189 1 1 2772 20251107055611
+91.231.89.17 1 1 11447 20251102004257
+109.52.49.105 1 1 47 20251106185323
+198.235.24.197 1 1 11447 20251115012014
+46.101.50.207 1 1 12419 20251130112151
+54.197.178.250 1 1 2772 20251116181029
+109.52.249.150 1 1 47 20251115215953
+167.94.146.61 1 1 2772 20251101212110
+49.13.94.162 1 1 2524 20251129052751
+93.158.91.24 1 1 2772 20251104111756
+109.55.237.60 1 1 47 20251123203606
+52.90.221.11 1 1 2772 20251102002732
+217.201.43.29 1 1 2524 20251120132217
+206.168.34.123 1 1 2772 20251115151523
+END_VISITOR
+
+# Date - Pages - Hits - Bandwidth - Visits
+BEGIN_DAY 30
+20251101 107 107 257583 7
+20251102 74 74 220758 19
+20251103 49 49 135828 3
+20251104 57 57 154551 7
+20251105 51 51 150047 4
+20251106 54 54 146235 4
+20251107 191 196 371077 5
+20251108 4289 4291 5747754 5
+20251109 4699 4699 6173096 7
+20251110 51 51 141138 2
+20251111 48 48 133056 1
+20251112 49 49 135828 2
+20251113 50 50 135627 3
+20251114 48 48 133056 1
+20251115 54 54 155638 7
+20251116 2585 2585 3084583 10
+20251117 1206 1206 1275812 3
+20251118 51 51 135674 2
+20251119 53 53 136016 4
+20251120 52 52 140923 5
+20251121 4827 4827 6310944 4
+20251122 9770 9770 12075898 5
+20251123 1838 1846 11794181 5
+20251124 49 49 133103 2
+20251125 49 49 133103 2
+20251126 1231 1236 15384443 4
+20251127 2500 2509 23352350 5
+20251128 2058 2061 28746351 4
+20251129 5461 5472 13583056 7
+20251130 1084 1095 11135412 7
+END_DAY
+
+# Session range - Number of visits
+BEGIN_SESSION 7
+30s-2mn 2
+5mn-15mn 3
+2mn-5mn 1
+0s-30s 85
+15mn-30mn 2
+30mn-1h 2
+1h+ 51
+END_SESSION
+
+# URL - Pages - Bandwidth - Entry - Exit
+# The 25 first Pages must be first (order not required for others)
+BEGIN_SIDER 65
+/api/chat/fetch.php 13321 1147618 6 2
+/api/chat/stream.php 13231 34475274 2 14
+/api/chat/presence_ping.php 8317 260479 0 3
+/ 1533 4327412 108 106
+/api/chat/typing.php 792 12384 1 1
+/api/user/summary.php 669 167391 0 1
+/api/chat/reactions_bulk.php 658 52138 0 1
+/api/user/withdrawals/processing_stats.php 602 32484 0 0
+/api/wallet/summary.php 592 72468 0 0
+/api/user/goals_get.php 575 48523 0 1
+/v1/dashboard-investitor.php 526 13969144 0 0
+/api/chat/reactions.php 480 56897 0 0
+/api/chat/mentions_unread.php 284 16201 0 0
+/api/chat/send.php 181 15503 0 0
+/api/user/recent_transactions.php 124 107682 0 0
+/api/session.php 96 4643 23 16
+/api/chat/search.php 96 25112 0 0
+/api/user/history.php 76 32775 0 0
+/api/platform/metrics.php 55 3416 0 0
+/api/bets/list.php 54 25720 0 0
+/api/login.php 45 2781 1 0
+/api/chat/react.php 38 1221 0 0
+/api/ai/gemini_analyze.php 33 18724 1 0
+/api/user/payout_profile.php 25 1725 0 0
+/api/user/transactions.php 25 5969 0 0
+/v1/statistici.html 1 6468 0 0
+/v2/ 1 629 0 0
+/v1/investitii.php 8 21304 0 0
+/api/bets/update_status.php 4 157 0 0
+/footer.html 3 3144 0 0
+/contact.php 13 40208 0 1
+/api/bets/create.php 3 196 0 0
+/strategii.html 2 10287 1 0
+/api/whoami.php 18 1044 0 0
+/confidentialitate.html 2 7750 0 0
+/api/user/transactions 5 970 0 0
+/api/withdrawals/create.php 2 281 0 0
+/v1/acasa.html 4 0 0 0
+/v1/retrageri.php 22 221435 0 0
+/api/chat/mentions_mark_read.php 4 128 0 0
+/register.php 4 10104 1 0
+/api/chat/delete.php 2 88 0 0
+/api/chat/upload.php 9 1113 0 0
+/api/ai/ping.php 1 68 0 0
+/v1/istoric.php 19 237900 0 0
+/v1/dashboard-investitor.php/ 18 562814 0 0
+/v1/dashboard-admin.html 2 21111 0 0
+/v1/dashboard-investitor.php/chat 13 365016 0 0
+/admin/ 16 94755 0 0
+/header.php 7 3498 0 0
+/dashboard.php 4 1056 0 0
+/mesaje.php 1 5297 0 0
+/v1/bets.php 7 31687 0 0
+/v2/welcome-banca-comuna.php 1 5035 0 0
+/layout.html 5 23932 1 0
+/sidebar.php 14 52315 0 0
+/mesaje-admin.php 1 274 0 0
+/v1/profil.html 4 20482 1 0
+/termeni.html 2 7884 0 0
+/api/admin/stats/fees.php 1 143 0 0
+/api/chat/edit.php 4 259 0 0
+/api/user/performance_timeseries.php 5 1100 0 0
+/api/bets/pin.php 2 58 0 0
+/api/chat/users.php 12 804 0 0
+/v1/login.html 11 22029 0 0
+END_SIDER
+
+# Payload Range - Payload Frequency
+BEGIN_FILESIZE 7
+500-1K 814
+2K-5K 14536
+100-500 2666
+0-44 23128
+1K-2K 308
+5K+ 791
+44-100 1699
+END_FILESIZE
+
+# Request Time Range - Request Time Frequency
+BEGIN_REQUESTTIME 0
+END_REQUESTTIME

@@ -1,0 +1,684 @@
+# Webalizer V2.23-08 Incremental Data - 12/12/2025 13:46:46
+2025 12 12 13 46 46
+59843 58016 90 85 20 39 194082476 695 508 0
+4 2 4180 1 12
+3084 1906 3422943 10 87 51
+439 413 762464 7 51 46
+67 50 150612 5 60 44
+66 55 150457 5 56 46
+1916 1832 4146895 13 73 51
+1538 1525 3465774 10 53 41
+2627 2542 30348320 9 51 42
+30224 29915 117756597 14 69 49
+19720 19635 33377271 13 56 43
+61 56 204074 8 53 45
+69 59 216269 17 58 36
+32 28 80800 4 28 14
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+6237 6191 25593379 28
+3195 3183 7813971 25
+1423 1385 4807470 25
+26 25 69848 25
+26 26 89422 26
+25 24 67324 24
+291 237 4495782 26
+27 26 81543 26
+30 27 77232 27
+28 26 83314 26
+33 27 112991 27
+1183 1163 11712288 26
+1116 1103 6157094 26
+912 881 12991387 26
+860 857 2819968 22
+2306 2240 8439852 22
+1986 1980 5179505 23
+1624 1595 4211521 29
+4628 4573 9623866 41
+5291 5238 11335658 40
+4289 4244 10144941 35
+5254 5047 11279975 28
+9772 8870 35358391 45
+9281 9048 21535754 47
+11
+0
+0
+58016
+0
+0
+0
+0
+0
+189
+0
+0
+30
+0
+115
+0
+0
+0
+70
+0
+8
+1358
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+27
+0
+19
+0
+0
+0
+# -urls- 
+/uploads/chat/9b6d48bec17616bb.jpg
+0 1 8299978418438106209 105954 0 0
+/assets/sounds/chat-sent.wav
+0 38 94123908304576 970684 0 0
+/uploads/chat/4356185e78b25443.mp3
+0 73 451780668929 3637147 0 0
+/register.php
+0 2 94123908323712 5052 0 0
+/api/wallet/summary.php
+0 324 0 35141 0 0
+/api/chat/reactions_bulk.php
+0 22 0 1526 0 0
+/assets/sounds/chat-incoming.wav
+0 35 0 794196 0 0
+/api/ai/lumen_insight.php
+0 306 0 135885 0 0
+/uploads/chat/88adb010eed28ce9.jpg
+0 1 0 105954 0 0
+/uploads/chat/bff51be2c39ea0a1.jpg
+0 1 0 105954 0 0
+/v1/
+0 1 0 2109 0 0
+/v1/acasa.html
+0 5 0 10400 2 0
+/v1/confidentialitate.html
+0 1 0 10881 0 0
+/_autoindex/assets/icons/corner-left-up.svg
+0 1 0 328 0 0
+/v1/statistici.html
+0 1 0 6468 0 0
+/layout.html
+0 1 0 0 0 0
+/api/user/transactions
+0 4 0 702 0 1
+/uploads/chat/c8a42cdff7c68014.webp
+0 1 0 22182 0 0
+/v1/dashboard-investitor.php
+0 319 0 8796431 0 0
+/api/platform/metrics.php
+0 39 0 2418 0 0
+/api/login.php
+0 21 0 1365 0 0
+/v1/gemini-format.css
+0 23 0 19294 0 0
+/v1/investitii.php
+0 5 0 13315 0 0
+/sidebar.php
+0 4 0 14896 0 0
+/api/ai/gemini_analyze.php
+0 50 0 9717 0 0
+/api/chat/unreact.php
+0 2 0 30 0 0
+/spa_loader.js
+0 1 3257850948310282797 0 0 0
+/api/chat/poll.php
+0 30882 30803244233226081 94886132 0 0
+/assets/sounds/chat-mention.wav
+0 35 127995099247460 794196 0 0
+/footer.html
+0 1 3977578065662782770 0 0 0
+/uploads/avatars/2ab947aaf35003f7156a4a2138569fc5.webp
+0 1 7362877631935379316 0 0 0
+/api/session.php
+0 44 8098729309889363968 2178 0 0
+/api/user/summary.php
+0 327 30803244233221481 80184 0 0
+/v1/despre.html
+0 1 1759492826 8597 1 0
+/api/chat/presence_ping.php
+0 3612 3630856775265157120 111941 0 0
+/v1/cum-functioneaza.html
+0 2 0 14130 2 0
+/uploads/chat/733c50456bf0320e.png
+0 9 0 414820 0 0
+/api/user/withdrawals/processing_stats.php
+0 35 0 1540 0 0
+/api/platform/metrics
+0 1 0 62 0 1
+/api/chat/mentions_unread.php
+0 565 0 61608 0 0
+/js/theme-events.js
+0 1 0 0 0 0
+/api/user/payout_profile.php
+0 2 0 138 0 0
+/uploads/chat/75e707d059e9a0a5.jpg
+0 1 0 105954 0 0
+/api/chat/send.php
+0 132 0 19518 0 0
+/js/main-route-sync.js
+0 2 0 427 0 0
+/api/chat/reactions.php
+0 10098 0 2118134 0 0
+/v1/retrageri.php
+0 2 0 21090 0 0
+/uploads/chat/63fe842cbc953a85.jpg
+0 1 0 105954 0 0
+/assets/sounds/chat-mention.mp3.wav
+0 2 0 176488 0 0
+/api/chat/delete.php
+0 5 0 219 0 0
+/header.php
+0 2 0 2313 0 0
+/api/whoami.php
+0 6 0 348 0 0
+/v1/termeni.html
+0 1 0 9321 0 0
+/api/chat/fetch.php
+0 586 0 24660 0 0
+/api/chat/mentions_mark_read.php
+0 33 0 1056 0 0
+/v1/profil.html
+0 3 0 10241 2 0
+/api/chat/stream.php
+0 5508 0 15755179 0 0
+/_autoindex/assets/icons/file-text.svg
+0 1 0 394 0 0
+/uploads/chat/dde3a190f1a29cc9.mp4
+0 93 0 56528282 0 0
+/login.html
+0 1 0 2126 0 0
+/api/user/goals_get.php
+0 327 0 27132 0 0
+/_autoindex/assets/css/autoindex.css
+0 1 0 1170 0 0
+/
+0 603 0 1779049 491 447
+/api/chat/upload.php
+0 11 0 1249 0 0
+/v1/gemini-format.js
+0 35 0 24068 0 0
+/api/chat/react.php
+0 25 0 375 0 0
+/api/chat/typing.php
+0 151 0 2265 0 0
+/uploads/chat/6b246ef423d38e8b.jpg
+0 1 0 105954 0 0
+/api/user/history.php
+0 312 0 134449 0 0
+/api/user/goals_save.php
+0 2 0 128 0 0
+/api/chat/presence_online.php
+0 3214 0 315312 0 0
+/uploads/chat/66502d6cdab7f1b7.jpg
+0 1 0 4018302 0 0
+/api/chat/edit.php
+0 14 0 1869 0 0
+/v1/css-general.css
+0 25 0 14448 0 0
+/uploads/chat/f7d5e5b36ec3bdef.webp
+0 1 0 22182 0 0
+/uploads/chat/fdad3e1c7deee23f.jpg
+0 1 0 105954 0 0
+/contact.php
+0 5 0 15575 0 0
+/_autoindex/assets/js/tablesort.js
+0 1 0 2137 0 0
+/v1/login.html
+0 7 0 30410 2 1
+/uploads/chat/c1dd14a48b757c2c.jpg
+0 1 0 105954 0 0
+/_autoindex/assets/js/tablesort.number.js
+0 1 0 322 0 0
+/_autoindex/assets/icons/file.svg
+0 1 0 354 0 0
+/layout_patch.js
+0 1 0 0 0 0
+/api/user/recent_transactions.php
+0 300 0 218670 0 0
+/api/user/transactions.php
+0 2 0 464 0 0
+# End Of Table - urls
+# -sites- (monthly)
+77.111.246.55
+0 2033 2027 3075937 0 0
+-
+74.7.230.38
+0 1 0 796 0 0
+-
+77.111.246.47
+0 415 415 569371 0 0
+-
+77.111.246.17
+0 2 1 843 0 0
+-
+94.139.224.217
+0 2 1 3320 1 1764615548
+/
+ec2-3-252-63-200.eu-west-1.compute.amazonaws.com
+0 1 1 11447 1 1765451694
+/
+85.122.120.46
+0 2 1 3568 1 1764665851
+/
+74.7.228.54
+0 4 0 3184 0 0
+-
+74.7.230.63
+0 1 0 796 0 0
+-
+proxy-fr009-san184.ahrefs.net
+0 1 0 796 0 0
+-
+a172-226-108-45.deploy.static.akamaitechnologies.com
+0 1 1 2524 1 1765105306
+/
+109.55.255.35
+0 1422 1417 3208274 0 0
+-
+74.7.241.171
+0 6 0 4776 0 0
+-
+74.7.243.203
+0 1 1 2524 1 1764583584
+/
+crawl-66-249-69-230.googlebot.com
+0 2 0 1592 0 0
+-
+77.111.246.4
+0 58 58 62927 0 0
+-
+77.111.246.59
+0 3959 3931 5720124 1 1765304510
+-
+ec2-54-166-230-223.compute-1.amazonaws.com
+0 1 1 2772 1 1765415924
+/
+104.236.105.155
+0 2 1 3568 1 1764753086
+/
+74.7.241.138
+0 1 0 796 0 0
+-
+google-proxy-66-249-88-229.google.com
+0 6 5 41263 2 1765236673
+/v1/confidentialitate.html
+74.7.244.40
+0 2 0 1592 0 0
+-
+proxy-fr006-san201.ahrefs.net
+0 1 1 2524 1 1765197982
+/
+74.7.228.53
+0 2 0 1592 0 0
+-
+ip-149-154-161-200.ptr.telegram.org
+0 1 0 796 0 0
+-
+static.30.250.235.167.clients.your-server.de
+0 2 1 3320 1 1764702940
+/
+74.7.228.27
+0 1 0 796 0 0
+-
+93.158.91.10
+0 2 1 3568 1 1765135311
+/
+107-172-195-174-host.colocrossing.com
+0 1 1 2524 1 1764960540
+/
+proxy-fr005-san237.ahrefs.net
+0 1 1 2524 1 1765040694
+/
+45.147.63.75
+0 3 3 8082 1 1765405351
+/
+104.164.173.204
+0 2 2 5048 1 1764964932
+/
+157.230.91.43
+0 1 1 12422 1 1765099020
+/
+ec2-34-244-112-231.eu-west-1.compute.amazonaws.com
+0 1 1 11447 1 1765437856
+/
+proxy-fr000-san85.ahrefs.net
+0 1 1 2524 1 1765424098
+/
+2.195.132.69
+0 4255 4234 6959579 1 1765316141
+/v1/login.html
+ec2-3-238-92-130.compute-1.amazonaws.com
+0 1 1 2524 1 1765478002
+/
+109.52.59.118
+0 3 1 843 0 0
+-
+proxy-fr002-san115.ahrefs.net
+0 1 1 2524 1 1765204561
+/
+proxy-ca012-san53.ahrefs.net
+0 1 0 796 0 0
+-
+109.52.65.106
+0 1958 1900 4255929 2 1764961285
+/v1/login.html
+crawl-66-249-75-133.googlebot.com
+0 1 0 796 0 0
+-
+ns1026160.ip-40-160-13.us
+0 1 1 2772 1 1764808237
+/
+74.7.230.47
+0 1 0 796 0 0
+-
+103.196.9.138
+0 6 4 12200 2 1764960550
+/
+109.52.103.153
+0 34425 34214 154065598 1 1765237100
+/v1/
+77.111.246.40
+0 1486 1483 2130852 0 0
+-
+109.52.69.182
+0 14 0 9624 2 1764799972
+-
+2.195.133.235
+0 34 5 8040 1 1764873330
+-
+74.7.175.166
+0 1 0 796 0 0
+-
+ec2-52-209-248-166.eu-west-1.compute.amazonaws.com
+0 1 1 37560 1 1765325382
+/
+ec2-34-254-199-52.eu-west-1.compute.amazonaws.com
+0 1 1 11447 1 1765341109
+/
+165.232.113.0
+0 2 0 106 1 1765473067
+/
+1a2.crawl.securitytrails.com
+0 1 1 2772 1 1764921174
+/
+vps-ff2d2c09.vps.ovh.ca
+0 1 1 2772 1 1764699149
+/
+google-proxy-66-249-88-230.google.com
+0 5 5 9551 2 1765236673
+/
+crawl-192-178-6-103.googlebot.com
+0 1 0 796 0 0
+-
+74.7.241.144
+0 1 0 796 0 0
+-
+proxy-fr004-san3.ahrefs.net
+0 1 1 3034 0 0
+-
+77.111.246.28
+0 3808 3806 5312125 0 0
+-
+reverent.monitoring.internet-measurement.com
+0 1 1 2772 1 1765451018
+/
+77.111.246.25
+0 32 32 34852 0 0
+-
+google-proxy-66-249-88-231.google.com
+0 3 3 12590 1 1765236673
+/v1/login.html
+scan.cypex.ai
+0 1 1 2772 1 1765435102
+/
+crawl-66-249-69-229.googlebot.com
+0 1 0 796 0 0
+-
+ip86.ip-23-19-216.mpp.wa.com
+0 3 3 8084 1 1764886882
+/
+ec2-18-203-160-144.eu-west-1.compute.amazonaws.com
+0 1 1 2772 1 1765009154
+/
+planetlab24.gino-research.net.in.tum.de
+0 4 0 3184 0 0
+-
+2.195.143.120
+0 3405 2217 3889191 6 1764632332
+/v1/login.html
+74.7.244.61
+0 1 0 796 0 0
+-
+159.203.107.21
+0 2 0 106 1 1765191365
+/
+161.35.176.50
+0 2 1 3568 1 1765029001
+/
+24.124.77.34.bc.googleusercontent.com
+0 2 1 3320 1 1764893928
+/
+proxy-ca003-san117.ahrefs.net
+0 1 0 796 0 0
+-
+104.28.114.50
+0 1 1 2524 1 1765026626
+/
+178.62.198.138
+0 2 1 3568 1 1764923078
+/
+proxy-ca008-san30.ahrefs.net
+0 1 1 2524 1 1764916000
+/
+ec2-3-252-62-32.eu-west-1.compute.amazonaws.com
+0 1 1 37615 1 1765447473
+/
+crawl-66-249-75-134.googlebot.com
+0 1 0 796 0 0
+-
+cp117s.zooku.eu
+0 556 556 1541232 447 1765547206
+/
+crawl-192-178-6-101.googlebot.com
+0 3 2 5844 1 1764618073
+/
+proxy-uk003-san175.ahrefs.net
+0 1 0 796 0 0
+-
+74.7.228.21
+0 1 0 796 0 0
+-
+77.111.246.44
+0 3 1 843 0 0
+-
+crawl-192-178-6-102.googlebot.com
+0 1 0 796 0 0
+-
+vps-5f962ba0.vps.ovh.net
+0 1 1 2772 1 1764727314
+/
+ec2-54-74-82-69.eu-west-1.compute.amazonaws.com
+0 1 1 11447 1 1765339840
+/
+109.52.102.51
+0 1855 1845 2885579 0 0
+-
+74.7.244.4
+0 2 0 1592 0 0
+-
+bot-vttom7.vertexwp.com
+0 2 1 3568 1 1765484671
+/
+# End Of Table - sites (monthly)
+# -sites- (daily)
+74.7.230.63
+0 1 0 796 0 0
+-
+74.7.230.47
+0 1 0 796 0 0
+-
+planetlab24.gino-research.net.in.tum.de
+0 2 0 1592 0 0
+-
+cp117s.zooku.eu
+0 28 28 77616 14 1765547206
+/
+# End Of Table - sites (daily)
+# -referrers- 
+https://pariazainteligent.ro/
+0 58
+https://pariazainteligent.ro/layout.html
+0 34
+https://pariazainteligent.ro/v1/despre.html
+0 1
+https://webdisk.pariazainteligent.ro/
+0 1
+https://pariazainteligent.ro/v1/cum-functioneaza.html
+0 2
+https://pariazainteligent.ro/v1/profil.html
+0 24
+https://mail.pariazainteligent.ro/
+0 1
+https://pariazainteligent.ro/v1/retrageri.php
+0 10
+- (Direct Request)
+0 687
+https://pariazainteligent.ro/v1/acasa.html
+0 8
+https://accounts.google.com/
+0 2
+https://pariazainteligent.ro/v1/dashboard-admin.html
+0 52
+https://pariazainteligent.ro/v1/dashboard-investitor.php
+0 58538
+https://pariazainteligent.ro/service-worker.js
+0 10
+https://pariazainteligent.ro/login.html
+0 1
+https://pariazainteligent.ro/v1/
+0 6
+https://pariazainteligent.ro/v1/statistici.html
+0 1
+https://www.pariazainteligent.ro/
+0 1
+https://cpcalendars.pariazainteligent.ro/
+0 1
+https://pariazainteligent.ro/v1/login.html
+0 405
+# End Of Table - referrers
+# -agents- 
+cypex.ai/scanning Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/126.0.0.0 Safari/537.36
+0 1
+Mozilla/5.0
+0 2
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+0 33205
+Mozilla/5.0 (compatible; InternetMeasurement/1.0; +https://internet-measurement.com/)
+0 1
+Mozilla/5.0 (compatible; NetcraftSurveyAgent/1.0; +info@netcraft.com)
+0 6
+Mozilla/5.0 (iPad; U; CPU OS 4_2_1 like Mac OS X; ja-jp) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8C148 
+0 1
+RecordedFuture Global Inventory Crawler
+0 1
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36
+0 2
+Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Mobile S
+0 1
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36
+0 1
+Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
+0 7
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36; compat
+0 25
+Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)
+0 10
+Mozilla/5.0 (iPhone; CPU iPhone OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 
+0 2
+Googlebot-Image/1.0
+0 2
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36
+0 1
+Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0
+0 3
+Go-http-client/2.0
+0 1
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36
+0 4
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/601.2.4 (KHTML, like Gecko) Version/9.0.1 Safari/601.2.4 facebook
+0 2
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36
+0 2
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.3
+0 2
+Google
+0 14
+TelegramBot (like TwitterBot)
+0 1
+Mozilla/5.0 (Android 15; Mobile; rv:145.0) Gecko/145.0 Firefox/145.0
+0 466
+Mozilla/5.0 (compatible; VertexWP/1.0; +https://vertexwp.com/bot)
+0 1
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36
+0 2
+Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Safari/
+0 255
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36
+0 5
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36
+0 1
+Python/3.11 aiohttp/3.9.2
+0 556
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36
+0 6
+Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.3; +https://openai.com/gptbot)
+0 1
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+0 2
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36
+0 1
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 OPR/124.0.0.0
+0 25241
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+0 6
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0
+0 1
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36
+0 2
+# End Of Table - agents
+# -search strings- 
+# End Of Table - search strings
+# -usernames- 
+# End Of Table - usernames

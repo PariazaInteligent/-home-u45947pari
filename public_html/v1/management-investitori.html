@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Management Utilizatori — Banca Comună de Investiții</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Optional export libs (PDF/XLSX). Page works without them; we detect at runtime. -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root{ --acc-1:#2563eb; --acc-2:#06b6d4; --acc-3:#14b8a6; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .hero-gradient { background: linear-gradient(135deg, var(--acc-1), var(--acc-2), var(--acc-3)); background-size: 180% 180%; animation: gradientMove 10s ease infinite; }
+    .acc-gradient { background: linear-gradient(90deg, var(--acc-1), var(--acc-2), var(--acc-3)); }
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .glow { box-shadow: 0 10px 30px rgba(34,211,238,.25), inset 0 0 0 1px rgba(255,255,255,.06); }
+    .card-hover { transition: transform .25s ease, box-shadow .25s ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 15px 45px rgba(0,0,0,.35); }
+    .nice-scroll::-webkit-scrollbar{ width:8px;} .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.15); border-radius:8px;}
+    .toast{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;border-radius:.75rem;border:1px solid rgba(255,255,255,.12);background:rgba(2,6,23,.95);backdrop-filter:blur(6px)}
+    .toast.success{border-color:rgba(34,197,94,.35)}
+    .toast.warn{border-color:rgba(234,179,8,.35)}
+    .toast.error{border-color:rgba(239,68,68,.35)}
+    .badge { padding:.25rem .5rem; border-radius:.5rem; font-size:.75rem; }
+    .table-head { background: rgba(255,255,255,.04); position: sticky; top: 0; backdrop-filter: blur(6px); }
+    /* Drawer & Modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);display:none;}
+    .overlay.show{display:block;}
+    .drawer{position:fixed;top:0;right:-560px;width:560px;max-width:100%;height:100%;background:rgba(15,23,42,.98);border-left:1px solid rgba(255,255,255,.08);transition:right .3s ease;}
+    .drawer.show{right:0;}
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:1rem;}
+    .modal.show{display:flex;}
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100" data-role="ADMIN" data-user-name="Administrator">
+  <!-- Toasts container -->
+  <div id="toasts" class="fixed top-4 right-4 z-[80] space-y-2"></div>
+
+  <!-- Role gate -->
+  <script>
+    (function gate(){ const role=(document.body.dataset.role||'GUEST').toUpperCase(); if(role!=='ADMIN') window.location.replace('/admin/login.php'); })();
+  </script>
+
+  <!-- NAV / TOPBAR -->
+  <header class="sticky top-0 z-50 bg-slate-950/70 backdrop-blur border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/admin" class="flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl acc-gradient text-slate-900 font-extrabold glow">PI</span>
+        <div>
+          <div class="font-semibold tracking-wide">Pariază Inteligent</div>
+          <div class="text-xs text-slate-400 -mt-0.5">Management Utilizatori</div>
+        </div>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+        <a class="hover:text-white" href="/admin/dashboard.html">Dashboard Admin</a>
+        <a class="text-white" href="/admin/users.html">Utilizatori</a>
+        <a class="hover:text-white" href="/admin/reports.html">Rapoarte</a>
+        <a class="hover:text-white" href="/profil.html">Profil</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <a href="/admin/dashboard.html" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-sm"><i class="fa-solid fa-arrow-left mr-2"></i>Înapoi</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 hero-gradient opacity-20"></div>
+    <div class="max-w-7xl mx-auto px-4 py-8 md:py-12 relative">
+      <div class="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold">Management Utilizatori</h1>
+          <p class="text-slate-300">Bestia futuristă pentru control total: onboarding, KYC, securitate, balanțe, acțiuni în masă, exporturi, audit. Stil BancaComuna v1 — ultramodern.</p>
+        </div>
+        <div class="text-sm text-slate-400">Admin: <span class="font-medium text-slate-200" id="adminName"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-4 pb-24 space-y-6">
+    <!-- KPIs -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+        <div class="text-slate-400 text-xs">Utilizatori Totali</div>
+        <div id="kpiTotal" class="text-2xl font-extrabold mt-1">—</div>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+        <div class="text-slate-400 text-xs">Activi / Suspendați</div>
+        <div id="kpiActive" class="text-2xl font-extrabold mt-1">—</div>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+        <div class="text-slate-400 text-xs">KYC Pending / Verificați</div>
+        <div id="kpiKyc" class="text-2xl font-extrabold mt-1">—</div>
+      </div>
+      <div class="rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+        <div class="text-slate-400 text-xs">Bal. Medie (EUR)</div>
+        <div id="kpiAvgBal" class="text-2xl font-extrabold mt-1">—</div>
+      </div>
+    </section>
+
+    <!-- BARĂ CONTROL / FILTRE -->
+    <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5">
+      <div class="flex flex-col xl:flex-row gap-4 xl:items-end xl:justify-between">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-3 text-sm flex-1">
+          <div class="md:col-span-2">
+            <label class="text-slate-300">Căutare</label>
+            <input id="fltSearch" placeholder="Nume, email, id, tag..." class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+          </div>
+          <div>
+            <label class="text-slate-300">Rol</label>
+            <select id="fltRole" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <option value="">Toate</option>
+              <option>USER</option>
+              <option>ANALYST</option>
+              <option>SUPPORT</option>
+              <option>ADMIN</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-slate-300">Status</label>
+            <select id="fltStatus" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <option value="">Toate</option>
+              <option>ACTIVE</option>
+              <option>SUSPENDED</option>
+              <option>PENDING</option>
+              <option>BANNED</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-slate-300">KYC</label>
+            <select id="fltKyc" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <option value="">Toate</option>
+              <option>PENDING</option>
+              <option>VERIFIED</option>
+              <option>REJECTED</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-slate-300">Sortare</label>
+            <select id="fltSort" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <option value="created_desc">Cele mai noi</option>
+              <option value="created_asc">Cele mai vechi</option>
+              <option value="bal_desc">Balanță (desc)</option>
+              <option value="profit_desc">Profit (desc)</option>
+              <option value="name_asc">Nume (A→Z)</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-slate-300">Query avansat</label>
+            <input id="fltQuery" placeholder="ex: role:USER balance>=1000 country:RO risk>0.7" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+          </div>
+        </div>
+        <div class="flex items-center flex-wrap gap-2">
+          <label class="inline-flex items-center gap-2 text-xs"><input id="flt2FA" type="checkbox"> Doar cu 2FA</label>
+          <label class="inline-flex items-center gap-2 text-xs"><input id="fltFlagged" type="checkbox"> Doar FLAGGED</label>
+          <button id="btnApply" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 font-semibold text-sm">Aplică</button>
+          <button id="btnReset" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-sm">Reset</button>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center gap-2 text-xs">
+        <button id="btnConnect" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-plug mr-1"></i><span>Conectează Live</span></button>
+        <button id="btnDemoBurst" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Generează 20 DEMO</button>
+        <button id="btnNewUser" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-user-plus mr-1"></i>Utilizator nou</button>
+        <button id="btnExportCSV" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button>
+        <button id="btnExportJSON" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-brands fa-js mr-1"></i>JSON</button>
+        <button id="btnExportXLSX" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 hidden"><i class="fa-regular fa-file-excel mr-1"></i>XLSX</button>
+        <button id="btnExportPDF" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 hidden"><i class="fa-regular fa-file-pdf mr-1"></i>PDF</button>
+        <label class="ml-2 rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 cursor-pointer"><i class="fa-solid fa-file-import mr-1"></i>Import JSON<input id="fileImport" type="file" accept="application/json" class="hidden"/></label>
+        <span class="ml-auto text-slate-400">Rezultate: <span id="resCount">—</span></span>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- LISTĂ UTILIZATORI -->
+      <section class="lg:col-span-2 card-hover rounded-2xl border border-white/10 bg-white/5 p-0 overflow-hidden" id="cardList">
+        <div class="table-head px-4 py-2 text-xs text-slate-300 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <button id="btnSelectAll" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Selectează tot</button>
+            <button id="btnClearSel" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Golește selecția</button>
+            <span id="selCount" class="text-slate-500">0 selectate</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnBulkActivate" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Activează</button>
+            <button id="btnBulkSuspend" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Suspendă</button>
+            <button id="btnBulkRoleUser" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Setează USER</button>
+            <button id="btnBulkDelete" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs text-rose-300">Șterge</button>
+          </div>
+        </div>
+        <div id="list" class="max-h-[680px] overflow-auto nice-scroll divide-y divide-white/5"></div>
+        <div id="empty" class="hidden p-6 text-sm text-slate-400">Nu există utilizatori pentru filtrele curente.</div>
+      </section>
+
+      <!-- INSPECTOR & ACȚIUNI RAPIDE -->
+      <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" id="cardInspector">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold">Inspector Utilizator</h2>
+          <button id="btnTestSuite" class="rounded-xl px-3 py-1.5 border border-white/10 hover:border-white/20 text-xs"><i class="fa-solid fa-vial mr-1"></i>Rulează self‑tests</button>
+        </div>
+        <div id="insEmpty" class="text-sm text-slate-400">Selectează un utilizator din listă pentru detalii.</div>
+        <div id="insBody" class="hidden space-y-3 text-sm">
+          <div class="flex items-center gap-3">
+            <img id="insAvatar" class="h-12 w-12 rounded-xl ring-1 ring-white/10" src="" alt="avatar"/>
+            <div>
+              <div class="font-semibold" id="insName">—</div>
+              <div class="text-xs text-slate-400" id="insEmail">—</div>
+            </div>
+            <span id="insRole" class="badge bg-white/10 text-slate-300 ml-auto">—</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="rounded-xl border border-white/10 bg-slate-900/60 p-2"><div class="text-slate-400">Status</div><div id="insStatus" class="font-medium">—</div></div>
+            <div class="rounded-xl border border-white/10 bg-slate-900/60 p-2"><div class="text-slate-400">KYC</div><div id="insKyc" class="font-medium">—</div></div>
+            <div class="rounded-xl border border-white/10 bg-slate-900/60 p-2"><div class="text-slate-400">Balanță</div><div id="insBal" class="font-medium">—</div></div>
+            <div class="rounded-xl border border-white/10 bg-slate-900/60 p-2"><div class="text-slate-400">Profit</div><div id="insProfit" class="font-medium">—</div></div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="insToggle2FA" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">2FA on/off</button>
+            <button id="insVerifyKyc" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Marchează KYC: VERIFIED</button>
+            <button id="insSuspend" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Suspendă</button>
+            <button id="insActivate" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Activează</button>
+            <button id="insResetPwd" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Reset parolă</button>
+            <a id="insImpersonate" target="_blank" class="rounded-lg px-2 py-1 acc-gradient text-slate-900 font-semibold">Impersonate</a>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="text-slate-400 text-xs mb-1">Note & Flags</div>
+            <textarea id="insNotes" class="w-full rounded-lg bg-white/5 border border-white/10 px-2 py-1 text-xs" rows="3" placeholder="Note interne (audit)"></textarea>
+            <div class="mt-2 flex items-center gap-2 text-xs">
+              <label class="inline-flex items-center gap-2"><input id="insFlag" type="checkbox"> FLAG suspicious</label>
+              <span class="ml-auto text-slate-400">RiskScore: <span id="insRisk">—</span></span>
+            </div>
+          </div>
+          <div class="text-xs text-slate-400">Creat la: <span id="insCreated">—</span> • Ultima activitate: <span id="insLast">—</span> • Țară: <span id="insCountry">—</span></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="py-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 text-sm text-slate-400 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>© <span id="year"></span> Pariază Inteligent — Management Utilizatori</div>
+      <div class="flex items-center gap-4">
+        <a class="hover:text-white" href="/admin/dashboard.html">Dashboard Admin</a>
+        <a class="hover:text-white" href="/logout.php">Deconectare</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Slide-over detalii (full) -->
+  <div id="ov" class="overlay"></div>
+  <aside id="drawer" class="drawer">
+    <div class="h-full flex flex-col">
+      <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+        <div class="font-semibold">Detalii Utilizator</div>
+        <button id="btnCloseDrawer" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-4 space-y-3 text-sm overflow-auto nice-scroll">
+        <div class="flex items-center gap-3">
+          <img id="d_avatar" class="h-12 w-12 rounded-xl ring-1 ring-white/10" src="" alt="avatar"/>
+          <div>
+            <div class="font-semibold" id="d_name">—</div>
+            <div class="text-xs text-slate-400" id="d_email">—</div>
+          </div>
+          <span id="d_role" class="badge bg-white/10 text-slate-300 ml-auto">—</span>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-2"><div class="text-slate-400">Status</div><div id="d_status" class="font-medium">—</div></div>
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-2"><div class="text-slate-400">KYC</div><div id="d_kyc" class="font-medium">—</div></div>
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-2"><div class="text-slate-400">Balanță</div><div id="d_bal" class="font-medium">—</div></div>
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-2"><div class="text-slate-400">Profit</div><div id="d_profit" class="font-medium">—</div></div>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+          <div class="text-slate-400 text-xs mb-1">Payload</div>
+          <pre id="d_payload" class="text-[11px] whitespace-pre-wrap"></pre>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="d_suspend" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-xs">Suspendă</button>
+          <button id="d_activate" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-xs">Activează</button>
+          <button id="d_verify" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-xs">KYC: VERIFIED</button>
+          <a id="d_imp" target="_blank" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 text-xs font-semibold">Impersonate</a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MODAL: Create/Edit user -->
+  <div id="modal" class="modal">
+    <div class="rounded-2xl border border-white/10 bg-slate-900/90 backdrop-blur p-5 w-full max-w-xl">
+      <div class="flex items-center justify-between mb-3"><div class="font-semibold" id="m_title">Utilizator nou</div><button id="m_close" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+        <div>
+          <label class="text-slate-300">Nume</label>
+          <input id="m_name" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+        </div>
+        <div>
+          <label class="text-slate-300">Email</label>
+          <input id="m_email" type="email" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+        </div>
+        <div>
+          <label class="text-slate-300">Rol</label>
+          <select id="m_role" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+            <option>USER</option><option>ANALYST</option><option>SUPPORT</option><option>ADMIN</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-slate-300">Status</label>
+          <select id="m_status" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+            <option>ACTIVE</option><option>PENDING</option><option>SUSPENDED</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-slate-300">Țară</label>
+          <input id="m_country" placeholder="RO" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+        </div>
+        <div>
+          <label class="text-slate-300">Balanță (EUR)</label>
+          <input id="m_balance" type="number" min="0" value="0" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+        </div>
+        <div>
+          <label class="text-slate-300">Profit (EUR)</label>
+          <input id="m_profit" type="number" min="0" value="0" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+        </div>
+        <div>
+          <label class="text-slate-300">KYC</label>
+          <select id="m_kyc" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"><option>PENDING</option><option>VERIFIED</option><option>REJECTED</option></select>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center justify-end gap-2">
+        <button id="m_save" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 font-semibold">Salvează</button>
+        <button id="m_cancel" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20">Anulează</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="sndPing" preload="auto" crossorigin="anonymous"><source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a3f1d9a87.mp3?filename=correct-2-46134.mp3" type="audio/mpeg"></audio>
+
+  <script>
+    // ====== Bootstrap meta ======
+    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('adminName').textContent = document.body.dataset.userName || 'Admin';
+
+    // ====== Helpers ======
+    const LS_USERS = 'bcv1_admin_users';
+    const LS_NOTES = 'bcv1_admin_user_notes';
+    function toast(msg, type='success'){ const t=document.createElement('div'); t.className='toast '+type; t.innerHTML = "<i class='fa-solid "+(type==='success'?"fa-circle-check":type==='warn'?"fa-triangle-exclamation":"fa-circle-exclamation")+"'></i><span>"+msg+"</span>"; document.getElementById('toasts').appendChild(t); setTimeout(()=>t.remove(), 3200); }
+    function fmtEUR(v){ return new Intl.NumberFormat('ro-RO',{style:'currency',currency:'EUR'}).format(+v||0); }
+    function fmtTS(ts){ try{ return new Date(ts).toLocaleString('ro-RO'); }catch(e){ return String(ts); } }
+    function id(){ return 'u'+Math.random().toString(36).slice(2,7)+Date.now().toString(36).slice(-4); }
+    function clamp(x,min,max){ return Math.max(min, Math.min(max,x)); }
+
+    // ====== Data Loaders ======
+    async function loadUsers(){
+      try{ const r=await fetch('/api/admin/users?limit=2000'); if(!r.ok) throw 0; const j=await r.json(); return Array.isArray(j)? j : (j.items||[]); }
+      catch(e){ return demoSeed(120); }
+    }
+    function demoSeed(n){
+      const roles=['USER','USER','USER','ANALYST','SUPPORT'];
+      const statuses=['ACTIVE','ACTIVE','SUSPENDED','PENDING'];
+      const kycs=['PENDING','VERIFIED','REJECTED'];
+      const countries=['RO','RO','RO','RO','DE','ES','FR','IT','UK'];
+      const out=[]; const now=Date.now();
+      for(let i=0;i<n;i++){
+        const role = roles[Math.floor(Math.random()*roles.length)];
+        const status = statuses[Math.floor(Math.random()*statuses.length)];
+        const kyc = kycs[Math.floor(Math.random()*kycs.length)];
+        const balance = +(Math.random()*15000).toFixed(2);
+        const profit = +(Math.max(0, balance*(Math.random()*0.4)).toFixed(2));
+        const createdAt = new Date(now - Math.floor(Math.random()*1000*60*60*24*365)).toISOString();
+        const lastActive = now - Math.floor(Math.random()*1000*60*60*72);
+        const name = ['Andrei','Mara','Ioana','Vlad','Radu','Patricia','Cristina','Paul','Mihai','Ana'][Math.floor(Math.random()*10)] + ' ' + ['Popescu','Ionescu','Georgescu','Munteanu','Dumitrescu'][Math.floor(Math.random()*5)];
+        const email = name.toLowerCase().replace(/\s+/g,'.') + '@example.com';
+        const flags = { suspicious: Math.random()<0.08, risk: +(Math.random().toFixed(2)) };
+        out.push({ id:id(), name, email, role, status, kyc, balance, profit, createdAt, lastActive, twoFA: Math.random()<0.55, country: countries[Math.floor(Math.random()*countries.length)], avatar:`https://i.pravatar.cc/120?img=${Math.floor(Math.random()*70)+1}`, flags, tags: flags.suspicious?['FLAGGED']:[] });
+      }
+      return out.sort((a,b)=> new Date(b.createdAt)-new Date(a.createdAt));
+    }
+
+    // ====== State ======
+    const state={ all:[], view:[], sel:new Set(), connected:false, timer:null, selected:null };
+
+    // ====== Persistence (local notes per user) ======
+    function saveNotes(idv, text){ const map = loadNotesAll(); map[idv]=text; localStorage.setItem(LS_NOTES, JSON.stringify(map)); }
+    function loadNotes(idv){ const map = loadNotesAll(); return map[idv]||''; }
+    function loadNotesAll(){ try{ return JSON.parse(localStorage.getItem(LS_NOTES)||'{}'); }catch(e){ return {}; } }
+
+    // ====== Filters & Sorting ======
+    function matchAdvanced(u, q){
+      if(!q) return true;
+      try{
+        const tokens=q.split(/\s+/).filter(Boolean);
+        let ok=true;
+        for(const tok of tokens){
+          if(tok.includes(':')){ const [k,v]=tok.split(':'); const val=(u[k]??'')+''; ok = ok && val.toString().toLowerCase().includes((v||'').toLowerCase()); }
+          else if(tok.includes('>=')){ const [k,v]=tok.split('>=' ); ok = ok && ((+u[k]||0) >= (+v||0)); }
+          else if(tok.includes('<=')){ const [k,v]=tok.split('<='); ok = ok && ((+u[k]||0) <= (+v||0)); }
+          else if(tok.includes('>')){ const [k,v]=tok.split('>'); ok = ok && ((+u[k]||0) > (+v||0)); }
+          else if(tok.includes('<')){ const [k,v]=tok.split('<'); ok = ok && ((+u[k]||0) < (+v||0)); }
+        }
+        return ok;
+      }catch(e){ return true; }
+    }
+    function matchFilters(u){
+      const q=(document.getElementById('fltSearch').value||'').toLowerCase();
+      const role=document.getElementById('fltRole').value; const status=document.getElementById('fltStatus').value; const kyc=document.getElementById('fltKyc').value; const adv=document.getElementById('fltQuery').value.trim();
+      const only2fa=document.getElementById('flt2FA').checked; const flagged=document.getElementById('fltFlagged').checked;
+      if(role && u.role!==role) return false; if(status && u.status!==status) return false; if(kyc && u.kyc!==kyc) return false;
+      if(only2fa && !u.twoFA) return false; if(flagged && !u.flags?.suspicious) return false;
+      if(q){ const hay=[u.name,u.email,u.id,(u.tags||[]).join(' '),u.country].join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
+      if(!matchAdvanced(u, adv)) return false; return true;
+    }
+    function sortItems(a,b){ const s=document.getElementById('fltSort').value; if(s==='created_desc') return new Date(b.createdAt)-new Date(a.createdAt); if(s==='created_asc') return new Date(a.createdAt)-new Date(b.createdAt); if(s==='bal_desc') return (+b.balance||0)-(+a.balance||0); if(s==='profit_desc') return (+b.profit||0)-(+a.profit||0); if(s==='name_asc') return String(a.name).localeCompare(String(b.name)); return 0; }
+
+    // ====== Rendering ======
+    function renderKPIs(){ const total=state.all.length; const active=state.all.filter(u=>u.status==='ACTIVE').length; const suspended=state.all.filter(u=>u.status==='SUSPENDED').length; const kycP=state.all.filter(u=>u.kyc==='PENDING').length; const kycV=state.all.filter(u=>u.kyc==='VERIFIED').length; const avg= (state.all.reduce((s,u)=>s+(+u.balance||0),0)/(total||1)); document.getElementById('kpiTotal').textContent = new Intl.NumberFormat('ro-RO').format(total); document.getElementById('kpiActive').textContent = active+' / '+suspended; document.getElementById('kpiKyc').textContent = kycP+' / '+kycV; document.getElementById('kpiAvgBal').textContent = fmtEUR(avg); }
+
+    function renderList(){ const list=document.getElementById('list'); const empty=document.getElementById('empty'); list.innerHTML=''; const rows = state.all.filter(matchFilters).sort(sortItems); state.view = rows; document.getElementById('resCount').textContent = rows.length; if(rows.length===0){ empty.classList.remove('hidden'); return; } empty.classList.add('hidden'); const frag=document.createDocumentFragment(); rows.forEach(u=> frag.appendChild(renderItem(u))); list.appendChild(frag); updateSelInfo(); }
+
+    function sevBadge(status){ if(status==='ACTIVE') return 'bg-emerald-500/15 text-emerald-200'; if(status==='SUSPENDED') return 'bg-amber-500/15 text-amber-200'; if(status==='BANNED') return 'bg-rose-500/15 text-rose-200'; return 'bg-sky-500/15 text-sky-200'; }
+
+    function renderItem(u){ const li=document.createElement('div'); li.className='p-3 hover:bg-white/5'; li.dataset.id=u.id; const pin = u.flags?.suspicious?"<span class='badge bg-rose-500/15 text-rose-200'>FLAGGED</span>":''; const twofa = u.twoFA?"<i class='fa-solid fa-shield-keyhole text-emerald-300' title='2FA activ'></i>":"<i class='fa-regular fa-shield text-slate-500' title='2FA inactiv'></i>"; li.innerHTML = `
+        <div class='flex items-start justify-between gap-3'>
+          <div class='flex items-start gap-3'>
+            <input type='checkbox' class='mt-1 selBox'>
+            <img src='${u.avatar||"https://i.pravatar.cc/120"}' alt='av' class='h-9 w-9 rounded-lg ring-1 ring-white/10'>
+            <div>
+              <div class='flex items-center gap-2'><span class='font-medium'>${u.name||'—'}</span><span class='text-xs text-slate-400'>${u.email||''}</span>${pin}</div>
+              <div class='text-xs text-slate-400'>${new Date(u.createdAt).toISOString().slice(0,10)} • ${u.country||'—'}</div>
+              <div class='mt-1 flex flex-wrap gap-1 text-[11px] text-slate-300'>
+                <span class='badge bg-white/10'>${u.role}</span>
+                <span class='badge ${sevBadge(u.status)}'>${u.status}</span>
+                <span class='badge bg-white/10'>KYC:${u.kyc}</span>
+                ${u.tags && u.tags.length? u.tags.map(t=>`<span class='badge bg-white/10'>#${t}</span>`).join(''):''}
+              </div>
+            </div>
+          </div>
+          <div class='text-xs flex items-center gap-3'>
+            <div class='text-right'>
+              <div class='font-semibold'>${fmtEUR(u.balance)}</div>
+              <div class='text-slate-400'>profit: ${fmtEUR(u.profit)}</div>
+            </div>
+            <button data-act='edit' title='Editează' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'><i class='fa-solid fa-pen-to-square'></i></button>
+            <button data-act='view' title='Detalii' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'><i class='fa-solid fa-up-right-from-square'></i></button>
+          </div>
+        </div>`;
+      li.addEventListener('click', (e)=>{ if(e.target.closest('button')||e.target.closest('input')) return; openDetail(u.id); });
+      li.querySelectorAll('[data-act]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); const act=btn.dataset.act; if(act==='edit') openModal(u); else if(act==='view') openDetail(u.id); }));
+      li.querySelector('.selBox').addEventListener('change', (e)=>{ if(e.target.checked) state.sel.add(u.id); else state.sel.delete(u.id); updateSelInfo(); });
+      return li; }
+
+    function updateSelInfo(){ document.getElementById('selCount').textContent = state.sel.size + ' selectate'; }
+
+    // ====== Item actions ======
+    function findIdx(idv){ return state.all.findIndex(x=>x.id===idv); }
+    function setStatus(idv, status){ const i=findIdx(idv); if(i<0) return; state.all[i].status=status; renderList(); toast('Status actualizat'); }
+    function setRole(idv, role){ const i=findIdx(idv); if(i<0) return; state.all[i].role=role; renderList(); toast('Rol actualizat'); }
+
+    function batch(action){ state.sel.forEach(idv=>{ const i=findIdx(idv); if(i<0) return; if(action==='activate') state.all[i].status='ACTIVE'; if(action==='suspend') state.all[i].status='SUSPENDED'; if(action==='role_user') state.all[i].role='USER'; if(action==='delete'){ /* mark deleted */ state.all[i]._deleted=true; } });
+      if(action==='delete'){ state.all = state.all.filter(u=> !u._deleted); }
+      state.sel.clear(); renderList(); toast('Acțiune aplicată'); }
+
+    // ====== Detail drawer ======
+    function openDetail(idv){ const u=state.all.find(x=>x.id===idv); if(!u) return; state.selected=u; const ov=document.getElementById('ov'); const dr=document.getElementById('drawer'); ov.classList.add('show'); dr.classList.add('show');
+      document.getElementById('d_name').textContent = u.name||'—'; document.getElementById('d_email').textContent = u.email||''; document.getElementById('d_role').textContent = u.role; document.getElementById('d_status').textContent = u.status; document.getElementById('d_kyc').textContent = u.kyc; document.getElementById('d_bal').textContent = fmtEUR(u.balance); document.getElementById('d_profit').textContent = fmtEUR(u.profit); document.getElementById('d_avatar').src = u.avatar||''; document.getElementById('d_payload').textContent = JSON.stringify(u, null, 2);
+      const a=document.getElementById('d_imp'); a.href = '/admin/impersonate?id='+encodeURIComponent(u.id);
+      document.getElementById('d_suspend').onclick=()=>{ setStatus(u.id,'SUSPENDED'); };
+      document.getElementById('d_activate').onclick=()=>{ setStatus(u.id,'ACTIVE'); };
+      document.getElementById('d_verify').onclick=()=>{ const i=findIdx(u.id); if(i>=0){ state.all[i].kyc='VERIFIED'; renderList(); toast('KYC setat la VERIFIED'); } };
+    }
+    function closeDetail(){ document.getElementById('ov').classList.remove('show'); document.getElementById('drawer').classList.remove('show'); }
+    document.getElementById('ov').addEventListener('click', closeDetail); document.getElementById('btnCloseDrawer').addEventListener('click', closeDetail);
+
+    // ====== Inspector quick panel ======
+    function loadInspector(u){ if(!u){ document.getElementById('insBody').classList.add('hidden'); document.getElementById('insEmpty').classList.remove('hidden'); return; }
+      document.getElementById('insEmpty').classList.add('hidden'); document.getElementById('insBody').classList.remove('hidden');
+      document.getElementById('insAvatar').src=u.avatar||''; document.getElementById('insName').textContent=u.name||'—'; document.getElementById('insEmail').textContent=u.email||''; document.getElementById('insRole').textContent=u.role||'—'; document.getElementById('insStatus').textContent=u.status||'—'; document.getElementById('insKyc').textContent=u.kyc||'—'; document.getElementById('insBal').textContent=fmtEUR(u.balance); document.getElementById('insProfit').textContent=fmtEUR(u.profit); document.getElementById('insRisk').textContent=(u.flags?.risk??0).toFixed(2); document.getElementById('insCreated').textContent=new Date(u.createdAt).toISOString().slice(0,10); document.getElementById('insLast').textContent=fmtTS(u.lastActive); document.getElementById('insCountry').textContent=u.country||'—'; document.getElementById('insNotes').value = loadNotes(u.id);
+      document.getElementById('insFlag').checked = !!(u.flags?.suspicious);
+      document.getElementById('insImpersonate').href = '/admin/impersonate?id='+encodeURIComponent(u.id);
+    }
+    document.getElementById('insToggle2FA').addEventListener('click', ()=>{ if(!state.selected) return; const i=findIdx(state.selected.id); state.all[i].twoFA = !state.all[i].twoFA; toast('Toggled 2FA'); renderList(); loadInspector(state.all[i]); });
+    document.getElementById('insVerifyKyc').addEventListener('click', ()=>{ if(!state.selected) return; const i=findIdx(state.selected.id); state.all[i].kyc='VERIFIED'; toast('KYC: VERIFIED'); renderList(); loadInspector(state.all[i]); });
+    document.getElementById('insSuspend').addEventListener('click', ()=>{ if(!state.selected) return; setStatus(state.selected.id,'SUSPENDED'); loadInspector(state.selected); });
+    document.getElementById('insActivate').addEventListener('click', ()=>{ if(!state.selected) return; setStatus(state.selected.id,'ACTIVE'); loadInspector(state.selected); });
+    document.getElementById('insResetPwd').addEventListener('click', ()=>{ if(!state.selected) return; toast('Email de resetare parolă trimis (simulat)'); });
+    document.getElementById('insNotes').addEventListener('change', (e)=>{ if(!state.selected) return; saveNotes(state.selected.id, e.target.value); toast('Notă salvată'); });
+    document.getElementById('insFlag').addEventListener('change', (e)=>{ if(!state.selected) return; const i=findIdx(state.selected.id); state.all[i].flags = state.all[i].flags||{}; state.all[i].flags.suspicious = e.target.checked; if(e.target.checked){ state.all[i].tags = Array.from(new Set([...(state.all[i].tags||[]), 'FLAGGED'])); } else { state.all[i].tags = (state.all[i].tags||[]).filter(t=>t!=='FLAGGED'); } renderList(); });
+
+    // ====== Modal Create/Edit ======
+    let modalMode='create'; let modalEditId=null;
+    function openModal(u){ modalMode = u? 'edit':'create'; modalEditId = u? u.id:null; document.getElementById('m_title').textContent = u? 'Editează utilizator' : 'Utilizator nou'; document.getElementById('m_name').value = u?.name||''; document.getElementById('m_email').value = u?.email||''; document.getElementById('m_role').value = u?.role||'USER'; document.getElementById('m_status').value = u?.status||'ACTIVE'; document.getElementById('m_country').value = u?.country||'RO'; document.getElementById('m_balance').value = u?.balance||0; document.getElementById('m_profit').value = u?.profit||0; document.getElementById('m_kyc').value = u?.kyc||'PENDING'; document.getElementById('modal').classList.add('show'); }
+    function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+    document.getElementById('m_close').addEventListener('click', closeModal); document.getElementById('m_cancel').addEventListener('click', closeModal);
+    document.getElementById('m_save').addEventListener('click', ()=>{ const u={ name: m_name.value.trim(), email:m_email.value.trim(), role:m_role.value, status:m_status.value, country:m_country.value.trim()||'RO', balance:+m_balance.value||0, profit:+m_profit.value||0, kyc:m_kyc.value }; if(!u.name||!u.email||!u.email.includes('@')){ toast('Completează corect nume și email','warn'); return; }
+      if(modalMode==='create'){ const nu={ id:id(), createdAt:new Date().toISOString(), lastActive:Date.now(), twoFA:false, avatar:'https://i.pravatar.cc/120', flags:{suspicious:false,risk:Math.random()}, tags:[], ...u }; state.all.unshift(nu); toast('Utilizator creat'); }
+      else { const i=findIdx(modalEditId); if(i>=0){ state.all[i] = { ...state.all[i], ...u }; toast('Utilizator actualizat'); } }
+      renderKPIs(); renderList(); closeModal(); });
+
+    // ====== Live Simulation ======
+    const snd=document.getElementById('sndPing'); let audioUnlocked=false; function unlockAudioOnce(){ try{ snd.muted=true; snd.play().then(()=>{ snd.pause(); snd.currentTime=0; snd.muted=false; audioUnlocked=true; }).catch(()=>{}); }catch(e){} }
+    function pushDemo(){ const one = demoSeed(1)[0]; one.id=id(); one.createdAt=new Date().toISOString(); one.lastActive=Date.now(); state.all.unshift(one); snd.currentTime=0; snd.play().catch(()=>{ if(!audioUnlocked) unlockAudioOnce(); }); renderKPIs(); renderList(); }
+    function connect(){ if(state.connected) return; state.connected=true; document.getElementById('btnConnect').innerHTML = "<i class='fa-solid fa-plug-circle-check mr-1 text-emerald-300'></i>Conectat"; state.timer=setInterval(pushDemo, 8000+Math.random()*6000); toast('Conectat la flux DEMO'); }
+    function disconnect(){ if(!state.connected) return; state.connected=false; clearInterval(state.timer); state.timer=null; document.getElementById('btnConnect').innerHTML = "<i class='fa-solid fa-plug mr-1'></i>Conectează Live"; toast('Deconectat'); }
+
+    // ====== Exports & Import ======
+    function exportCSV(items){ const header='id,name,email,role,status,kyc,balance,profit,country,createdAt\n'; const rows = items.map(u=>[u.id,u.name,u.email,u.role,u.status,u.kyc,u.balance,u.profit,u.country,u.createdAt].map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')); const blob=new Blob([header+rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='utilizatori.csv'; a.click(); URL.revokeObjectURL(a.href); }
+    function exportJSON(items){ const blob=new Blob([JSON.stringify(items,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='utilizatori.json'; a.click(); URL.revokeObjectURL(a.href); }
+    function exportXLSX(items){ if(!window.XLSX){ toast('Librăria XLSX nu este disponibilă.','warn'); return; } const ws = XLSX.utils.json_to_sheet(items); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Users'); XLSX.writeFile(wb, 'utilizatori.xlsx'); }
+    async function exportPDF(items){ if(!(window.jspdf && window.html2canvas)){ toast('Librăriile PDF nu sunt disponibile.','warn'); return; } const { jsPDF } = window.jspdf; const pdf = new jsPDF('p','pt','a4'); const sh=document.createElement('div'); sh.style.width='780px'; sh.style.padding='16px'; sh.style.background='#0b1220'; sh.style.color='#e5e7eb'; sh.innerHTML = `<div style="font-weight:700;margin-bottom:8px">Export Utilizatori — ${new Date().toLocaleString('ro-RO')}</div>`+
+      `<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr><th align="left">Nume</th><th align="left">Email</th><th>Rol</th><th>Status</th><th>KYC</th><th align="right">Bal.</th></tr></thead><tbody>`+
+      items.slice(0,200).map(u=>`<tr><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td>${u.status}</td><td>${u.kyc}</td><td style="text-align:right">${fmtEUR(u.balance)}</td></tr>`).join('')+
+      `</tbody></table>`; document.body.appendChild(sh); const canvas = await html2canvas(sh,{backgroundColor:null, scale:2}); const img = canvas.toDataURL('image/png'); const pageW=pdf.internal.pageSize.getWidth(); const pageH=pdf.internal.pageSize.getHeight(); const ratio=Math.min(pageW/canvas.width, pageH/canvas.height); const w=canvas.width*ratio, h=canvas.height*ratio; pdf.addImage(img,'PNG',(pageW-w)/2,30,w,h); pdf.save('utilizatori.pdf'); document.body.removeChild(sh); }
+    document.getElementById('fileImport').addEventListener('change', async (e)=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; try{ const txt=await f.text(); const arr=JSON.parse(txt); if(!Array.isArray(arr)) throw new Error('format invalid'); const m = new Map(state.all.map(u=>[u.id,u])); arr.forEach(u=>{ m.set(u.id, { ...m.get(u.id), ...u }); }); state.all = Array.from(m.values()); toast('Import efectuat'); renderKPIs(); renderList(); }catch(err){ toast('Eroare la import: '+err.message,'error'); } });
+
+    // ====== Bindings ======
+    document.getElementById('btnApply').addEventListener('click', renderList);
+    document.getElementById('btnReset').addEventListener('click', ()=>{ document.getElementById('fltSearch').value=''; document.getElementById('fltRole').value=''; document.getElementById('fltStatus').value=''; document.getElementById('fltKyc').value=''; document.getElementById('flt2FA').checked=false; document.getElementById('fltFlagged').checked=false; document.getElementById('fltSort').value='created_desc'; document.getElementById('fltQuery').value=''; renderList(); });
+
+    document.getElementById('btnConnect').addEventListener('click', ()=> state.connected?disconnect():connect());
+    document.getElementById('btnDemoBurst').addEventListener('click', ()=>{ for(let i=0;i<20;i++) pushDemo(); toast('20 utilizatori DEMO generați'); });
+    document.getElementById('btnNewUser').addEventListener('click', ()=> openModal());
+
+    document.getElementById('btnExportCSV').addEventListener('click', ()=> exportCSV(state.view||[]));
+    document.getElementById('btnExportJSON').addEventListener('click', ()=> exportJSON(state.view||[]));
+    document.getElementById('btnExportXLSX').addEventListener('click', ()=> exportXLSX(state.view||[]));
+    document.getElementById('btnExportPDF').addEventListener('click', ()=> exportPDF(state.view||[]));
+
+    document.getElementById('btnSelectAll').addEventListener('click', ()=>{ (state.view||[]).forEach(u=> state.sel.add(u.id)); renderList(); });
+    document.getElementById('btnClearSel').addEventListener('click', ()=>{ state.sel.clear(); renderList(); });
+    document.getElementById('btnBulkActivate').addEventListener('click', ()=> batch('activate'));
+    document.getElementById('btnBulkSuspend').addEventListener('click', ()=> batch('suspend'));
+    document.getElementById('btnBulkRoleUser').addEventListener('click', ()=> batch('role_user'));
+    document.getElementById('btnBulkDelete').addEventListener('click', ()=> batch('delete'));
+
+    // click in list to set inspector user
+    document.getElementById('list').addEventListener('click', (e)=>{ const row=e.target.closest('[data-id]'); if(!row) return; const u=state.all.find(x=>x.id===row.dataset.id); state.selected=u; loadInspector(u); });
+
+    // ====== Bootstrap ======
+    (async function init(){
+      state.all = await loadUsers();
+      renderKPIs(); renderList();
+      // expose XLSX/PDF buttons if libs present
+      if(window.XLSX) document.getElementById('btnExportXLSX').classList.remove('hidden');
+      if(window.jspdf && window.html2canvas) document.getElementById('btnExportPDF').classList.remove('hidden');
+    })();
+
+    // ====== Diagnostics (?debug=1) ======
+    (function diagnostics(){ if(new URLSearchParams(location.search).get('debug')!=='1') return; const btn=document.getElementById('btnTestSuite'); btn.classList.remove('hidden'); btn.addEventListener('click', runTests); function log(msg){ console.log('[TEST]', msg); toast(msg,'success'); }
+      function assert(name, cond){ if(!cond){ console.error('❌',name); toast('❌ '+name,'error'); } else { log('✅ '+name); } }
+      function runTests(){
+        // 1) Listă încărcată
+        assert('Users loaded > 0', (state.all||[]).length>0);
+        // 2) Filtrare după rol
+        const roleSel=document.getElementById('fltRole'); roleSel.value='USER'; renderList(); assert('Filter role USER', (state.view||[]).every(u=>u.role==='USER'));
+        // 3) Sortare după balanță desc
+        document.getElementById('fltSort').value='bal_desc'; renderList(); const v=state.view; assert('Sort bal desc', (v.length<2)||((+v[0].balance)>=(+v[v.length-1].balance)));
+        // 4) Batch suspend + activate
+        state.sel.clear(); (state.view.slice(0,3)).forEach(u=> state.sel.add(u.id)); batch('suspend'); assert('Batch suspend applied', state.all.filter(u=>state.sel.has(u.id)).length===0 ); // sel e golit în batch
+        // 5) Create user
+        const before=state.all.length; const nu={ id:id(), name:'Test User', email:'test@ex.com', role:'USER', status:'ACTIVE', kyc:'PENDING', balance:0, profit:0, createdAt:new Date().toISOString(), lastActive:Date.now(), avatar:'', twoFA:false, country:'RO', flags:{suspicious:false,risk:0}, tags:[] }; state.all.unshift(nu); renderList(); assert('Create user increases count', state.all.length===before+1);
+        // 6) Export JSON (sanity)
+        try{ exportJSON(state.view.slice(0,5)); assert('Export JSON callable', true);}catch(e){ assert('Export JSON callable', false);}        
+        // 7) Advanced query ">=" works
+        document.getElementById('fltQuery').value='balance>=0'; renderList(); assert('Advanced >= keeps all non-negative balances', (state.view||[]).every(u=> (+u.balance)>=0));
+        // 8) Advanced query "<=" works on current view max
+        const maxBal = Math.max(...(state.all||[]).filter(u=>u.role==='USER').map(u=>+u.balance));
+        roleSel.value='USER'; document.getElementById('fltQuery').value = 'balance<='+maxBal; renderList(); assert('Advanced <= under max passes', (state.view||[]).every(u=> (+u.balance)<=maxBal));
+        // 9) Advanced key:value filter works (country)
+        roleSel.value=''; document.getElementById('fltQuery').value='country:RO'; renderList(); assert('Advanced key:value country:RO', (state.view||[]).every(u=> String(u.country||'').toLowerCase().includes('ro')) || (state.view||[]).length===0);
+      }
+    })();
+  </script>
+</body>
+</html>

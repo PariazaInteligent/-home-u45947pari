@@ -1,0 +1,447 @@
+# Webalizer V2.23-08 Incremental Data - 12/12/2025 12:36:06
+2025 12 12 12 36 6
+127 57 72 12 5 25 237498 42 39 0
+11 10 21 1 12
+14 14 1011 6 0 0
+8 5 16000 7 5 5
+7 3 11252 5 3 3
+0 0 0 0 0 0
+8 4 13776 6 4 4
+11 5 35490 10 5 5
+9 5 16548 7 5 5
+11 5 18403 11 4 4
+32 8 90002 7 7 4
+5 2 7436 4 2 2
+11 6 19620 7 6 6
+11 0 7960 11 1 1
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+3 1 3320 2
+9 5 16052 5
+2 0 1592 0
+8 4 37217 3
+2 1 3568 1
+0 0 0 0
+8 3 29398 3
+4 1 5160 1
+5 3 9923 2
+6 3 10208 3
+2 1 3320 1
+0 0 0 0
+10 0 7960 0
+7 3 11252 3
+22 4 51441 4
+4 3 9112 3
+2 1 3568 1
+7 2 9028 2
+18 17 9875 3
+2 1 3568 1
+0 0 0 0
+1 1 2772 1
+0 0 0 0
+5 3 9164 3
+0
+0
+0
+57
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+1
+0
+0
+0
+0
+0
+0
+69
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+# -urls- 
+/.well-known/acme-challenge/ZKFFQ0IOXZRTKFM01H-3E0TZZCIF4R36
+0 1 0 64 0 0
+/.well-known/acme-challenge/BHSJH6OF5BJYSBLP9UJWWOCASQ55G-SO
+0 1 7219114507869187169 64 0 0
+/.well-known/acme-challenge/ZJQF1Y6YZRJVJ-DDMVGKI4KME4ZK9LWL
+0 1 0 64 0 0
+/.well-known/acme-challenge/3B4R3811ZCA6VGDFK5SN5DBUWRBNM16-
+0 1 0 64 0 0
+/.well-known/acme-challenge/XIH_SZKRYN4JT3V56-PGGBN2HT-I6X2F
+0 1 0 64 0 0
+/.well-known/acme-challenge/5C9QIU300ZXHI-XPYT_ZFH4CRWD9FF8K
+0 1 0 64 0 0
+/
+0 42 0 170161 39 2
+/.well-known/acme-challenge/C2H8CXX4884W8FU5XISN_9TRFJK6O--J
+0 1 0 64 0 0
+/.well-known/acme-challenge/2M3ODZN0GA4M_5ZBA7RFE27C2ZOW2072
+0 1 0 64 0 0
+/.well-known/acme-challenge/9GHBBDQVY56J5-XHCSTNC82UHL48UNPL
+0 1 0 64 0 0
+/contact.php
+0 2 0 11402 0 0
+/.well-known/acme-challenge/axZ4IKtevUfavhNiPjPn-0QKVFbEec5o0MYt6zyz8Oo
+0 5 0 435 0 0
+# End Of Table - urls
+# -sites- (monthly)
+proxy-fr007-san130.ahrefs.net
+0 1 1 2524 1 1765014057
+/
+crawl-hrjasz.mj12bot.com
+0 2 1 3320 1 1765390704
+/
+187.200.185.35.bc.googleusercontent.com
+0 1 1 2772 1 1764687177
+/
+crawl-8opytm.mj12bot.com
+0 2 1 3320 1 1765071826
+/
+outbound2m.letsencrypt.org
+0 1 1 87 0 0
+-
+proxy-uk004-san85.ahrefs.net
+0 1 1 2524 1 1765154957
+/
+93.158.90.74
+0 1 1 2772 1 1764731299
+/
+fwdproxy-ftw-006.fbsv.net
+0 1 0 796 0 0
+-
+crawl-iazkey.mj12bot.com
+0 2 1 3320 1 1764897509
+/
+171.247.78.34.bc.googleusercontent.com
+0 1 1 2772 1 1764688747
+/
+proxy-fr004-san16.ahrefs.net
+0 1 0 796 0 0
+-
+ec2-16-171-37-42.eu-north-1.compute.amazonaws.com
+0 1 1 87 0 0
+-
+ec2-54-166-230-223.compute-1.amazonaws.com
+0 1 1 2772 1 1765415924
+/
+104.236.105.155
+0 2 1 3568 1 1764753085
+/
+crawl-66-249-69-224.googlebot.com
+0 5 2 7436 2 1765496459
+/
+237.164.233.35.bc.googleusercontent.com
+0 1 1 2772 1 1765120849
+/
+ec2-47-129-197-240.ap-southeast-1.compute.amazonaws.com
+0 1 1 87 0 0
+-
+proxy-ca007-san175.ahrefs.net
+0 1 0 796 0 0
+-
+205.169.39.19
+0 1 1 2772 1 1765135615
+/
+proxy-uk005-san198.ahrefs.net
+0 1 1 3035 0 0
+-
+213-180-203-24.spider.yandex.com
+0 1 0 796 0 0
+-
+crawl-3rz6i6.mj12bot.com
+0 2 1 3320 1 1765448027
+/
+192.34.57.244
+0 1 0 796 0 0
+-
+93.158.127.79
+0 1 1 2772 1 1765266926
+/
+213-180-203-106.spider.yandex.com
+0 1 0 796 0 0
+-
+182.48.31.34.bc.googleusercontent.com
+0 1 1 2772 1 1765220349
+/
+proxy-ca006-san235.ahrefs.net
+0 1 1 2524 1 1764897367
+/
+147.91.186.34.bc.googleusercontent.com
+0 1 1 2772 1 1764710217
+/
+fwdproxy-odn-008.fbsv.net
+0 1 1 11447 1 1765002001
+/
+102.73.118.136.bc.googleusercontent.com
+0 1 1 2772 1 1765120849
+/
+5-255-231-134.spider.yandex.com
+0 1 0 796 0 0
+-
+fwdproxy-ldc-114.fbsv.net
+0 1 0 796 0 0
+-
+crawl-zhl4rl.mj12bot.com
+0 2 1 3320 1 1764750326
+/
+proxy-uk006-san166.ahrefs.net
+0 1 1 2524 1 1765216047
+/
+213-180-203-149.spider.yandex.com
+0 1 0 796 0 0
+-
+5-255-231-76.spider.yandex.com
+0 1 0 796 0 0
+-
+crawl-66-249-69-237.googlebot.com
+0 2 1 2524 2 1765500959
+/
+crawl1-076.oi.tb.007ac9.net
+0 5 3 32853 1 1765251584
+/
+fwdproxy-odn-003.fbsv.net
+0 1 1 11447 1 1765002001
+/
+95-108-213-117.spider.yandex.com
+0 1 0 796 0 0
+-
+5-255-231-166.spider.yandex.com
+0 1 0 796 0 0
+-
+21.93.63.34.bc.googleusercontent.com
+0 1 1 2772 1 1765210831
+/
+fwdproxy-gtn-017.fbsv.net
+0 1 0 796 0 0
+-
+167.253.34.3
+0 7 0 5572 0 0
+-
+192.121.134.92
+0 1 0 796 0 0
+-
+ec2-54-188-88-91.us-west-2.compute.amazonaws.com
+0 1 1 2772 1 1765428887
+/
+msnbot-52-167-144-67.search.msn.com
+0 1 0 796 0 0
+-
+138.75.231.35.bc.googleusercontent.com
+0 1 1 2772 1 1764700521
+/
+proxy-uk009-san150.ahrefs.net
+0 1 0 796 0 0
+-
+157.245.121.143
+0 1 0 796 0 0
+-
+93.158.90.69
+0 1 0 796 0 0
+-
+ec2-18-222-41-91.us-east-2.compute.amazonaws.com
+0 1 1 87 0 0
+-
+msnbot-40-77-167-131.search.msn.com
+0 1 1 2524 1 1765027206
+/
+161.35.176.50
+0 2 1 3568 1 1765029001
+/
+crawl-bwgwxh.mj12bot.com
+0 2 1 3320 1 1764695310
+/
+crawl-66-249-69-225.googlebot.com
+0 2 0 1592 0 0
+-
+178.62.198.138
+0 2 1 3568 1 1764923077
+/
+crawl-8z4n79.mj12bot.com
+0 2 1 3320 1 1765069501
+/
+crawl-7es772.mj12bot.com
+0 2 1 3320 1 1765273359
+/
+213-180-203-195.spider.yandex.com
+0 1 0 796 0 0
+-
+proxy-uk001-san200.ahrefs.net
+0 1 1 2524 1 1765348717
+/
+crawl-66-249-75-134.googlebot.com
+0 1 0 796 0 0
+-
+213-180-203-228.spider.yandex.com
+0 1 0 796 0 0
+-
+cp117s.zooku.eu
+0 9 9 576 0 0
+-
+199.244.88.223
+0 1 1 2772 1 1764940798
+/
+crawl-66-249-75-129.googlebot.com
+0 1 0 796 0 0
+-
+proxy-ca001-san101.ahrefs.net
+0 1 0 796 0 0
+-
+proxy-fr005-san248.ahrefs.net
+0 1 0 796 0 0
+-
+ec2-44-242-222-96.us-west-2.compute.amazonaws.com
+0 1 1 87 0 0
+-
+87-250-224-74.spider.yandex.com
+0 1 0 796 0 0
+-
+202.32.171.34.bc.googleusercontent.com
+0 21 3 48669 1 1765291339
+/
+fwdproxy-odn-006.fbsv.net
+0 1 0 796 0 0
+-
+# End Of Table - sites (monthly)
+# -sites- (daily)
+213-180-203-24.spider.yandex.com
+0 1 0 796 0 0
+-
+213-180-203-106.spider.yandex.com
+0 1 0 796 0 0
+-
+5-255-231-134.spider.yandex.com
+0 1 0 796 0 0
+-
+213-180-203-149.spider.yandex.com
+0 1 0 796 0 0
+-
+5-255-231-76.spider.yandex.com
+0 1 0 796 0 0
+-
+crawl-66-249-69-237.googlebot.com
+0 1 0 0 1 1765500959
+/
+95-108-213-117.spider.yandex.com
+0 1 0 796 0 0
+-
+5-255-231-166.spider.yandex.com
+0 1 0 796 0 0
+-
+213-180-203-195.spider.yandex.com
+0 1 0 796 0 0
+-
+213-180-203-228.spider.yandex.com
+0 1 0 796 0 0
+-
+87-250-224-74.spider.yandex.com
+0 1 0 796 0 0
+-
+# End Of Table - sites (daily)
+# -referrers- 
+http://www.pariazainteligent.ro/
+0 1
+http://mail.pariazainteligent.ro/
+0 1
+http://pariazainteligent.ro/
+0 2
+- (Direct Request)
+0 122
+http://pariazainteligent.ro/contact.php
+0 1
+# End Of Table - referrers
+# -agents- 
+Mozilla/5.0
+0 2
+Mozilla/5.0 (compatible; MJ12bot/v2.0.4; http://mj12bot.com/)
+0 16
+POLARIS/6.01 (BREW 3.1.5; U; en-us; LG; LX265; POLARIS/6.01/WAP) MMP/2.0 profile/MIDP-2.1 Configuration/CLDC-1.1
+0 1
+Mozilla/4.0 (compatible; fluid/0.0; +http://www.leak.info/bot.html)
+0 7
+Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)
+0 5
+Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Mobile S
+0 1
+Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)
+0 7
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/68.0.3440.106 Safari/537.36
+0 1
+Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)
+0 11
+Googlebot-Image/1.0
+0 1
+Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm) Chrome/116.0.19
+0 2
+Mozilla/5.0 (compatible; SeekportBot; +https://bot.seekport.com)
+0 5
+Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0
+0 2
+Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36
+0 1
+facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)
+0 6
+Cpanel-HTTP-Client/1.0
+0 9
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Safari/605.1.1
+0 2
+Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123
+0 2
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36
+0 21
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36
+0 1
+Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)
+0 10
+Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.122 Mobile
+0 2
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36
+0 2
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+0 2
+Mozilla/5.0 (compatible; CMS-Checker/1.0; +https://example.com)
+0 8
+# End Of Table - agents
+# -search strings- 
+# End Of Table - search strings
+# -usernames- 
+# End Of Table - usernames

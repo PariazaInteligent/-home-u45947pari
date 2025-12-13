@@ -1,0 +1,9 @@
+{
+    "reply_to": 210,
+    "reply": {
+        "id": 210,
+        "user_id": 8,
+        "user_name": "test",
+        "body": "dacă după asta încă vezi că dispare instant, următorul pas e să ne uităm la răspunsul de la \/api\/chat\/mentions_unread.php (poate backend-ul marchează read la primul fetch), dar întâi fă fix-urile astea în js."
+    }
+}

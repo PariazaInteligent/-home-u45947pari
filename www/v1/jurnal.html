@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jurnal de Sistem — Banca Comună de Investiții</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{ --acc-1:#2563eb; --acc-2:#06b6d4; --acc-3:#14b8a6; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .hero-gradient { background: linear-gradient(135deg, var(--acc-1), var(--acc-2), var(--acc-3)); background-size: 180% 180%; animation: gradientMove 10s ease infinite; }
+    .acc-gradient { background: linear-gradient(90deg, var(--acc-1), var(--acc-2), var(--acc-3)); }
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .glow { box-shadow: 0 10px 30px rgba(34,211,238,.25), inset 0 0 0 1px rgba(255,255,255,.06); }
+    .card-hover { transition: transform .25s ease, box-shadow .25s ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 15px 45px rgba(0,0,0,.35); }
+    .nice-scroll::-webkit-scrollbar{ width:8px;} .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.15); border-radius:8px;}
+    .toast{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;border-radius:.75rem;border:1px solid rgba(255,255,255,.12);background:rgba(2,6,23,.95);backdrop-filter:blur(6px)}
+    .toast.success{border-color:rgba(34,197,94,.35)}
+    .toast.warn{border-color:rgba(234,179,8,.35)}
+    .toast.error{border-color:rgba(239,68,68,.35)}
+    .badge { padding:.25rem .5rem; border-radius:.5rem; font-size:.75rem; }
+    .table-head { background: rgba(255,255,255,.04); position: sticky; top: 0; backdrop-filter: blur(6px); }
+    .lvl-trace{ background:rgba(148,163,184,.12); color:#cbd5e1; }
+    .lvl-debug{ background:rgba(59,130,246,.15); color:#93c5fd; }
+    .lvl-info{ background:rgba(34,197,94,.12); color:#86efac; }
+    .lvl-warn{ background:rgba(234,179,8,.12); color:#facc15; }
+    .lvl-error{ background:rgba(239,68,68,.12); color:#fca5a5; }
+    .lvl-critical{ background:rgba(244,63,94,.12); color:#fda4af; }
+    /* Drawer */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);display:none;}
+    .drawer{position:fixed;top:0;right:-560px;width:560px;max-width:100%;height:100%;background:rgba(10,15,25,.98);border-left:1px solid rgba(255,255,255,.08);transition:right .3s ease;}
+    .overlay.show{display:block;} .drawer.show{right:0;}
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100" data-role="USER" data-user-name="Andrei">
+  <!-- Toasts container -->
+  <div id="toasts" class="fixed top-4 right-4 z-[90] space-y-2"></div>
+
+  <!-- Role gate -->
+  <script>
+    (function gate(){ const role=(document.body.dataset.role||'GUEST').toUpperCase(); if(role!=='USER') window.location.replace('/login.php'); })();
+  </script>
+
+  <!-- NAV / TOPBAR -->
+  <header class="sticky top-0 z-50 bg-slate-950/70 backdrop-blur border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl acc-gradient text-slate-900 font-extrabold glow">PI</span>
+        <div>
+          <div class="font-semibold tracking-wide">Pariază Inteligent</div>
+          <div class="text-xs text-slate-400 -mt-0.5">Jurnal de Sistem</div>
+        </div>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+        <a class="hover:text-white" href="/layout.html#dashboard">Dashboard</a>
+        <a class="hover:text-white" href="/notificari.html">Notificări</a>
+        <a class="hover:text-white" href="/investitii.html">Investiții</a>
+        <a class="hover:text-white" href="/retragere.html">Retrageri</a>
+        <a class="hover:text-white" href="/profil.html">Profil</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <a href="/layout.html#dashboard" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-sm"><i class="fa-solid fa-arrow-left mr-2"></i>Înapoi</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 hero-gradient opacity-25"></div>
+    <div class="max-w-7xl mx-auto px-4 py-8 md:py-12 relative">
+      <div class="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold">Jurnal de Sistem (Log)</h1>
+          <p class="text-slate-300 max-w-3xl">Observabilitate în timp real pentru tot ecosistemul. Flux live, filtrare DSL, corelare trasabilitate, exporturi, reguli și statistici — presetul <strong>BancaComuna v1</strong> împins dincolo de viitor.</p>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-slate-400"><i class="fa-solid fa-satellite-dish text-cyan-300"></i><span id="connState">offline</span></div>
+      </div>
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-4 pb-24 space-y-6">
+
+    <!-- BARĂ CONTROL / FILTRE AVANSATE -->
+    <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" id="cardControls">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 text-sm">
+        <div class="lg:col-span-3">
+          <label class="text-slate-300">Căutare liberă</label>
+          <input id="fltSearch" placeholder="mesaj, id, trace, json..." class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+        </div>
+        <div class="lg:col-span-3">
+          <label class="text-slate-300">Expresie (DSL)</label>
+          <input id="fltExpr" placeholder="ex: level:error module:AUTH path:~=/login" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+          <p class="text-[11px] text-slate-500 mt-1">Sintaxă: <code>cheie:valoare</code>, <code>a>=b</code>, <code>~=/regex/</code>, chei: <em>level, module, host, env, status, method, path, user, trace</em>.</p>
+        </div>
+        <div>
+          <label class="text-slate-300">Nivel</label>
+          <select id="fltLevel" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+            <option value="">Toate</option>
+            <option>trace</option><option>debug</option><option>info</option><option>warn</option><option>error</option><option>critical</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-slate-300">Modul</label>
+          <select id="fltModule" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+            <option value="">Toate</option>
+            <option>GATEWAY</option><option>AUTH</option><option>PAYMENTS</option><option>DB</option><option>WORKER</option><option>SYSTEM</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-slate-300">Mediu</label>
+          <select id="fltEnv" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+            <option value="">Toate</option>
+            <option>prod</option><option>stage</option><option>dev</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-slate-300">Interval</label>
+          <select id="fltRange" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+            <option value="5">Ultimele 5 min</option>
+            <option value="30" selected>Ultimele 30 min</option>
+            <option value="120">Ultimele 2 ore</option>
+            <option value="1440">Ultimele 24 ore</option>
+            <option value="all">Toate (local)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-slate-300">Sortare</label>
+          <select id="fltSort" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+            <option value="ts_desc">Cele mai noi</option>
+            <option value="ts_asc">Cele mai vechi</option>
+            <option value="lvl_desc">Nivel (desc)</option>
+            <option value="lvl_asc">Nivel (asc)</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-3 lg:col-span-3">
+          <label class="inline-flex items-center gap-2 text-xs mt-6"><input id="fltErrorsOnly" type="checkbox"> Doar WARN/ERROR/CRIT</label>
+          <label class="inline-flex items-center gap-2 text-xs mt-6"><input id="fltPinned" type="checkbox"> Doar fixate</label>
+          <label class="inline-flex items-center gap-2 text-xs mt-6"><input id="fltTail" type="checkbox" checked> Tail auto</label>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center gap-2 text-xs">
+        <button id="btnApply" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 font-semibold">Aplică</button>
+        <button id="btnReset" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20">Reset</button>
+        <button id="btnConnect" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-plug mr-1"></i>Conectează Live</button>
+        <button id="btnBurst10" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20">+50 DEMO</button>
+        <button id="btnPause" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-pause mr-1"></i>Pauză</button>
+        <button id="btnClear" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-broom mr-1"></i>Curăță local</button>
+        <button id="btnExportCSV" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button>
+        <button id="btnExportJSON" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-regular fa-file-code mr-1"></i>JSON</button>
+        <button id="btnExportNDJSON" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-file-lines mr-1"></i>NDJSON</button>
+        <span class="ml-auto text-slate-400">Rezultate: <span id="resCount">—</span> • Selecții: <span id="selCount">0</span></span>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- LISTĂ LOGS -->
+      <section class="lg:col-span-2 card-hover rounded-2xl border border-white/10 bg-white/5 p-0 overflow-hidden" id="cardList">
+        <div class="table-head px-4 py-2 text-xs text-slate-300 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button id="btnSelectAll" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Selectează tot</button>
+            <button id="btnClearSel" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Golește selecția</button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnBatchPin" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Fixează</button>
+            <button id="btnBatchUnpin" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Defixează</button>
+            <button id="btnBatchDel" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-rose-300">Șterge</button>
+          </div>
+        </div>
+        <div id="list" class="max-h-[680px] overflow-auto nice-scroll divide-y divide-white/5"></div>
+        <div id="empty" class="hidden p-6 text-sm text-slate-400">Nu există loguri pentru filtrele curente.</div>
+      </section>
+
+      <!-- PANOU ANALITIC & REGULI -->
+      <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" id="cardSide">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold">Panou Analitic</h2>
+          <span class="text-xs text-slate-400" id="timeWindow">—</span>
+        </div>
+        <div id="stats" class="grid grid-cols-3 gap-2 text-xs mb-4"></div>
+        <div class="mb-5">
+          <div class="flex items-center justify-between mb-2"><div class="font-medium">Volum (ultimele 5 minute)</div><div class="text-xs text-slate-400"><span id="rateNow">—</span> log/s</div></div>
+          <svg id="chartVol" viewBox="0 0 420 120" class="w-full h-28"></svg>
+        </div>
+
+        <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3 mb-4">
+          <div class="font-medium mb-2">Reguli (auto‑acțiuni)</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+            <input id="ruleMatch" placeholder="ex: module:PAYMENTS level:error path:~=/withdraw" class="rounded-lg bg-white/5 border border-white/10 px-2 py-1"/>
+            <select id="ruleAction" class="rounded-lg bg-white/5 border border-white/10 px-2 py-1">
+              <option value="pin">Fixează</option>
+              <option value="drop">Ascunde</option>
+              <option value="alert">Toast alert</option>
+            </select>
+            <button id="btnAddRule" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Adaugă</button>
+          </div>
+          <ul id="ruleList" class="mt-2 space-y-2"></ul>
+        </div>
+
+        <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+          <div class="font-medium mb-2">Conectori de Sursă</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <label class="inline-flex items-center gap-2"><input class="conn" data-mod="GATEWAY" type="checkbox" checked> GATEWAY</label>
+            <label class="inline-flex items-center gap-2"><input class="conn" data-mod="AUTH" type="checkbox" checked> AUTH</label>
+            <label class="inline-flex items-center gap-2"><input class="conn" data-mod="PAYMENTS" type="checkbox" checked> PAYMENTS</label>
+            <label class="inline-flex items-center gap-2"><input class="conn" data-mod="DB" type="checkbox" checked> DB</label>
+            <label class="inline-flex items-center gap-2"><input class="conn" data-mod="WORKER" type="checkbox" checked> WORKER</label>
+            <label class="inline-flex items-center gap-2"><input class="conn" data-mod="SYSTEM" type="checkbox" checked> SYSTEM</label>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="py-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 text-sm text-slate-400 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>© <span id="year"></span> Pariază Inteligent — Jurnal de Sistem</div>
+      <div class="flex items-center gap-4">
+        <a class="hover:text-white" href="/layout.html#dashboard">Dashboard</a>
+        <a class="hover:text-white" href="/profil.html">Profil</a>
+        <a class="hover:text-white" href="/logout.php">Deconectare</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Slide-over detalii log -->
+  <div id="ov" class="overlay"></div>
+  <aside id="drawer" class="drawer">
+    <div class="h-full flex flex-col">
+      <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+        <div class="font-semibold">Detalii Log</div>
+        <div class="flex items-center gap-2 text-xs">
+          <button id="d_copy" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Copiază JSON</button>
+          <button id="btnCloseDrawer" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div class="p-4 space-y-3 text-sm overflow-auto nice-scroll">
+        <div class="text-xs text-slate-400">ID: <span id="d_id">—</span></div>
+        <div class="text-xs text-slate-400">Timp: <span id="d_ts">—</span></div>
+        <div class="flex items-center gap-2"><span id="d_badge" class="badge"></span><span id="d_title" class="font-medium"></span></div>
+        <div id="d_meta" class="text-slate-300 text-xs"></div>
+        <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+          <div class="text-slate-400 text-xs mb-1">Payload</div>
+          <pre id="d_payload" class="text-[11px] whitespace-pre-wrap"></pre>
+        </div>
+        <div class="flex items-center gap-2">
+          <a id="d_trace" target="_blank" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 text-xs font-semibold hidden">Deschide Trace</a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    // ====== Bootstrap meta ======
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // ====== Helpers ======
+    const LS_LOGS = 'bcv1_logs';
+    const LS_RULES = 'bcv1_log_rules';
+    const LS_PREFS = 'bcv1_log_prefs';
+
+    function toast(msg, type='success'){ const t=document.createElement('div'); t.className='toast '+type; t.innerHTML = "<i class='fa-solid "+(type==='success'?"fa-circle-check":type==='warn'?"fa-triangle-exclamation":"fa-circle-exclamation")+"'></i><span>"+msg+"</span>"; document.getElementById('toasts').appendChild(t); setTimeout(()=>t.remove(), 3200); }
+    function fmtTS(ts){ try{ return new Date(ts).toLocaleString('ro-RO'); }catch(e){ return String(ts); } }
+    function lvlColor(l){ return l==='critical'? 'lvl-critical' : l==='error'? 'lvl-error' : l==='warn'? 'lvl-warn' : l==='info'? 'lvl-info' : l==='debug'? 'lvl-debug' : 'lvl-trace'; }
+    function modIcon(m){ const map={GATEWAY:'fa-cloud-arrow-down',AUTH:'fa-user-shield',PAYMENTS:'fa-money-bill-trend-up',DB:'fa-database',WORKER:'fa-gears',SYSTEM:'fa-microchip'}; return map[m]||'fa-cube'; }
+    function id(){ return 'l'+Math.random().toString(36).slice(2,7)+Date.now().toString(36).slice(-5); }
+    function clamp(x,min,max){ return Math.max(min, Math.min(max,x)); }
+
+    // ====== DEMO generator ======
+    const hosts=['gw-01','gw-02','auth-01','pay-01','db-prim','wrk-01'];
+    const paths=['/login','/logout','/withdraw','/deposit','/profile','/notify','/api/v1/tx'];
+    const methods=['GET','POST','PUT','PATCH'];
+    const users=['u-102','u-204','u-550','u-871','u-999'];
+    const msgs={
+      GATEWAY:['Forward către service','Timeout upstream','Răspuns 200 OK','Circuit breaker half-open','Rată limitată'],
+      AUTH:['Token valid','Parolă greșită','MFA necesar','Refresh token expirat','Ses. terminată'],
+      PAYMENTS:['Tranzacție inițiată','Webhook confirmat','Fonduri insuficiente','SEPA programată','Stripe fail temporar'],
+      DB:['SELECT executat','Lock detectat','Retry tranzacție','Migrare aplicată','Reindexare'],
+      WORKER:['Job pornit','Job finalizat','Job în coadă','Reîncercare','Backoff'],
+      SYSTEM:['Healthcheck OK','GC rulat','CPU spike','Mem presiune','Config reload']
+    };
+    const levels=['trace','debug','info','warn','error','critical'];
+    const envs=['prod','stage','dev'];
+
+    function rand(a){ return a[Math.floor(Math.random()*a.length)]; }
+    function mkLog(){
+      const module=rand(['GATEWAY','AUTH','PAYMENTS','DB','WORKER','SYSTEM']);
+      const level=rand(levels);
+      const host = rand(hosts);
+      const env = Math.random()<0.7 ? 'prod' : rand(envs);
+      const path = rand(paths);
+      const method = rand(methods);
+      const statusPool = level==='error'||level==='critical'? [500,502,503,401,429] : [200,201,204,304,207,409];
+      const status = rand(statusPool);
+      const latency = Math.max(5, Math.round((Math.random()*Math.random())*1200));
+      const uid = Math.random()<0.5 ? rand(users) : null;
+      const traceId = Math.random()<0.9 ? 'tr_'+Math.random().toString(36).slice(2,10) : null;
+      const spanId = traceId? 'sp_'+Math.random().toString(36).slice(2,8) : null;
+      const message = rand(msgs[module]);
+      const ts = Date.now() - Math.floor(Math.random()*1000*60*60*4); // în 4h
+      const tags = [];
+      if(level==='critical') tags.push('pager'); if(status===429) tags.push('throttle'); if(path==='/withdraw') tags.push('money');
+      return {
+        id: id(), ts, level, module, host, env, message, pinned:false,
+        payload: { method, path, status, latency_ms: latency, user: uid, trace: traceId, span: spanId },
+        tags
+      };
+    }
+
+    // ====== State ======
+    const state={ all:[], view:[], sel:new Set(), connected:false, paused:false, timer:null, rules:[], prefs:{ tail:true }, charts:{ vol: [] } };
+
+    // ====== Storage ======
+    function saveLocal(){ localStorage.setItem(LS_LOGS, JSON.stringify(state.all.slice(0,1200))); }
+    function loadLocal(){ try{ return JSON.parse(localStorage.getItem(LS_LOGS)||'null'); }catch(e){ return null; } }
+    function saveRules(){ localStorage.setItem(LS_RULES, JSON.stringify(state.rules)); }
+    function loadRules(){ try{ return JSON.parse(localStorage.getItem(LS_RULES)||'[]'); }catch(e){ return []; } }
+    function savePrefs(){ localStorage.setItem(LS_PREFS, JSON.stringify(state.prefs)); }
+    function loadPrefs(){ try{ return JSON.parse(localStorage.getItem(LS_PREFS)||'null'); }catch(e){ return null; } }
+
+    // ====== Filters & Sorting ======
+    function inRange(ts){ const val=document.getElementById('fltRange').value; if(val==='all') return true; const mins=parseInt(val,10)||30; return (Date.now()-ts) <= mins*60*1000; }
+    function matchExpr(n, expr){ if(!expr) return true; try{
+      const toks = expr.match(/([^\s"']+|"[^"]*"|'[^']*')+/g) || [];
+      let ok=true;
+      toks.forEach(tok=>{
+        const t=tok.replace(/^['"]|['"]$/g,'');
+        if(t.includes('~=')){
+          const [k,rx]=t.split('~='); const re = rx.startsWith('/')? new RegExp(rx.slice(1,rx.lastIndexOf('/')),'i') : new RegExp(rx,'i');
+          const hay = String(n[k]??n.payload?.[k]??''); ok = ok && re.test(hay);
+        } else if(t.includes(':')){
+          const [k,v]=t.split(':'); const hay = String(n[k]??n.payload?.[k]??'').toLowerCase(); ok = ok && hay.includes(String(v).toLowerCase());
+        } else if(t.includes('>=')){
+          const [k,v]=t.split('>='); const num = +(n[k]??n.payload?.[k]??0); ok = ok && (num >= +v);
+        } else if(t.includes('<=')){
+          const [k,v]=t.split('<='); const num = +(n[k]??n.payload?.[k]??0); ok = ok && (num <= +v);
+        } else {
+          const hay=[n.message, n.id, JSON.stringify(n.payload||{}), (n.tags||[]).join(' ')].join(' ').toLowerCase(); ok = ok && hay.includes(t.toLowerCase());
+        }
+      });
+      return ok;
+    }catch(e){ return true; }
+    }
+
+    function matchFilters(n){
+      const q=(document.getElementById('fltSearch').value||'').toLowerCase();
+      const level=document.getElementById('fltLevel').value; const module=document.getElementById('fltModule').value;
+      const env=document.getElementById('fltEnv').value; const errorsOnly=document.getElementById('fltErrorsOnly').checked; const pinned=document.getElementById('fltPinned').checked;
+      const expr=document.getElementById('fltExpr').value.trim();
+      if(level && n.level!==level) return false; if(module && n.module!==module) return false; if(env && n.env!==env) return false;
+      if(errorsOnly && !(['warn','error','critical'].includes(n.level))) return false; if(pinned && !n.pinned) return false;
+      if(!inRange(n.ts)) return false;
+      if(expr && !matchExpr(n, expr)) return false;
+      if(q){ const hay=[n.message,n.id,JSON.stringify(n.payload||{}),(n.tags||[]).join(' ')].join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
+      return true;
+    }
+    function sortItems(a,b){
+      const s=document.getElementById('fltSort').value; const rank={'trace':1,'debug':2,'info':3,'warn':4,'error':5,'critical':6};
+      if(s==='ts_asc') return a.ts-b.ts; if(s==='ts_desc') return b.ts-a.ts; if(s==='lvl_asc') return (rank[a.level]||0)-(rank[b.level]||0); if(s==='lvl_desc') return (rank[b.level]||0)-(rank[a.level]||0); return b.ts-a.ts;
+    }
+
+    // ====== Rendering ======
+    function renderStats(){
+      const el=document.getElementById('stats'); el.innerHTML='';
+      const byLvl={}; let count=0; let lastMin=0;
+      const now=Date.now();
+      state.view.forEach(n=>{ byLvl[n.level]=(byLvl[n.level]||0)+1; count++; if(now-n.ts<=60000) lastMin++; });
+      const mk=(k,v,cls)=>{ const d=document.createElement('div'); d.className='rounded-lg border border-white/10 bg-slate-900/60 p-2'; d.innerHTML = `<div class="text-slate-400 text-[11px]">${k}</div><div class="text-lg font-bold">${v}</div>`; if(cls) d.classList.add(cls); el.appendChild(d); };
+      ['trace','debug','info','warn','error','critical'].forEach(k=> mk(k.toUpperCase(), byLvl[k]||0, '')); mk('Total', count); mk('Ultimul minut', lastMin);
+      document.getElementById('rateNow').textContent = (lastMin/60).toFixed(2);
+      const range=document.getElementById('fltRange').value; document.getElementById('timeWindow').textContent = range==='all'? 'toată istoria locală' : ('~'+range+' min');
+    }
+
+    function drawVol(){
+      const svg=document.getElementById('chartVol'); svg.innerHTML='';
+      const W=420,H=120,pad=18; svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+      const bins=60; const now=Date.now(); const w=(W-2*pad)/bins; const arr=new Array(bins).fill(0);
+      state.view.forEach(n=>{ const dt=now-n.ts; const sec=Math.floor(dt/1000); if(sec>=0 && sec<bins) arr[bins-1-sec]++; });
+      const max=Math.max(1, ...arr);
+      arr.forEach((v,i)=>{ const x=pad+i*w; const h=((v/max)*(H-2*pad)); const y=(H-pad)-h; const r=document.createElementNS('http://www.w3.org/2000/svg','rect'); r.setAttribute('x',x); r.setAttribute('y',y); r.setAttribute('width',Math.max(1,w-1)); r.setAttribute('height',h); r.setAttribute('fill','#22d3ee'); r.setAttribute('opacity',0.8); svg.appendChild(r); });
+      // baseline
+      const base=document.createElementNS('http://www.w3.org/2000/svg','line'); base.setAttribute('x1',pad); base.setAttribute('y1',H-pad); base.setAttribute('x2',W-pad); base.setAttribute('y2',H-pad); base.setAttribute('stroke','#94a3b8'); base.setAttribute('opacity','0.4'); svg.appendChild(base);
+    }
+
+    function renderList(){
+      const list=document.getElementById('list'); const empty=document.getElementById('empty'); list.innerHTML='';
+      const rows = state.all.filter(matchFilters).sort(sortItems);
+      state.view = rows; document.getElementById('resCount').textContent = rows.length;
+      if(rows.length===0){ empty.classList.remove('hidden'); renderStats(); drawVol(); return; } empty.classList.add('hidden');
+      const frag=document.createDocumentFragment();
+      const maxRender = 400; // fereastră pentru performanță
+      rows.slice(0,maxRender).forEach(n=> frag.appendChild(renderItem(n)));
+      list.appendChild(frag);
+      if(rows.length>maxRender){ const tip=document.createElement('div'); tip.className='p-3 text-xs text-slate-400'; tip.textContent = `Arăt primele ${maxRender} rânduri din ${rows.length}. Folosește filtrele pentru a restrânge.`; list.appendChild(tip); }
+      updateSelInfo(); renderStats(); drawVol();
+      if(state.prefs.tail && document.getElementById('fltTail').checked){ list.scrollTop = 0; }
+    }
+
+    function renderItem(n){
+      const li=document.createElement('div'); li.className='p-3 hover:bg-white/5'; li.dataset.id=n.id;
+      const pin = n.pinned? 'text-amber-300' : 'text-slate-500';
+      const lvlCls = lvlColor(n.level);
+      li.innerHTML = `
+        <div class='flex items-start justify-between gap-3'>
+          <div class='flex items-start gap-3'>
+            <input type='checkbox' class='mt-1 selBox'>
+            <div class='h-9 w-9 rounded-lg flex items-center justify-center bg-slate-900/60 ring-1 ring-white/10'>
+              <i class='fa-solid ${modIcon(n.module)}'></i>
+            </div>
+            <div>
+              <div class='flex flex-wrap items-center gap-2'>
+                <span class='badge ${lvlCls}'>${n.level}</span>
+                <span class='badge bg-white/10 text-slate-300'>${n.module}</span>
+                <span class='text-slate-200 font-medium'>${n.message||'—'}</span>
+              </div>
+              <div class='text-xs text-slate-400 mt-0.5'>${fmtTS(n.ts)} • ${n.host} • ${n.env.toUpperCase()} • ${n.payload.method} ${n.payload.path} → ${n.payload.status} • ${n.payload.latency_ms}ms ${n.payload.user?('• user:'+n.payload.user):''} ${n.payload.trace?('• trace:'+n.payload.trace):''}</div>
+              ${(n.tags&&n.tags.length)?`<div class='mt-1 flex flex-wrap gap-1 text-[11px] text-slate-300'>${n.tags.map(t=>`<span class='badge bg-white/10'>#${t}</span>`).join('')}</div>`:''}
+            </div>
+          </div>
+          <div class='text-xs flex items-center gap-2'>
+            <button data-act='pin' title='Fixează' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'><i class='fa-solid fa-thumbtack ${pin}'></i></button>
+            <button data-act='copy' title='Copiază' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'><i class='fa-solid fa-copy'></i></button>
+            <button data-act='del' title='Șterge' class='rounded px-2 py-1 border border-white/10 hover:border-white/20 text-rose-300'><i class='fa-solid fa-trash'></i></button>
+          </div>
+        </div>`;
+      li.addEventListener('click', (e)=>{ if(e.target.closest('button')||e.target.closest('input')) return; openDetail(n.id); });
+      li.querySelectorAll('[data-act]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); const act=btn.dataset.act; if(act==='pin') togglePin(n.id); else if(act==='copy') copyJSON(n); else if(act==='del') remove(n.id); }));
+      li.querySelector('.selBox').addEventListener('change', (e)=>{ if(e.target.checked) state.sel.add(n.id); else state.sel.delete(n.id); updateSelInfo(); });
+      return li;
+    }
+
+    function updateSelInfo(){ document.getElementById('selCount').textContent = state.sel.size; }
+
+    // ====== Item actions ======
+    function findIdx(idv){ return state.all.findIndex(x=>x.id===idv); }
+    function togglePin(idv){ const i=findIdx(idv); if(i<0) return; state.all[i].pinned = !state.all[i].pinned; saveLocal(); renderList(); }
+    function remove(idv){ const i=findIdx(idv); if(i<0) return; state.all.splice(i,1); state.sel.delete(idv); saveLocal(); renderList(); }
+    function copyJSON(n){ navigator.clipboard?.writeText(JSON.stringify(n,null,2)); toast('Copiat în clipboard'); }
+
+    // Batch
+    function batch(action){ state.sel.forEach(idv=>{ const i=findIdx(idv); if(i<0) return; if(action==='pin') state.all[i].pinned=true; if(action==='unpin') state.all[i].pinned=false; });
+      if(action==='delete'){ state.all = state.all.filter(n=> !state.sel.has(n.id)); }
+      state.sel.clear(); saveLocal(); renderList(); toast('Acțiune aplicată'); }
+
+    // ====== Detail drawer ======
+    function openDetail(idv){ const n=state.all.find(x=>x.id===idv); if(!n) return; const ov=document.getElementById('ov'); const dr=document.getElementById('drawer'); ov.classList.add('show'); dr.classList.add('show');
+      document.getElementById('d_id').textContent = n.id; document.getElementById('d_ts').textContent = fmtTS(n.ts); const b=document.getElementById('d_badge'); b.className='badge '+lvlColor(n.level); b.textContent=n.level+' • '+n.module;
+      document.getElementById('d_title').textContent = n.message||'—';
+      document.getElementById('d_meta').textContent = `${n.host} • ${n.env.toUpperCase()} • ${n.payload.method} ${n.payload.path} → ${n.payload.status} • ${n.payload.latency_ms}ms`;
+      document.getElementById('d_payload').textContent = JSON.stringify(n.payload||{}, null, 2);
+      const a=document.getElementById('d_trace'); if(n.payload && n.payload.trace){ a.href='/traces/'+n.payload.trace; a.classList.remove('hidden'); a.textContent='Trace: '+n.payload.trace; } else { a.classList.add('hidden'); }
+      document.getElementById('d_copy').onclick=()=> copyJSON(n);
+    }
+    function closeDetail(){ document.getElementById('ov').classList.remove('show'); document.getElementById('drawer').classList.remove('show'); }
+    document.getElementById('ov').addEventListener('click', closeDetail); document.getElementById('btnCloseDrawer').addEventListener('click', closeDetail);
+
+    // ====== Rules Engine ======
+    function applyRules(n){ let acted=false; state.rules.forEach(r=>{ try{ if(matchExpr(n, r.match)){ if(r.action==='pin'){ n.pinned=true; acted=true; } else if(r.action==='drop'){ n.__dropped=true; acted=true; } else if(r.action==='alert'){ toast('Regulă: '+r.match,'warn'); } } }catch(e){} }); return acted; }
+    function renderRules(){ const ul=document.getElementById('ruleList'); ul.innerHTML=''; if(state.rules.length===0){ const li=document.createElement('li'); li.className='text-slate-400 text-xs'; li.textContent='Nicio regulă definită.'; ul.appendChild(li); return; } state.rules.forEach((r,i)=>{ const li=document.createElement('li'); li.className='rounded-lg border border-white/10 bg-slate-900/60 p-2 text-xs flex items-center justify-between'; li.innerHTML = `<div><span class='badge bg-white/10 text-slate-300'>IF</span> ${r.match} <span class='badge bg-white/10 text-slate-300'>THEN</span> ${r.action}</div><button data-rm='${i}' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'>Șterge</button>`; ul.appendChild(li); }); }
+
+    // ====== Live Simulation ======
+    function pushDemo(){ const one = mkLog(); one.id=id(); one.ts=Date.now(); applyRules(one); if(one.__dropped) return; state.all.unshift(one); if(state.all.length>2000) state.all.pop(); saveLocal(); if(!state.paused) renderList(); }
+    function connect(){ if(state.connected) return; state.connected=true; document.getElementById('connState').textContent='demo live'; document.getElementById('btnConnect').innerHTML = "<i class='fa-solid fa-plug-circle-check mr-1 text-emerald-300'></i>Conectat"; state.timer=setInterval(pushDemo, 800+Math.random()*900); toast('Conectat la flux DEMO'); }
+    function disconnect(){ if(!state.connected) return; state.connected=false; clearInterval(state.timer); state.timer=null; document.getElementById('connState').textContent='offline'; document.getElementById('btnConnect').innerHTML = "<i class='fa-solid fa-plug mr-1'></i>Conectează Live"; toast('Deconectat'); }
+
+    // ====== Exports ======
+    function exportCSV(items){ const header='id,ts,level,module,env,host,message,method,path,status,latency_ms\n'; const rows = items.map(n=>[n.id,new Date(n.ts).toISOString(),n.level,n.module,n.env,n.host,(n.message||'').replace(/"/g,'""'),n.payload?.method||'',n.payload?.path||'',n.payload?.status||'',n.payload?.latency_ms||''].map(x=>`"${String(x)}"`).join(',')); const blob=new Blob([header+rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='jurnal_sistem.csv'; a.click(); URL.revokeObjectURL(a.href); }
+    function exportJSON(items){ const blob=new Blob([JSON.stringify(items,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='jurnal_sistem.json'; a.click(); URL.revokeObjectURL(a.href); }
+    function exportNDJSON(items){ const lines = items.map(n=> JSON.stringify(n)).join('\n'); const blob=new Blob([lines],{type:'application/x-ndjson'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='jurnal_sistem.ndjson'; a.click(); URL.revokeObjectURL(a.href); }
+
+    // ====== Bindings ======
+    document.getElementById('btnApply').addEventListener('click', renderList);
+    document.getElementById('btnReset').addEventListener('click', ()=>{ document.getElementById('fltSearch').value=''; document.getElementById('fltExpr').value=''; document.getElementById('fltLevel').value=''; document.getElementById('fltModule').value=''; document.getElementById('fltEnv').value=''; document.getElementById('fltErrorsOnly').checked=false; document.getElementById('fltPinned').checked=false; document.getElementById('fltTail').checked=true; document.getElementById('fltRange').value='30'; document.getElementById('fltSort').value='ts_desc'; renderList(); });
+
+    document.getElementById('btnConnect').addEventListener('click', ()=> state.connected?disconnect():connect());
+    document.getElementById('btnBurst10').addEventListener('click', ()=>{ for(let i=0;i<50;i++) pushDemo(); toast('50 loguri DEMO injectate'); });
+    document.getElementById('btnPause').addEventListener('click', ()=>{ state.paused=!state.paused; document.getElementById('btnPause').innerHTML = state.paused?"<i class='fa-solid fa-play mr-1'></i>Reia":"<i class='fa-solid fa-pause mr-1'></i>Pauză"; if(!state.paused) renderList(); });
+    document.getElementById('btnClear').addEventListener('click', ()=>{ state.all.length=0; state.sel.clear(); saveLocal(); renderList(); toast('Istoric local curățat'); });
+
+    document.getElementById('btnSelectAll').addEventListener('click', ()=>{ (state.view||[]).forEach(n=> state.sel.add(n.id)); renderList(); });
+    document.getElementById('btnClearSel').addEventListener('click', ()=>{ state.sel.clear(); renderList(); });
+    document.getElementById('btnBatchPin').addEventListener('click', ()=> batch('pin'));
+    document.getElementById('btnBatchUnpin').addEventListener('click', ()=> batch('unpin'));
+    document.getElementById('btnBatchDel').addEventListener('click', ()=> batch('delete'));
+
+    document.getElementById('btnExportCSV').addEventListener('click', ()=> exportCSV(state.view||[]));
+    document.getElementById('btnExportJSON').addEventListener('click', ()=> exportJSON(state.view||[]));
+    document.getElementById('btnExportNDJSON').addEventListener('click', ()=> exportNDJSON(state.view||[]));
+
+    document.getElementById('btnAddRule').addEventListener('click', ()=>{ const match=document.getElementById('ruleMatch').value.trim(); const action=document.getElementById('ruleAction').value; if(!match){ toast('Descrie o condiție','warn'); return; } state.rules.push({match, action}); saveRules(); renderRules(); toast('Regulă adăugată'); });
+    document.getElementById('ruleList').addEventListener('click', (e)=>{ const b=e.target.closest('[data-rm]'); if(!b) return; const idx=parseInt(b.dataset.rm,10); if(Number.isFinite(idx)){ state.rules.splice(idx,1); saveRules(); renderRules(); toast('Regulă ștearsă'); } });
+
+    document.querySelectorAll('.conn').forEach(cb=> cb.addEventListener('change', ()=>{ // filtru grosier pe module în generator live (doar efect demo: păstrează/filtrează la rand)
+      // nu schimbăm starea curentă, doar influențăm pushDemo prin probabilități
+    }));
+
+    // ====== Bootstrap ======
+    (function init(){
+      const p=loadPrefs(); if(p){ state.prefs=p; const tail=p.tail!==false; document.getElementById('fltTail').checked=tail; }
+      const local=loadLocal(); if(local){ state.all = local; }
+      state.rules = loadRules(); renderRules();
+      // Seed inițial dacă e gol
+      if(!state.all || state.all.length===0){ for(let i=0;i<120;i++){ const l=mkLog(); l.ts = Date.now()-Math.floor(Math.random()*60*60*1000); state.all.push(l); } state.all.sort((a,b)=> b.ts-a.ts); saveLocal(); }
+      renderList();
+    })();
+  </script>
+</body>
+</html>

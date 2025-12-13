@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteRule ^api/withdrawals/create$        /api/withdrawals/create.php        [L,QSA,NC]
+RewriteRule ^api/user/transactions$         /api/user/transactions.php         [L,QSA,NC]
+RewriteRule ^api/platform/metrics$          /api/platform/metrics.php          [L,QSA,NC]
+
+SetEnv GEMINI_API_KEY "AIzaSyDCKQT7-mC0jS_fYhRxZl5kFF7_j9l9dNM"
+fastcgi_param GEMINI_API_KEY "AIzaSyDCKQT7-mC0jS_fYhRxZl5kFF7_j9l9dNM";
+RewriteRule ^api/ai/gemini_analyze\.php$ - [L]
+
+

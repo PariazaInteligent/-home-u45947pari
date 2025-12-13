@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ro" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Centrul de Notificări — Banca Comună de Investiții</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{ --acc-1:#2563eb; --acc-2:#06b6d4; --acc-3:#14b8a6; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .hero-gradient { background: linear-gradient(135deg, var(--acc-1), var(--acc-2), var(--acc-3)); background-size: 180% 180%; animation: gradientMove 10s ease infinite; }
+    .acc-gradient { background: linear-gradient(90deg, var(--acc-1), var(--acc-2), var(--acc-3)); }
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .glow { box-shadow: 0 10px 30px rgba(34,211,238,.25), inset 0 0 0 1px rgba(255,255,255,.06); }
+    .card-hover { transition: transform .25s ease, box-shadow .25s ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 15px 45px rgba(0,0,0,.35); }
+    .nice-scroll::-webkit-scrollbar{ width:8px;} .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.15); border-radius:8px;}
+    .toast{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;border-radius:.75rem;border:1px solid rgba(255,255,255,.12);background:rgba(2,6,23,.95);backdrop-filter:blur(6px)}
+    .toast.success{border-color:rgba(34,197,94,.35)}
+    .toast.warn{border-color:rgba(234,179,8,.35)}
+    .toast.error{border-color:rgba(239,68,68,.35)}
+    .badge { padding:.25rem .5rem; border-radius:.5rem; font-size:.75rem; }
+    .table-head { background: rgba(255,255,255,.04); position: sticky; top: 0; backdrop-filter: blur(6px); }
+    /* Slide-over */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);display:none;}
+    .drawer{position:fixed;top:0;right:-480px;width:480px;max-width:100%;height:100%;background:rgba(15,23,42,.95);border-left:1px solid rgba(255,255,255,.08);transition:right .3s ease;}
+    .overlay.show{display:block;}
+    .drawer.show{right:0;}
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100" data-role="USER" data-user-name="Andrei">
+  <!-- Toasts container -->
+  <div id="toasts" class="fixed top-4 right-4 z-[80] space-y-2"></div>
+
+  <!-- Role gate -->
+  <script>
+    (function gate(){ const role=(document.body.dataset.role||'GUEST').toUpperCase(); if(role!=='USER') window.location.replace('/login.php'); })();
+  </script>
+
+  <!-- NAV / TOPBAR -->
+  <header class="sticky top-0 z-50 bg-slate-950/70 backdrop-blur border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-3">
+        <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl acc-gradient text-slate-900 font-extrabold glow">PI</span>
+        <div>
+          <div class="font-semibold tracking-wide">Pariază Inteligent</div>
+          <div class="text-xs text-slate-400 -mt-0.5">Centrul de Notificări</div>
+        </div>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+        <a class="hover:text-white" href="/layout.html#dashboard">Dashboard</a>
+        <a class="hover:text-white" href="/investitii.html">Investiții</a>
+        <a class="hover:text-white" href="/retragere.html">Retrageri</a>
+        <a class="hover:text-white" href="/profil.html">Profil</a>
+        <a class="text-white" href="/notificari.html">Notificări</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <a href="/layout.html#dashboard" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-sm"><i class="fa-solid fa-arrow-left mr-2"></i>Înapoi</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 hero-gradient opacity-20"></div>
+    <div class="max-w-7xl mx-auto px-4 py-8 md:py-12 relative">
+      <div class="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold">Centrul de Notificări</h1>
+          <p class="text-slate-300">Hub-ul tău în timp real pentru alerte, mesaje, evenimente de securitate și mișcări financiare. Design BancaComuna v1 — ultramodern, transparent, control total.</p>
+        </div>
+        <div class="text-sm text-slate-400">Utilizator: <span class="font-medium text-slate-200" id="userName"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-4 pb-24 space-y-6">
+
+    <!-- BARĂ CONTROL / FILTRE -->
+    <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5">
+      <div class="flex flex-col lg:flex-row gap-4 lg:items-end lg:justify-between">
+        <div class="flex-1 grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
+          <div class="md:col-span-2">
+            <label class="text-slate-300">Căutare</label>
+            <input id="fltSearch" placeholder="Titlu, id tranz., tag..." class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2"/>
+          </div>
+          <div>
+            <label class="text-slate-300">Severitate</label>
+            <select id="fltSeverity" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <option value="">Toate</option>
+              <option>info</option>
+              <option>success</option>
+              <option>warning</option>
+              <option>error</option>
+              <option>critical</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-slate-300">Canal</label>
+            <select id="fltType" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <option value="">Toate</option>
+              <option>SYSTEM</option>
+              <option>SECURITY</option>
+              <option>TRANSACTION</option>
+              <option>ADMIN</option>
+              <option>COMMUNITY</option>
+              <option>PROMO</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-slate-300">Sortare</label>
+            <select id="fltSort" class="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+              <option value="ts_desc">Cele mai noi</option>
+              <option value="ts_asc">Cele mai vechi</option>
+              <option value="sev_desc">Severitate (desc)</option>
+              <option value="sev_asc">Severitate (asc)</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex items-center flex-wrap gap-2">
+          <label class="inline-flex items-center gap-2 text-xs"><input id="fltUnread" type="checkbox"> Doar necitite</label>
+          <label class="inline-flex items-center gap-2 text-xs"><input id="fltPinned" type="checkbox"> Doar fixate</label>
+          <button id="btnApply" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 font-semibold text-sm">Aplică</button>
+          <button id="btnReset" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-sm">Reset</button>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center gap-2 text-xs">
+        <button id="btnConnect" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-plug mr-1"></i><span>Conectează Live</span></button>
+        <button id="btnDemoBurst" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-sparkles mr-1"></i>Generează 10 DEMO</button>
+        <button id="btnMarkAllRead" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20">Marchează tot ca citit</button>
+        <button id="btnExportCSV" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button>
+        <button id="btnExportJSON" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20"><i class="fa-brands fa-js mr-1"></i>JSON</button>
+        <span class="ml-auto text-slate-400">Rezultate: <span id="resCount">—</span></span>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- LISTĂ NOTIFICĂRI -->
+      <section class="lg:col-span-2 card-hover rounded-2xl border border-white/10 bg-white/5 p-0 overflow-hidden" id="cardList">
+        <div class="table-head px-4 py-2 text-xs text-slate-300 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <button id="btnSelectAll" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Selectează tot</button>
+            <button id="btnClearSel" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Golește selecția</button>
+            <span id="selCount" class="text-slate-500">0 selectate</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnBatchRead" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Marchează ca citite</button>
+            <button id="btnBatchUnread" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Marchează ca necitite</button>
+            <button id="btnBatchArchive" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs">Arhivează</button>
+            <button id="btnBatchDelete" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20 text-xs text-rose-300">Șterge</button>
+          </div>
+        </div>
+        <div id="list" class="max-h-[620px] overflow-auto nice-scroll divide-y divide-white/5"></div>
+        <div id="empty" class="hidden p-6 text-sm text-slate-400">Nu există notificări pentru filtrele curente.</div>
+      </section>
+
+      <!-- PREFERINȚE & REGULI & DIGEST -->
+      <section class="card-hover rounded-2xl border border-white/10 bg-white/5 p-5" id="cardPrefs">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold">Preferințe &amp; Reguli</h2>
+          <button id="btnTestSound" class="rounded-xl px-3 py-1.5 border border-white/10 hover:border-white/20 text-xs"><i class="fa-solid fa-volume-high mr-1"></i>Sunet test</button>
+        </div>
+        <div class="space-y-4 text-sm">
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="font-medium mb-2">Alerte desktop</div>
+            <div class="flex items-center gap-2 text-xs">
+              <button id="btnReqNotify" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Permite</button>
+              <span id="notifyState" class="text-slate-400">Stare: necunoscut</span>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="font-medium mb-2">Sunete</div>
+            <div class="flex items-center gap-3 text-xs">
+              <label class="inline-flex items-center gap-2"><input type="radio" name="sound" value="critical" checked> Doar critice</label>
+              <label class="inline-flex items-center gap-2"><input type="radio" name="sound" value="all"> Toate</label>
+              <label class="inline-flex items-center gap-2"><input type="radio" name="sound" value="none"> Fără sunet</label>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="font-medium mb-2">Reguli (auto‑acțiuni)</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+              <input id="ruleMatch" placeholder="ex: type:SECURITY amount>=1000 title~=profit" class="rounded-lg bg-white/5 border border-white/10 px-2 py-1"/>
+              <select id="ruleAction" class="rounded-lg bg-white/5 border border-white/10 px-2 py-1">
+                <option value="mark_read">Marchează citit</option>
+                <option value="pin">Fixează</option>
+                <option value="mute">Mutează sursa</option>
+                <option value="archive">Arhivează</option>
+              </select>
+              <button id="btnAddRule" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Adaugă regulă</button>
+            </div>
+            <ul id="ruleList" class="mt-2 space-y-2"></ul>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="font-medium mb-2">Digest programat</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+              <select id="digestFreq" class="rounded-lg bg-white/5 border border-white/10 px-2 py-1">
+                <option value="daily" selected>Zilnic</option>
+                <option value="weekly">Săptămânal</option>
+              </select>
+              <input id="digestTime" type="time" value="09:00" class="rounded-lg bg-white/5 border border-white/10 px-2 py-1"/>
+              <button id="btnSaveDigest" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20">Salvează</button>
+            </div>
+            <div id="digestState" class="mt-2 text-xs text-slate-400"></div>
+          </div>
+
+          <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+            <div class="font-medium mb-2">Statistici rapide</div>
+            <div id="stats" class="grid grid-cols-2 gap-2 text-xs"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="py-8 border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 text-sm text-slate-400 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>© <span id="year"></span> Pariază Inteligent — Centrul de Notificări</div>
+      <div class="flex items-center gap-4">
+        <a class="hover:text-white" href="/layout.html#dashboard">Dashboard</a>
+        <a class="hover:text-white" href="/profil.html">Profil</a>
+        <a class="hover:text-white" href="/logout.php">Deconectare</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Slide-over detalii notificare -->
+  <div id="ov" class="overlay"></div>
+  <aside id="drawer" class="drawer">
+    <div class="h-full flex flex-col">
+      <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+        <div class="font-semibold">Detalii Notificare</div>
+        <button id="btnCloseDrawer" class="rounded-lg px-2 py-1 border border-white/10 hover:border-white/20"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-4 space-y-3 text-sm overflow-auto nice-scroll">
+        <div class="text-xs text-slate-400">ID: <span id="d_id">—</span></div>
+        <div class="text-xs text-slate-400">Timp: <span id="d_ts">—</span></div>
+        <div class="flex items-center gap-2"><span id="d_badge" class="badge"></span><span id="d_title" class="font-medium"></span></div>
+        <div id="d_body" class="text-slate-200"></div>
+        <div id="d_tags" class="flex flex-wrap gap-2"></div>
+        <div class="rounded-xl border border-white/10 bg-slate-900/60 p-3">
+          <div class="text-slate-400 text-xs mb-1">Payload</div>
+          <pre id="d_payload" class="text-[11px] whitespace-pre-wrap"></pre>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="d_markRead" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-xs">Marchează citit</button>
+          <button id="d_pin" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-xs">Fixează</button>
+          <button id="d_archive" class="rounded-xl px-3 py-2 border border-white/10 hover:border-white/20 text-xs">Arhivează</button>
+          <a id="d_link" target="_blank" class="rounded-xl px-3 py-2 acc-gradient text-slate-900 text-xs font-semibold hidden">Deschide link</a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <audio id="sndCritical" preload="auto" crossorigin="anonymous">
+  <source src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_9979b7fcb6.mp3?filename=warning-6384.mp3" type="audio/mpeg">
+</audio>
+<audio id="sndPing" preload="auto" crossorigin="anonymous">
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a3f1d9a87.mp3?filename=correct-2-46134.mp3" type="audio/mpeg">
+</audio>
+
+
+  <script>
+    // ====== Bootstrap meta ======
+    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('userName').textContent = document.body.dataset.userName || 'Investitor';
+
+    // ====== Helpers ======
+    const LS_NOTIF = 'bcv1_notifs';
+    const LS_RULES = 'bcv1_rules';
+    const LS_PREFS = 'bcv1_center_prefs';
+
+    function toast(msg, type='success'){ const t=document.createElement('div'); t.className='toast '+type; t.innerHTML = "<i class='fa-solid "+(type==='success'?"fa-circle-check":type==='warn'?"fa-triangle-exclamation":"fa-circle-exclamation")+"'></i><span>"+msg+"</span>"; document.getElementById('toasts').appendChild(t); setTimeout(()=>t.remove(), 3200); }
+    function fmtTS(ts){ try{ return new Date(ts).toLocaleString('ro-RO'); }catch(e){ return String(ts); } }
+    function sevColor(sev){ return sev==='critical'?'bg-rose-500/15 text-rose-200': sev==='error'?'bg-rose-500/15 text-rose-200': sev==='warning'?'bg-amber-500/15 text-amber-200': sev==='success'?'bg-emerald-500/15 text-emerald-200':'bg-sky-500/15 text-sky-200'; }
+    function typeIcon(type){ const map={SYSTEM:'fa-microchip',SECURITY:'fa-shield-halved',TRANSACTION:'fa-money-bill-trend-up',ADMIN:'fa-user-tie',COMMUNITY:'fa-users',PROMO:'fa-bullhorn'}; return map[type]||'fa-bell'; }
+    function id(){ return 'n'+Math.random().toString(36).slice(2,7)+Date.now().toString(36).slice(-4); }
+
+    // ====== Data Loaders (API + DEMO fallback) ======
+    async function loadNotifications(){
+      try{ const r=await fetch('/api/user/notifications?limit=500'); if(!r.ok) throw 0; const j=await r.json(); return Array.isArray(j)? j : (j.items||[]); }
+      catch(e){ return demoSeed(48); }
+    }
+    function demoSeed(n){
+      const types=['SYSTEM','SECURITY','TRANSACTION','ADMIN','COMMUNITY','PROMO'];
+      const sevs=['info','success','warning','error','critical'];
+      const out=[]; const now=Date.now();
+      for(let i=0;i<n;i++){
+        const type=types[Math.floor(Math.random()*types.length)];
+        const sev=sevs[Math.floor(Math.random()*sevs.length)];
+        const ts= now - Math.floor(Math.random()*1000*60*60*72);
+        const amount = Math.random()<0.35? +(Math.random()*1500+20).toFixed(2) : null;
+        const title = type==='TRANSACTION' ? (amount?`Tranzacție procesată: €${amount}`:'Mișcare financiară în cont') :
+                      type==='SECURITY' ? 'Autentificare nouă detectată' :
+                      type==='ADMIN' ? 'Mesaj de la administrator' :
+                      type==='COMMUNITY' ? 'Ecou din comunitate' :
+                      type==='PROMO' ? 'Bonus disponibil' : 'Actualizare sistem';
+        const body = type==='TRANSACTION' ? 'Operațiunea ta a fost înregistrată cu succes.' : 'Detalii complete în dashboard.';
+        const payload = { amount, txId: amount?('TX'+Math.floor(Math.random()*99999)) : undefined };
+        out.push({ id:id(), ts, type, severity:sev, title, body, payload, unread: Math.random()<0.7, pinned:false, archived:false, tags: amount?['finance']:['system'] });
+      }
+      return out.sort((a,b)=> b.ts-a.ts);
+    }
+
+    // ====== State ======
+    const state={ all:[], view:[], sel:new Set(), connected:false, timer:null, prefs:{ sound:'critical', digest:{freq:'daily', time:'09:00'} }, rules:[] };
+
+    // ====== Persistence ======
+    function saveLocal(){ localStorage.setItem(LS_NOTIF, JSON.stringify(state.all)); }
+    function loadLocal(){ try{ return JSON.parse(localStorage.getItem(LS_NOTIF)||'null'); }catch(e){ return null; } }
+    function saveRules(){ localStorage.setItem(LS_RULES, JSON.stringify(state.rules)); }
+    function loadRules(){ try{ return JSON.parse(localStorage.getItem(LS_RULES)||'[]'); }catch(e){ return []; } }
+    function savePrefs(){ localStorage.setItem(LS_PREFS, JSON.stringify(state.prefs)); }
+    function loadPrefs(){ try{ return JSON.parse(localStorage.getItem(LS_PREFS)||'null'); }catch(e){ return null; } }
+
+    // ====== Filters & Sorting ======
+    function matchFilters(n){
+      const q=(document.getElementById('fltSearch').value||'').toLowerCase();
+      const sev=document.getElementById('fltSeverity').value; const type=document.getElementById('fltType').value;
+      const unread=document.getElementById('fltUnread').checked; const pinned=document.getElementById('fltPinned').checked;
+      if(sev && n.severity!==sev) return false; if(type && n.type!==type) return false;
+      if(unread && !n.unread) return false; if(pinned && !n.pinned) return false;
+      if(q){ const hay=[n.title,n.body,JSON.stringify(n.payload||{}),n.id,(n.tags||[]).join(' ')].join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
+      return !n.archived;
+    }
+    function sortItems(a,b){
+      const s=document.getElementById('fltSort').value;
+      const sevRank={'info':1,'success':2,'warning':3,'error':4,'critical':5};
+      if(s==='ts_asc') return a.ts-b.ts; if(s==='ts_desc') return b.ts-a.ts;
+      if(s==='sev_asc') return (sevRank[a.severity]||0)-(sevRank[b.severity]||0);
+      if(s==='sev_desc') return (sevRank[b.severity]||0)-(sevRank[a.severity]||0);
+      return b.ts-a.ts;
+    }
+
+    // ====== Rendering ======
+    function renderStats(){
+      const el=document.getElementById('stats'); el.innerHTML='';
+      const byType={}; const bySev={}; let unread=0;
+      state.all.forEach(n=>{ byType[n.type]=(byType[n.type]||0)+1; bySev[n.severity]=(bySev[n.severity]||0)+1; if(n.unread) unread++; });
+      const mk=(k,v)=>{ const div=document.createElement('div'); div.className='rounded-lg border border-white/10 bg-slate-900/60 p-2'; div.innerHTML = `<div class='text-slate-400 text-[11px]'>${k}</div><div class='text-lg font-bold'>${v}</div>`; el.appendChild(div); };
+      Object.keys(byType).sort().forEach(k=> mk(k,byType[k])); Object.keys(bySev).sort().forEach(k=> mk(k,bySev[k])); mk('Necitite', unread);
+    }
+
+    function renderRules(){
+      const ul=document.getElementById('ruleList'); ul.innerHTML='';
+      if(state.rules.length===0){ const li=document.createElement('li'); li.className='text-slate-400 text-xs'; li.textContent='Nicio regulă definită.'; ul.appendChild(li); return; }
+      state.rules.forEach((r,i)=>{
+        const li=document.createElement('li'); li.className='rounded-lg border border-white/10 bg-slate-900/60 p-2 text-xs flex items-center justify-between';
+        li.innerHTML = `<div><span class='badge bg-white/10 text-slate-300'>IF</span> ${r.match} <span class='badge bg-white/10 text-slate-300'>THEN</span> ${r.action}</div>`+
+                       `<button data-rm='${i}' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'>Șterge</button>`;
+        ul.appendChild(li);
+      });
+    }
+
+    function renderList(){
+      const list=document.getElementById('list'); const empty=document.getElementById('empty'); list.innerHTML='';
+      const rows = state.all.filter(matchFilters).sort(sortItems); state.view = rows; document.getElementById('resCount').textContent = rows.length;
+      if(rows.length===0){ empty.classList.remove('hidden'); return; } empty.classList.add('hidden');
+      const frag=document.createDocumentFragment();
+      rows.forEach(n=> frag.appendChild(renderItem(n)));
+      list.appendChild(frag);
+      updateSelInfo();
+    }
+
+    function renderItem(n){
+      const li=document.createElement('div'); li.className='p-3 hover:bg-white/5'; li.dataset.id=n.id;
+      const unreadDot = n.unread?"<span class='w-2 h-2 rounded-full bg-cyan-300 inline-block'></span>":"<span class='w-2 h-2 rounded-full bg-transparent inline-block'></span>";
+      const pin = n.pinned?"text-amber-300":"text-slate-500";
+      const sevCls = sevColor(n.severity);
+      li.innerHTML = `
+        <div class='flex items-start justify-between gap-3'>
+          <div class='flex items-start gap-3'>
+            <input type='checkbox' class='mt-1 selBox'>
+            <div class='h-9 w-9 rounded-lg flex items-center justify-center bg-slate-900/60 ring-1 ring-white/10'>
+              <i class='fa-solid ${typeIcon(n.type)}'></i>
+            </div>
+            <div>
+              <div class='flex items-center gap-2'>${unreadDot}<span class='font-medium'>${n.title||'—'}</span><span class='badge ${sevCls}'>${n.severity}</span><span class='badge bg-white/10 text-slate-300'>${n.type}</span></div>
+              <div class='text-xs text-slate-400'>${fmtTS(n.ts)}</div>
+              ${n.body?`<div class='text-sm text-slate-200 mt-1'>${n.body}</div>`:''}
+              ${(n.tags&&n.tags.length)?`<div class='mt-1 flex flex-wrap gap-1 text-[11px] text-slate-300'>${n.tags.map(t=>`<span class='badge bg-white/10'>#${t}</span>`).join('')}</div>`:''}
+            </div>
+          </div>
+          <div class='text-xs flex items-center gap-2'>
+            <button data-act='pin' title='Fixează' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'><i class='fa-solid fa-thumbtack ${pin}'></i></button>
+            <button data-act='read' title='Citit/necitit' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'><i class='fa-solid ${n.unread?"fa-envelope":"fa-envelope-open"}'></i></button>
+            <button data-act='archive' title='Arhivează' class='rounded px-2 py-1 border border-white/10 hover:border-white/20'><i class='fa-solid fa-box-archive'></i></button>
+            <button data-act='del' title='Șterge' class='rounded px-2 py-1 border border-white/10 hover:border-white/20 text-rose-300'><i class='fa-solid fa-trash'></i></button>
+          </div>
+        </div>`;
+      li.addEventListener('click', (e)=>{ if(e.target.closest('button')||e.target.closest('input')) return; openDetail(n.id); });
+      li.querySelectorAll('[data-act]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); const act=btn.dataset.act; if(act==='pin') togglePin(n.id); else if(act==='read') toggleRead(n.id); else if(act==='archive') archive(n.id); else if(act==='del') remove(n.id); }));
+      li.querySelector('.selBox').addEventListener('change', (e)=>{ if(e.target.checked) state.sel.add(n.id); else state.sel.delete(n.id); updateSelInfo(); });
+      return li;
+    }
+
+    function updateSelInfo(){ document.getElementById('selCount').textContent = state.sel.size + ' selectate'; }
+
+    // ====== Item actions ======
+    function findIdx(idv){ return state.all.findIndex(x=>x.id===idv); }
+    function toggleRead(idv){ const i=findIdx(idv); if(i<0) return; state.all[i].unread = !state.all[i].unread; saveLocal(); renderList(); }
+    function togglePin(idv){ const i=findIdx(idv); if(i<0) return; state.all[i].pinned = !state.all[i].pinned; saveLocal(); renderList(); }
+    function archive(idv){ const i=findIdx(idv); if(i<0) return; state.all[i].archived=true; state.sel.delete(idv); saveLocal(); renderList(); }
+    function remove(idv){ const i=findIdx(idv); if(i<0) return; state.all.splice(i,1); state.sel.delete(idv); saveLocal(); renderList(); }
+
+    // Batch
+    function batch(action){ state.sel.forEach(idv=>{ const i=findIdx(idv); if(i<0) return; if(action==='read') state.all[i].unread=false; if(action==='unread') state.all[i].unread=true; if(action==='archive') state.all[i].archived=true; if(action==='delete'){ /* remove later */ } });
+      if(action==='delete'){ state.all = state.all.filter(n=> !state.sel.has(n.id)); }
+      state.sel.clear(); saveLocal(); renderList(); toast('Acțiune aplicată'); }
+
+    // ====== Detail drawer ======
+    function openDetail(idv){ const n=state.all.find(x=>x.id===idv); if(!n) return; const ov=document.getElementById('ov'); const dr=document.getElementById('drawer'); ov.classList.add('show'); dr.classList.add('show');
+      document.getElementById('d_id').textContent = n.id; document.getElementById('d_ts').textContent = fmtTS(n.ts); document.getElementById('d_badge').className = 'badge '+sevColor(n.severity); document.getElementById('d_badge').textContent = n.severity+' • '+n.type; document.getElementById('d_title').textContent = n.title||'—'; document.getElementById('d_body').textContent = n.body||''; const tags=document.getElementById('d_tags'); tags.innerHTML=''; (n.tags||[]).forEach(t=>{ const s=document.createElement('span'); s.className='badge bg-white/10 text-slate-300'; s.textContent='#'+t; tags.appendChild(s); });
+      document.getElementById('d_payload').textContent = JSON.stringify(n.payload||{}, null, 2);
+      const a=document.getElementById('d_link'); if(n.payload && n.payload.url){ a.href=n.payload.url; a.classList.remove('hidden'); a.textContent='Deschide link'; } else { a.classList.add('hidden'); }
+      document.getElementById('d_markRead').onclick=()=>{ n.unread=false; saveLocal(); renderList(); };
+      document.getElementById('d_pin').onclick=()=>{ n.pinned=!n.pinned; saveLocal(); renderList(); };
+      document.getElementById('d_archive').onclick=()=>{ n.archived=true; saveLocal(); renderList(); closeDetail(); };
+    }
+    function closeDetail(){ document.getElementById('ov').classList.remove('show'); document.getElementById('drawer').classList.remove('show'); }
+    document.getElementById('ov').addEventListener('click', closeDetail); document.getElementById('btnCloseDrawer').addEventListener('click', closeDetail);
+
+    // ====== Rules Engine (extrem de simplu) ======
+    function applyRules(n){ // return true dacă a aplicat vreo acțiune
+      let acted=false; state.rules.forEach(r=>{
+        try{
+          // grammar mini: type:SECURITY severity:error amount>=100
+          const tokens=r.match.split(/\s+/).filter(Boolean);
+          let ok=true;
+          tokens.forEach(tok=>{
+            if(tok.includes(':')){ const [k,v]=tok.split(':'); ok = ok && String((n[k]||n.payload?.[k]||'')).toLowerCase().includes(String(v).toLowerCase()); }
+            else if(tok.includes('>=')){ const [k,v]=tok.split('>=' ); ok = ok && (+((n[k]??n.payload?.[k])||0) >= +v); }
+            else if(tok.includes('~=')){ const [k,v]=tok.split('~='); ok = ok && new RegExp(v,'i').test(String((n[k]||'')+(n.body||''))); }
+          });
+          if(ok){ if(r.action==='mark_read'){ n.unread=false; acted=true; } if(r.action==='pin'){ n.pinned=true; acted=true; } if(r.action==='mute'){ /* not implemented: source mute */ } if(r.action==='archive'){ n.archived=true; acted=true; } }
+        }catch(e){ /* ignore rule error */ }
+      });
+      return acted;
+    }
+
+    // ====== Live Simulation ======
+    function pushDemo(){
+      const one = demoSeed(1)[0]; one.id=id(); one.ts=Date.now();
+      applyRules(one);
+      state.all.unshift(one); // prepend
+      saveLocal();
+      maybeNotify(one);
+      renderList();
+    }
+    function connect(){ if(state.connected) return; state.connected=true; document.getElementById('btnConnect').innerHTML = "<i class='fa-solid fa-plug-circle-check mr-1 text-emerald-300'></i>Conectat"; state.timer=setInterval(pushDemo, 7000+Math.random()*5000); toast('Conectat la flux DEMO'); }
+    function disconnect(){ if(!state.connected) return; state.connected=false; clearInterval(state.timer); state.timer=null; document.getElementById('btnConnect').innerHTML = "<i class='fa-solid fa-plug mr-1'></i>Conectează Live"; toast('Deconectat'); }
+// ====== Desktop Notify + Sounds ======
+const audio = { crit: document.getElementById('sndCritical'), ping: document.getElementById('sndPing') };
+let audioUnlocked = false;
+let audioCtx = null;
+
+function unlockAudioOnce(){
+  try{
+    // „Încălzim” tag-urile <audio> sub mute ca să deblocăm redarea
+    audio.crit.muted = true; audio.crit.play().then(()=>{ audio.crit.pause(); audio.crit.currentTime=0; audio.crit.muted=false; audioUnlocked=true; }).catch(()=>{});
+    audio.ping.muted = true; audio.ping.play().then(()=>{ audio.ping.pause(); audio.ping.currentTime=0; audio.ping.muted=false; audioUnlocked=true; }).catch(()=>{});
+    // Pregătim fallback WebAudio
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+  }catch(e){}
+}
+
+function beep(){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type='square'; o.frequency.value=880;
+    g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime+0.15);
+  }catch(e){}
+}
+
+function updateNotifyState(){
+  const el=document.getElementById('notifyState');
+  if(!('Notification' in window)){ el.textContent='Stare: nesuportat'; return; }
+  if(!window.isSecureContext){ el.textContent='Stare: necesită HTTPS/localhost'; return; }
+  el.textContent='Stare: '+(Notification.permission||'necunoscut');
+}
+
+async function reqNotify(){
+  try{
+    if(!('Notification' in window)){ toast('Browserul tău nu suportă notificări','warn'); return; }
+    if(!window.isSecureContext){ toast('Permisiunea necesită HTTPS sau localhost. Deschide pagina prin https:// sau http://localhost.','warn'); updateNotifyState(); return; }
+    const p = await Notification.requestPermission();
+    updateNotifyState();
+    if(p==='granted'){ toast('Notificările desktop au fost permise.'); new Notification('✅ Notificări activate',{body:'Vei primi alerte în colțul ecranului.'}); }
+    else if(p==='denied'){ toast('Permisiunea este „denied” din setările browserului. Deblochează din „Site Settings”.','warn'); }
+    else { toast('Permisiune „default”. Browserul poate întreba din nou ulterior.','warn'); }
+  }catch(e){ toast('Eroare permisiuni: '+e.message,'error'); }
+}
+
+function playTone(kind){
+  const el = (kind==='critical')?audio.crit:audio.ping;
+  try{
+    if(!audioUnlocked){ unlockAudioOnce(); }
+    el.currentTime=0;
+    el.play().catch(()=>{ throw new Error('blocked'); });
+  }catch(e){ beep(); }
+}
+
+function maybeNotify(n){
+  try{
+    const mode=state.prefs.sound||'critical';
+    const isCrit = n.severity==='critical' || n.severity==='error';
+    if('Notification' in window && Notification.permission==='granted'){
+      new Notification(n.title||'Notificare', { body:n.body||n.type, icon:'/favicon.ico' });
+    }
+    if(mode==='all' || (mode==='critical'&&isCrit)){
+      playTone(isCrit?'critical':'ping');
+    }
+  }catch(e){}
+}
+// ====== Exports ======
+
+    function exportCSV(items){
+      const header='id,ts,type,severity,title,body\n';
+      const rows = items.map(n=>[n.id, new Date(n.ts).toISOString(), n.type, n.severity, (n.title||'').replace(/"/g,'""'), (n.body||'').replace(/"/g,'""')].map(x=>`"${String(x)}"`).join(','));
+      const blob=new Blob([header+rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='notificari.csv'; a.click(); URL.revokeObjectURL(a.href);
+    }
+    function exportJSON(items){ const blob=new Blob([JSON.stringify(items,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='notificari.json'; a.click(); URL.revokeObjectURL(a.href); }
+
+    // ====== Bindings ======
+    document.getElementById('btnApply').addEventListener('click', renderList);
+    document.getElementById('btnReset').addEventListener('click', ()=>{ document.getElementById('fltSearch').value=''; document.getElementById('fltSeverity').value=''; document.getElementById('fltType').value=''; document.getElementById('fltUnread').checked=false; document.getElementById('fltPinned').checked=false; document.getElementById('fltSort').value='ts_desc'; renderList(); });
+
+    document.getElementById('btnConnect').addEventListener('click', ()=> state.connected?disconnect():connect());
+    document.getElementById('btnDemoBurst').addEventListener('click', ()=>{ for(let i=0;i<10;i++) pushDemo(); toast('10 notificări DEMO adăugate'); });
+    document.getElementById('btnMarkAllRead').addEventListener('click', ()=>{ state.all.forEach(n=> n.unread=false); saveLocal(); renderList(); });
+    document.getElementById('btnExportCSV').addEventListener('click', ()=> exportCSV(state.view||[]));
+    document.getElementById('btnExportJSON').addEventListener('click', ()=> exportJSON(state.view||[]));
+
+    document.getElementById('btnSelectAll').addEventListener('click', ()=>{ (state.view||[]).forEach(n=> state.sel.add(n.id)); renderList(); });
+    document.getElementById('btnClearSel').addEventListener('click', ()=>{ state.sel.clear(); renderList(); });
+    document.getElementById('btnBatchRead').addEventListener('click', ()=> batch('read'));
+    document.getElementById('btnBatchUnread').addEventListener('click', ()=> batch('unread'));
+    document.getElementById('btnBatchArchive').addEventListener('click', ()=> batch('archive'));
+    document.getElementById('btnBatchDelete').addEventListener('click', ()=> batch('delete'));
+
+    document.getElementById('btnReqNotify').addEventListener('click', reqNotify);
+    document.getElementById('btnTestSound').addEventListener('click', ()=>{
+  unlockAudioOnce();
+  playTone('critical');
+  toast('Sunet test redat');
+});
+
+    document.querySelectorAll('input[name="sound"]').forEach(r=> r.addEventListener('change', ()=>{ state.prefs.sound = document.querySelector('input[name="sound"]:checked').value; savePrefs(); toast('Preferință de sunet salvată'); }));
+
+    document.getElementById('btnAddRule').addEventListener('click', ()=>{ const match=document.getElementById('ruleMatch').value.trim(); const action=document.getElementById('ruleAction').value; if(!match){ toast('Descrie o condiție','warn'); return; } state.rules.push({match, action}); saveRules(); renderRules(); toast('Regulă adăugată'); });
+    document.getElementById('ruleList').addEventListener('click', (e)=>{ const b=e.target.closest('[data-rm]'); if(!b) return; const idx=parseInt(b.dataset.rm,10); if(Number.isFinite(idx)){ state.rules.splice(idx,1); saveRules(); renderRules(); toast('Regulă ștearsă'); } });
+
+    document.getElementById('btnSaveDigest').addEventListener('click', ()=>{ state.prefs.digest = { freq: document.getElementById('digestFreq').value, time: document.getElementById('digestTime').value }; savePrefs(); document.getElementById('digestState').textContent = `Digest ${state.prefs.digest.freq} la ${state.prefs.digest.time}`; toast('Digest salvat'); });
+
+    // ====== Bootstrap ======
+    (async function init(){
+      const p=loadPrefs(); if(p){ state.prefs=p; if(p.digest){ document.getElementById('digestFreq').value=p.digest.freq||'daily'; document.getElementById('digestTime').value=p.digest.time||'09:00'; document.getElementById('digestState').textContent=`Digest ${p.digest.freq} la ${p.digest.time}`; } const rSel=p.sound||'critical'; const r=document.querySelector(`input[name="sound"][value="${rSel}"]`); if(r) r.checked=true; }
+      updateNotifyState();
+      window.addEventListener('pointerdown', unlockAudioOnce, {once:true});
+window.addEventListener('keydown', unlockAudioOnce, {once:true});
+
+      const local=loadLocal(); state.all = local || await loadNotifications(); state.rules = loadRules(); renderRules(); renderList(); renderStats();
+    })();
+
+    // ====== Diagnostics (?debug=1) ======
+    (function diagnostics(){ if(new URLSearchParams(location.search).get('debug')!=='1') return; const card=document.getElementById('cardPrefs'); const dbg=document.createElement('div'); dbg.className='mt-4 rounded-xl border border-white/10 bg-white/5 p-3 text-xs'; dbg.innerHTML = `<div class='font-semibold mb-2'>Self‑tests</div><pre id='dbgOut'></pre>`; card.appendChild(dbg); const out=document.getElementById('dbgOut'); function log(s){ out.textContent += s+"\n"; }
+      function assert(name,cond){ log((cond?'✅':'❌')+' '+name); }
+      // Tests
+      const seed = demoSeed(5); assert('seed length == 5', seed.length===5); assert('sort ts_desc keeps order', seed.slice().sort((a,b)=>b.ts-a.ts)[0].ts >= seed.slice().sort((a,b)=>b.ts-a.ts)[1].ts);
+      // Insert + rules
+      state.rules=[{match:'type:SECURITY', action:'mark_read'},{match:'severity:critical', action:'pin'}]; const n={id:id(), ts:Date.now(), type:'SECURITY', severity:'critical', title:'x', body:'y', unread:true, pinned:false}; applyRules(n); assert('rule mark_read works', n.unread===false); assert('rule pin works', n.pinned===true);
+      // Export
+      exportCSV([n]); exportJSON([n]); log('— Exports triggered (check downloads).');
+    })();
+  </script>
+</body>
+</html>
