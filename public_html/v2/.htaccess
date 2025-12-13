@@ -1,0 +1,11 @@
+RewriteEngine On
+RewriteBase /v2/
+
+# Whitelist assets to prevent them being rewritten to index.html
+RewriteCond %{REQUEST_URI} ^/v2/assets/
+RewriteRule ^ - [L]
+
+RewriteCond %{REQUEST_URI} !^/v2/api/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
