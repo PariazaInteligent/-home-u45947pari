@@ -1,9 +1,0 @@
-{
-    "reply_to": 231,
-    "reply": {
-        "id": 231,
-        "user_id": 8,
-        "user_name": "test",
-        "body": "@Mihaita rezultat: de acum încolo, oricând cineva scrie un mesaj cu @Mihaita, se va genera automat o notificare mention în chat_notifications. clopoțelul le va vedea alături de reply, pentru că sistemul tău deja extrage toate kind."
-    }
-}

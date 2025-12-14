@@ -1,9 +1,0 @@
-{
-    "reply_to": 204,
-    "reply": {
-        "id": 204,
-        "user_id": 8,
-        "user_name": "test",
-        "body": "de cum vine primul event de presence de la server, se va actualiza la „1 online”, „2 online” etc."
-    }
-}

@@ -1,9 +1,0 @@
-{
-    "reply_to": 209,
-    "reply": {
-        "id": 209,
-        "user_id": 7,
-        "user_name": "Mihaita",
-        "body": "dacă după update vezi că punctul nu se aprinde deloc, următorul pas e să verificăm răspunsul de la \/api\/chat\/mentions_unread.php în network tab, dar întâi aplică exact schimbările de mai sus."
-    }
-}
