@@ -1,9 +1,0 @@
-{
-    "reply_to": 225,
-    "reply": {
-        "id": 225,
-        "user_id": 8,
-        "user_name": "test",
-        "body": "clickurile din interiorul cardului de chat (inclusiv pe mențiuni, buton „marchează citit” etc.) nu închid overlay-ul aiurea, pentru că sunt în chatCard.contains(e.target)."
-    }
-}

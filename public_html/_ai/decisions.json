@@ -1,0 +1,191 @@
+[
+    {
+        "date": "2025-12-16",
+        "decision": "Use MySQL/MariaDB instead of PostgreSQL",
+        "reason": "cPanel hosting requirement with PHPMyAdmin support",
+        "impact": [
+            "prisma schema configuration",
+            "docker-compose database service",
+            "connection strings"
+        ]
+    },
+    {
+        "date": "2025-12-16",
+        "decision": "Monorepo in public_html/ with pnpm workspaces",
+        "reason": "Clean separation, production code isolated from tooling",
+        "impact": [
+            "workspace structure",
+            "build outputs",
+            "deployment scripts"
+        ]
+    },
+    {
+        "date": "2025-12-16",
+        "decision": "Docker for local dev only, not production dependency",
+        "reason": "cPanel hosting cannot run Docker containers",
+        "impact": [
+            "docker-compose for development",
+            "mysql/redis/minio local only",
+            "production uses cPanel services"
+        ]
+    },
+    {
+        "date": "2025-12-16",
+        "decision": "Double-entry ledger with immutable snapshots",
+        "reason": "Audit compliance, no data deletion, reversals only",
+        "impact": [
+            "ledger_entry and ledger_line tables",
+            "snapshot table",
+            "audit_log for all admin actions"
+        ]
+    },
+    {
+        "date": "2025-12-16",
+        "decision": "Three.js for 3D UI with WebGL fallback",
+        "reason": "Futuristic immersive experience requirement, hard to copy",
+        "impact": [
+            "shared ui package",
+            "react-three-fiber",
+            "fallback to enhanced 2D for unsupported devices"
+        ]
+    },
+    {
+        "date": "2025-12-16",
+        "decision": "External MySQL via cPanel used; Docker deferred",
+        "reason": "ENV already populated with real credentials from hosting. Docker Desktop installation not required for Phase 1. External MySQL fully functional and accessible.",
+        "impact": [
+            "No Docker dependency for database migrations",
+            "Prisma connects directly to cPanel MySQL",
+            "docker-compose.yml kept for optional local dev later",
+            "Redis and Minio deferred until explicitly needed",
+            "Phase 1 unblocked, can proceed with migrations immediately"
+        ]
+    },
+    {
+        "date": "2025-12-16",
+        "decision": "Base currency changed from RON to EUR",
+        "reason": "Project requirement: EUR (€) is the base currency for all financial operations, not RON (₺)",
+        "impact": [
+            "All seed data amounts in EUR",
+            "Bank account code changed from BANK-RON to BANK-EUR",
+            "All ledger descriptions use EUR",
+            "All console logs/outputs display EUR",
+            "All API responses use EUR",
+            "UnitsService references BANK-EUR account",
+            "No currency conversion - just reference currency change"
+        ]
+    },
+    {
+        "date": "2025-12-17",
+        "decision": "UI/UX Design Doctrine for web-public, web-investor, web-admin",
+        "reason": "Premium, immersive, mobile-first experience required. Must be sexy, fluid, cinematic, with state-driven animations and selective 3D effects.",
+        "principles": [
+            "Sexy, fluid, immersive (like a film)",
+            "Animations based on state/events, not decorative hover",
+            "Mobile-first design (majority traffic is mobile)",
+            "3D only when meaningful, with fallback + prefers-reduced-motion support",
+            "Performance optimized, tested on real devices"
+        ],
+        "toolkit": [
+            "cool hover effects (css + motion)",
+            "neon search bar (where needed)",
+            "scroll zoom on key pages",
+            "card displacement + scroll reveal + parallax showcase",
+            "wave 3d / orbitview 3d / cinematic carousel",
+            "filter card effects / snapshot carousel / perspective slideshow",
+            "interactive focus cards",
+            "radial social menu + social tooltip animation (desktop+mobile adapted)",
+            "escape button for incomplete forms (shake + highlight + clear message)",
+            "expanding card / flipbounce cards / liquid glass effect",
+            "sticky cursor (desktop only)",
+            "circular carousel / techglow menu + open/close animation",
+            "dark mode toggle + show/hide password + cube animation + neon pulse effect",
+            "responsive grid layout + flexreveal",
+            "rain of shooting stars when investor profit > last session"
+        ],
+        "github_references": [
+            "https://github.com/workluis59-ship-it/modern-login-signup (login/signup flow adaptation)",
+            "https://github.com/workluis59-ship-it/Social-Media-Tooltip-V4 (social tooltip v4)",
+            "https://github.com/workluis59-ship-it/Social-Media-Tooltip-V2 (social tooltip v2)",
+            "https://github.com/workluis59-ship-it/Rain-of-Stars (profit up vs last session)",
+            "https://github.com/workluis59-ship-it/Holographic-Login-Projection (holographic login)"
+        ],
+        "implementation_note": "Do NOT copy blindly. Adapt to design tokens, RBAC flows, 2FA, and mobile-first approach.",
+        "impact": [
+            "All web-public, web-investor, web-admin pages must follow this doctrine",
+            "Design tokens created for consistency (colors, spacing, animations)",
+            "Mobile testing mandatory before desktop polish",
+            "3D effects must have 2D fallback for low-end devices",
+            "Performance budget enforced (Lighthouse mobile score > 90)"
+        ]
+    },
+    {
+        "decision": "DB naming standardized: camelCase only",
+        "rationale": "Duplicate timestamp columns (updatedAt + updated_at) caused NULL constraint violations, Prisma desync, and test failures. Standardized to camelCase only (updatedAt, createdAt) across all tables. Use @map() in schema.prisma ONLY when absolutely necessary for compatibility. This eliminates column naming confusion and ensures Prisma client generates correct types.",
+        "impact": "All timestamp columns use camelCase. No more duplicate columns. schema.prisma is source of truth. Prisma db pull used only for diagnostics, never for schema overwrite.",
+        "date": "2025-12-17"
+    },
+    {
+        "decision": "Awwwards-Level Design Architecture - MANDATORY pentru toate paginile",
+        "date": "2025-12-18",
+        "rationale": "Necesitate experiență cinematografică premium, nu landing page static. Fiecare pagină trebuie să fie memorabilă, interactivă și optimizată pentru mobil (majoritatea traficului).",
+        "principles": [
+            "Target: awwwards-level, experiență cinematografică, nu landing static",
+            "Mobile-first REAL: text lizibil, butoane thumb-friendly, layout curat, încărcare rapidă",
+            "Dark mode premium: fără #000000, folosește #121212/#1a1a1a + tint #03000d",
+            "Culori desaturate pe dark, alb cu opacitate, stări interactive vizibile",
+            "UI 3D (nu flat), micro-interacțiuni cu sens (stare/eveniment, nu hover de decor)",
+            "Parallax acolo unde are sens pe fiecare pagină (subtil pe mobil, mai bogat pe desktop)",
+            "Favicon 'pariază inteligent' pe toate paginile",
+            "Fără Arial - folosește fonturi premium (Inter, Outfit, Roboto)"
+        ],
+        "architecture": [
+            "Zero text demo hardcodat pentru KPI/metrici - TOT din API/DB",
+            "Data-driven peste tot: performanță, transparență, fees, nav, balances",
+            "Motion system în packages/ui: tokens pentru durate, easing, intensități parallax",
+            "Scroll choreography: reveal, parallax, perspective cards",
+            "Fallback pentru mobil + prefers-reduced-motion obligatoriu",
+            "Efect fără legătură cu stare sau conținut real = NU intră"
+        ],
+        "server_verification": [
+            "Confirmare port cu netstat înainte de considerare 'running'",
+            "Confirmare endpoint /docs cu curl",
+            "Dacă nu apare 'listening' în 120 sec, stop și log în progress_log.json cu motivul + stack trace"
+        ],
+        "output_language": "Română - toate rapoartele, commit notes, status logs către user",
+        "impact": [
+            "Toate paginile web (public, investor, admin) trebuie să respecte aceste principii",
+            "Motion system va fi definit în packages/ui cu tokens reutilizabili",
+            "Orice UI component fără data binding nu va fi implementat",
+            "Server verification cu 2 pași (netstat + curl) înainte de marking 'done'",
+            "Zero output în engleză către user din acest moment"
+        ]
+    },
+    {
+        "decision": "UI Stack Lock - Scene 1 cinematografică (scroll = cameră)",
+        "date": "2025-12-18",
+        "rationale": "Lock versiuni exacte pentru consistency. NPM a instalat versiuni mai noi decât target inițial (three 0.182 vs 0.168, gsap 3.14.2 vs 3.12.5, lenis 1.3.16 vs 1.1.17) - păstrăm versiunile instalate efectiv pentru evitare reinstall. Toate pachetele din monorepo trebuie să folosească EXACT aceleași versiuni locked.",
+        "stack_installed": {
+            "three": "0.182.0",
+            "gsap": "3.14.2",
+            "@gsap/react": "2.1.2",
+            "lenis": "1.3.16",
+            "vite": "5.0.0"
+        },
+        "stack_initial_target": {
+            "three": "0.168.0",
+            "gsap": "3.12.5",
+            "lenis": "1.1.17",
+            "note": "NPM a instalat versiuni mai noi - păstrăm installed pentru evitare breaking changes prin downgrade"
+        },
+        "no_caret": "TOATE versiunile locked FĂRĂ ^ în package.json pentru prevent accidental upgrades",
+        "monorepo_rule": "Dacă alte apps din monorepo folosesc three/gsap/lenis, TREBUIE să folosească EXACT aceleași versiuni (0.182.0, 3.14.2, 1.3.16)",
+        "impact": [
+            "Dependency installation deterministă",
+            "Three.js 0.182 - API stabil, performance îmbunătățit față de 0.168",
+            "GSAP 3.14.2 - bugfixes ScrollTrigger + Lenis compatibility",
+            "Lenis 1.3.16 - smooth scroll optimizat mobil",
+            "Scroll cinematografic cu GSAP ScrollTrigger + Lenis"
+        ]
+    }
+]

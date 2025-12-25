@@ -1,0 +1,44 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+*.log
+
+# Next.js
+.next/
+out/
+build
+dist
+
+# Turbo
+.turbo
+
+# Environment
+.env
+.env*.local
+
+# IDEs
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.db
+*.sqlite
+prisma/migrations/*_dev/
+
+# AI memory (keep in repo for continuity)
+!_ai/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

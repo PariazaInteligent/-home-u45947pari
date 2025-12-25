@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # MySQL 8 - Primary database
+  mysql:
+    image: mysql:8.0
+    container_name: pariaza_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_dev
+      MYSQL_DATABASE: pariaza_inteligent
+      MYSQL_USER: pariaza_user
+      MYSQL_PASSWORD: pariaza_pass_dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - pariaza_network
+
+  # PHPMyAdmin - Database management UI
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: pariaza_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root_password_dev
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - pariaza_network
+
+  # Redis 7 - Cache and session store
+  redis:
+    image: redis:7-alpine
+    container_name: pariaza_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass redis_pass_dev
+    networks:
+      - pariaza_network
+
+  # Minio - S3-compatible object storage (local development)
+  minio:
+    image: minio/minio:latest
+    container_name: pariaza_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minio_admin
+      MINIO_ROOT_PASSWORD: minio_pass_dev
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - pariaza_network
+
+volumes:
+  mysql_data:
+  redis_data:
+  minio_data:
+
+networks:
+  pariaza_network:
+    driver: bridge

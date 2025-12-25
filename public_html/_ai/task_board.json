@@ -1,0 +1,32 @@
+{
+    "phase": "phase-4-engine-handoff",
+    "role": "ENGINE (Logic, Data, Performance only)",
+    "current_task": "Task 13: FINAL REAL DATA WIRING",
+    "acceptance_criteria_task13": [
+        "ENV: VITE_API_BASE_URL configured",
+        "API: metrics.ts uses env var (no hardcode)",
+        "LOGIC: No mock delays, simple fetch",
+        "STATE: Offline handles gracefully"
+    ],
+    "blocked_tasks": [
+        "API server pornire (blocker: @prisma/client lipsește din apps/api/package.json)"
+    ],
+    "completed_tasks": [
+        "Task 9: WIPE COMPLETE (Landing, CSS, JS Logic demolished)",
+        "ROLE PIVOT: Split into Engine vs Figma agents",
+        "Task 7.5: Content Layer logic restored (visuals pending Figma)",
+        "Task 7: Metrics Logic (Mock) + Animation Logic (GSAP) implementation",
+        "Scene 1: Stable 3D Engine Foundation"
+    ],
+    "pending_tasks": [
+        "Task 9.1: Strip Design (Create Clean Chassis)",
+        "Task 9.2: Real API Wiring",
+        "Task 10: Performance Audit (Lighthouse 95+)"
+    ],
+    "stack_fixed": {
+        "3d_engine": "Three.js 0.182.0",
+        "animation": "GSAP 3.14.2",
+        "logic": "TypeScript Strict",
+        "build": "Vite 5.0.0"
+    }
+}

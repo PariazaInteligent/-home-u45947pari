@@ -1,0 +1,43 @@
+{
+    "name": "@pariaza/api",
+    "version": "1.0.0",
+    "type": "module",
+    "private": true,
+    "description": "Fastify REST API for Pariaza Inteligent",
+    "main": "dist/index.js",
+    "scripts": {
+        "dev": "tsx watch src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "lint": "eslint src --ext .ts",
+        "test": "vitest",
+        "test:integration": "vitest run --config vitest.integration.config.ts"
+    },
+    "dependencies": {
+        "@fastify/cors": "^9.0.1",
+        "@fastify/jwt": "^8.0.1",
+        "@fastify/rate-limit": "^9.1.0",
+        "@fastify/swagger": "^8.15.0",
+        "@fastify/swagger-ui": "^1.10.2",
+        "@pariaza/database": "workspace:*",
+        "@prisma/client": "^5.22.0",
+        "bcryptjs": "^3.0.3",
+        "bullmq": "^5.35.4",
+        "decimal.js": "^10.6.0",
+        "dotenv": "^16.4.7",
+        "fastify": "^4.29.1",
+        "ioredis": "^5.4.2",
+        "nodemailer": "^6.10.1",
+        "zod": "^3.23.8",
+        "zod-to-json-schema": "^3.25.0"
+    },
+    "devDependencies": {
+        "@types/bcryptjs": "^3.0.0",
+        "@types/node": "^22.10.2",
+        "@types/nodemailer": "^6.4.21",
+        "eslint": "^9.17.0",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3",
+        "vitest": "^2.1.8"
+    }
+}

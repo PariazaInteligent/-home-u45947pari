@@ -1,0 +1,78 @@
+{
+    "endpoint": "POST /wallet/withdrawals",
+    "scenario": "High system pressure: 27 pending withdrawals + high utilization",
+    "request_body": {
+        "amountRequested": 5000
+    },
+    "calculated_fees": {
+        "feeFixedPct": 0.015,
+        "feeSurgePct": 0.07,
+        "feeFixedAmount": 75.00,
+        "feeSurgeAmount": 350.00,
+        "feeTotalAmount": 425.00,
+        "amountPayout": 4575.00,
+        "surgeReasons": [
+            "pending_count >= 25: +7%"
+        ],
+        "surgeSnapshot": {
+            "pending_count": 27,
+            "bank_balance": 85000,
+            "total_pending_amount": 35000,
+            "utilization": 0.41,
+            "system_risk_flag": false
+        },
+        "feeLockedAt": "2025-12-17T17:58:00Z"
+    },
+    "response_201": {
+        "id": "clwxyz123abc456def",
+        "userId": "cluser789def",
+        "amountRequested": 5000,
+        "feeFixedPct": 0.015,
+        "feeSurgePct": 0.07,
+        "feeFixedAmount": 75.00,
+        "feeSurgeAmount": 350.00,
+        "feeTotalAmount": 425.00,
+        "amountPayout": 4575.00,
+        "surgeReasons": [
+            "pending_count >= 25: +7%"
+        ],
+        "surgeSnapshot": {
+            "pending_count": 27,
+            "bank_balance": 85000,
+            "total_pending_amount": 35000,
+            "utilization": 0.41,
+            "system_risk_flag": false
+        },
+        "feeLockedAt": "2025-12-17T17:58:00.000Z",
+        "cooldownUntil": "2025-12-18T17:58:00.000Z",
+        "status": "PENDING",
+        "requestedAt": "2025-12-17T17:58:00.000Z"
+    },
+    "notes": [
+        "Surge triggered because pending_count (27) >= 25",
+        "Surge percentage: 7% (from fee tier)",
+        "Total fee: 1.5% fixed + 7% surge = 8.5%",
+        "Fees locked at creation time - will not change at approval",
+        "Utilization 41% > 40% threshold also contributes to surge risk"
+    ],
+    "ledger_on_approve": {
+        "description": "Example ledger entry when approved",
+        "lines": [
+            {
+                "debit": "2000-INVESTOR-EQUITY (user)",
+                "credit": "1100-BANK-EUR",
+                "amount": 4575.00,
+                "note": "Payout to investor"
+            },
+            {
+                "debit": "2000-INVESTOR-EQUITY (user)",
+                "credit": "4100-WITHDRAWAL-FEES-EUR",
+                "amount": 425.00,
+                "note": "Withdrawal fee (1.5% fixed + 7% surge)"
+            }
+        ],
+        "total_debits": 5000.00,
+        "total_credits": 5000.00,
+        "balanced": true
+    }
+}

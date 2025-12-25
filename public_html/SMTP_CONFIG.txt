@@ -1,0 +1,11 @@
+# Email Configuration
+SMTP_HOST=mail.pariazainteligent.ro
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=noreply@pariazainteligent.ro
+SMTP_PASSWORD=3DSecurity31
+SMTP_FROM_NAME=Pariază Inteligent
+SMTP_FROM_EMAIL=noreply@pariazainteligent.ro
+
+# Platform URL
+PLATFORM_URL=https://pariazainteligent.ro
