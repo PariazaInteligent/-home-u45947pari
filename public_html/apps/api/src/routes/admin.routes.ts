@@ -243,7 +243,7 @@ export async function adminRoutes(app: FastifyInstance) {
                 name: user.name || user.email,
                 email: user.email,
             });
-            console.log(📧 Rejection email sent to ${ user.email });
+            console.log(`📧 Rejection email sent to ${user.email}`);
         } catch (emailError) {
             console.error('❌ Failed to send rejection email:', emailError);
         }

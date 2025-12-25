@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+﻿import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 
 interface EmailUser {
@@ -32,7 +32,7 @@ class EmailService {
     } = process.env;
 
     // Debug: Check which env vars are loaded
-    console.log('🔍 Email Config Check:', {
+    console.log('ðŸ” Email Config Check:', {
       SMTP_HOST: SMTP_HOST ? 'SET' : 'MISSING',
       SMTP_PORT: SMTP_PORT ? 'SET' : 'MISSING',
       SMTP_USER: SMTP_USER ? 'SET' : 'MISSING',
@@ -41,7 +41,7 @@ class EmailService {
 
     // Check if SMTP is configured
     if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD) {
-      console.warn('⚠️ SMTP not configured. Email service disabled.');
+      console.warn('âš ï¸ SMTP not configured. Email service disabled.');
       this.isConfigured = false;
       return;
     }
@@ -61,9 +61,9 @@ class EmailService {
       });
 
       this.isConfigured = true;
-      console.log('✅ Email service initialized successfully');
+      console.log('âœ… Email service initialized successfully');
     } catch (error) {
-      console.error('❌ Failed to initialize email service:', error);
+      console.error('âŒ Failed to initialize email service:', error);
       this.isConfigured = false;
     }
   }
@@ -76,7 +76,7 @@ class EmailService {
     this.initialize();
 
     if (!this.isConfigured || !this.transporter) {
-      console.log('📧 Skipping welcome email - service not configured');
+      console.log('ðŸ“§ Skipping welcome email - service not configured');
       return false;
     }
 
@@ -86,14 +86,14 @@ class EmailService {
       await this.transporter.sendMail({
         from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
         to: user.email,
-        subject: '🎉 Bun Venit! Contul Tău Este Activ',
+        subject: 'ðŸŽ‰ Bun Venit! Contul TÄƒu Este Activ',
         html,
       });
 
-      console.log(`✅ Welcome email sent to ${user.email}`);
+      console.log(`âœ… Welcome email sent to ${user.email}`);
       return true;
     } catch (error) {
-      console.error(`❌ Failed to send welcome email to ${user.email}:`, error);
+      console.error(`âŒ Failed to send welcome email to ${user.email}:`, error);
       return false;
     }
   }
@@ -106,7 +106,7 @@ class EmailService {
     this.initialize();
 
     if (!this.isConfigured || !this.transporter) {
-      console.log('📧 Skipping pending email - service not configured');
+      console.log('ðŸ“§ Skipping pending email - service not configured');
       return false;
     }
 
@@ -116,14 +116,14 @@ class EmailService {
       await this.transporter.sendMail({
         from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
         to: user.email,
-        subject: '⏳ Cererea Ta Este în Procesare',
+        subject: 'â³ Cererea Ta Este Ã®n Procesare',
         html,
       });
 
-      console.log(`✅ Pending email sent to ${user.email}`);
+      console.log(`âœ… Pending email sent to ${user.email}`);
       return true;
     } catch (error) {
-      console.error(`❌ Failed to send pending email to ${user.email}:`, error);
+      console.error(`âŒ Failed to send pending email to ${user.email}:`, error);
       return false;
     }
   }
@@ -136,7 +136,7 @@ class EmailService {
     this.initialize();
 
     if (!this.isConfigured || !this.transporter) {
-      console.log('📧 Skipping activation email - service not configured');
+      console.log('ðŸ“§ Skipping activation email - service not configured');
       return false;
     }
 
@@ -146,14 +146,14 @@ class EmailService {
       await this.transporter.sendMail({
         from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
         to: user.email,
-        subject: '✅ Contul Tău A Fost Activat!',
+        subject: 'âœ… Contul TÄƒu A Fost Activat!',
         html,
       });
 
-      console.log(`✅ Activation email sent to ${user.email}`);
+      console.log(`âœ… Activation email sent to ${user.email}`);
       return true;
     } catch (error) {
-      console.error(`❌ Failed to send activation email to ${user.email}:`, error);
+      console.error(`âŒ Failed to send activation email to ${user.email}:`, error);
       return false;
     }
   }
@@ -166,16 +166,16 @@ class EmailService {
     this.initialize();
 
     if (!this.isConfigured || !this.transporter) {
-      console.log('❌ Cannot test connection - service not configured');
+      console.log('âŒ Cannot test connection - service not configured');
       return false;
     }
 
     try {
       await this.transporter.verify();
-      console.log('✅ SMTP connection test successful');
+      console.log('âœ… SMTP connection test successful');
       return true;
     } catch (error) {
-      console.error('❌ SMTP connection test failed:', error);
+      console.error('âŒ SMTP connection test failed:', error);
       return false;
     }
   }
@@ -200,10 +200,10 @@ class EmailService {
       <td align="center">
         <!-- Prof. Investino Mascot -->
         <div style="margin-bottom: 20px; text-align: center;">
-          <div style="font-size: 80px; line-height: 1; margin-bottom: 15px;">🦉</div>
+          <div style="font-size: 80px; line-height: 1; margin-bottom: 15px;">ðŸ¦‰</div>
           <div style="background: white; border: 3px solid #10B981; border-radius: 20px; padding: 20px; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <p style="color: #10B981; font-size: 18px; font-weight: 700; margin: 0; line-height: 1.4;">
-              🎉 Yay! Contul tău este ACTIV! Bine ai venit în familia noastră de investitori! Hai să începem aventura!
+              ðŸŽ‰ Yay! Contul tÄƒu este ACTIV! Bine ai venit Ã®n familia noastrÄƒ de investitori! Hai sÄƒ Ã®ncepem aventura!
             </p>
           </div>
         </div>
@@ -214,7 +214,7 @@ class EmailService {
           <tr>
             <td style="background: linear-gradient(135deg, #10B981, #059669); padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; color: white; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                Bine ai venit, ${user.name}! 💚
+                Bine ai venit, ${user.name}! ðŸ’š
               </h1>
             </td>
           </tr>
@@ -226,26 +226,26 @@ class EmailService {
               <!-- Success Badge -->
               <div style="background: linear-gradient(135deg, #D1FAE5, #A7F3D0); border: 2px solid #10B981; border-radius: 16px; padding: 20px; margin: 0 0 30px; text-align: center;">
                 <p style="color: #065F46; font-size: 14px; font-weight: 700; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1.5px;">
-                  ✅ INSTANT ACCESS - COD VALID!
+                  âœ… INSTANT ACCESS - COD VALID!
                 </p>
                 <p style="color: #047857; font-size: 18px; font-weight: 600; margin: 0;">
-                  Contul tău este <strong>100% ACTIV</strong> și gata de utilizare!
+                  Contul tÄƒu este <strong>100% ACTIV</strong> È™i gata de utilizare!
                 </p>
               </div>
 
               ${referrer ? `
               <div style="background: linear-gradient(135deg, #F3E8FF, #E9D5FF); border: 2px solid #A855F7; border-radius: 16px; padding: 20px; margin: 0 0 30px;">
                 <p style="color: #6B21A8; font-size: 13px; font-weight: 700; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px;">
-                  🎁 INVITAT DE
+                  ðŸŽ INVITAT DE
                 </p>
                 <p style="color: #7C3AED; font-size: 16px; font-weight: 600; margin: 0;">
-                  <strong>${referrer.name}</strong> te-a invitat să faci parte din comunitate! 🤝
+                  <strong>${referrer.name}</strong> te-a invitat sÄƒ faci parte din comunitate! ðŸ¤
                 </p>
               </div>
               ` : ''}
 
               <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 0 0 30px; text-align: center;">
-                Platformă de investiții sportive bazată pe analiză statistică avansată este acum disponibilă pentru tine! 📊
+                PlatformÄƒ de investiÈ›ii sportive bazatÄƒ pe analizÄƒ statisticÄƒ avansatÄƒ este acum disponibilÄƒ pentru tine! ðŸ“Š
               </p>
 
               <!-- CTA Button -->
@@ -253,7 +253,7 @@ class EmailService {
                 <tr>
                   <td align="center">
                     <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #10B981, #059669); color: white; text-decoration: none; padding: 18px 50px; border-radius: 50px; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4); transition: all 0.3s;">
-                      🚀 EXPLOREAZĂ DASHBOARD-UL
+                      ðŸš€ EXPLOREAZÄ‚ DASHBOARD-UL
                     </a>
                   </td>
                 </tr>
@@ -262,18 +262,18 @@ class EmailService {
               <!-- Login Info -->
               <div style="background: #F9FAFB; border: 2px solid #E5E7EB; border-radius: 12px; padding: 20px; margin: 30px 0;">
                 <p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">
-                  🔐 CREDENȚIALELE TALE
+                  ðŸ” CREDENÈšIALELE TALE
                 </p>
                 <p style="color: #374151; font-size: 15px; margin: 0 0 8px; text-align: center;">
                   <strong>Email:</strong> ${user.email}
                 </p>
                 <p style="color: #374151; font-size: 15px; margin: 0; text-align: center;">
-                  <strong>Parolă:</strong> Parola aleasă la înregistrare
+                  <strong>ParolÄƒ:</strong> Parola aleasÄƒ la Ã®nregistrare
                 </p>
               </div>
 
               <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0; text-align: center;">
-                Întâmpini probleme? Scrie-ne la <a href="mailto:support@pariazainteligent.ro" style="color: #10B981; text-decoration: none; font-weight: 600;">support@pariazainteligent.ro</a> 💌
+                ÃŽntÃ¢mpini probleme? Scrie-ne la <a href="mailto:support@pariazainteligent.ro" style="color: #10B981; text-decoration: none; font-weight: 600;">support@pariazainteligent.ro</a> ðŸ’Œ
               </p>
             </td>
           </tr>
@@ -282,10 +282,10 @@ class EmailService {
           <tr>
             <td style="background: #F9FAFB; padding: 25px 30px; text-align: center; border-top: 2px solid #E5E7EB;">
               <p style="color: #6B7280; font-size: 13px; margin: 0 0 5px; font-weight: 600;">
-                © 2025 Pariază Inteligent. Toate drepturile rezervate.
+                Â© 2025 PariazÄƒ Inteligent. Toate drepturile rezervate.
               </p>
               <p style="color: #9CA3AF; font-size: 11px; margin: 0;">
-                Acest email a fost trimis automat. Te rugăm să nu răspunzi direct.
+                Acest email a fost trimis automat. Te rugÄƒm sÄƒ nu rÄƒspunzi direct.
               </p>
             </td>
           </tr>
@@ -308,7 +308,7 @@ class EmailService {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cererea Ta Est în Procesare</title>
+  <title>Cererea Ta Est Ã®n Procesare</title>
 </head>
 <body style="margin: 0; padding: 0; background: linear-gradient(to bottom right, #FAE8FF, #FED7AA, #FECACA); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
@@ -316,10 +316,10 @@ class EmailService {
       <td align="center">
         <!-- Prof. Investino Mascot -->
         <div style="margin-bottom: 20px; text-align: center;">
-          <div style="font-size: 80px; line-height: 1; margin-bottom: 15px;">🦉</div>
+          <div style="font-size: 80px; line-height: 1; margin-bottom: 15px;">ðŸ¦‰</div>
           <div style="background: white; border: 3px solid #A855F7; border-radius: 20px; padding: 20px; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <p style="color: #A855F7; font-size: 18px; font-weight: 700; margin: 0; line-height: 1.4;">
-              👋 Hei! Nu te îngrijora! Cererea ta e la noi și o verificăm cu atenție. Administratorii noștri sunt super rapizi! ⚡
+              ðŸ‘‹ Hei! Nu te Ã®ngrijora! Cererea ta e la noi È™i o verificÄƒm cu atenÈ›ie. Administratorii noÈ™tri sunt super rapizi! âš¡
             </p>
           </div>
         </div>
@@ -330,7 +330,7 @@ class EmailService {
           <tr>
             <td style="background: linear-gradient(135deg, #A855F7, #7C3AED); padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; color: white; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                Cerere Primită, ${user.name}! 💜
+                Cerere PrimitÄƒ, ${user.name}! ðŸ’œ
               </h1>
             </td>
           </tr>
@@ -342,28 +342,28 @@ class EmailService {
               <!-- Waiting Badge -->
               <div style="background: linear-gradient(135deg, #F3E8FF, #E9D5FF); border: 2px solid #A855F7; border-radius: 16px; padding: 20px; margin: 0 0 30px; text-align: center;">
                 <p style="color: #6B21A8; font-size: 14px; font-weight: 700; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1.5px;">
-                  ⏰ ÎN CURS DE VERIFICARE - Gata în 24-48h!
+                  â° ÃŽN CURS DE VERIFICARE - Gata Ã®n 24-48h!
                 </p>
                 <p style="color: #7C3AED; font-size: 18px; font-weight: 600; margin: 0;">
-                  Verificăm fiecare cerere personal pentru siguranța tuturor! 💪
+                  VerificÄƒm fiecare cerere personal pentru siguranÈ›a tuturor! ðŸ’ª
                 </p>
               </div>
 
               <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 0 0 30px; text-align: center;">
-                Cererea ta a fost înregistrată cu succes! Un administrator o va verifica în cel mult <strong>48 de ore</strong>. 📋
+                Cererea ta a fost Ã®nregistratÄƒ cu succes! Un administrator o va verifica Ã®n cel mult <strong>48 de ore</strong>. ðŸ“‹
               </p>
 
               <!-- Ticket ID Box -->
               <div style="background: linear-gradient(135deg, #DDD6FE, #C4B5FD); border: 3px solid #A855F7; border-radius: 20px; padding: 30px; margin: 30px 0; text-align: center;">
                 <p style="color: #6B21A8; font-size: 14px; font-weight: 700; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 2px;">
-                  🎫 CODUL TĂU DE AȘTEPTARE
+                  ðŸŽ« CODUL TÄ‚U DE AÈ˜TEPTARE
                 </p>
                 <p style="color: #7C3AED; font-size: 36px; font-weight: 900; margin: 0 0 20px; font-family: monospace; letter-spacing: 3px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
                   ${ticketId}
                 </p>
                 <div style="background: white; border-radius: 12px; padding: 15px; margin-top: 20px;">
                   <p style="color: #6B7280; font-size: 13px; font-weight: 600; margin: 0;">
-                    ⏱️ Timp estimat: <strong style="color: #A855F7;">24-48 ore</strong>
+                    â±ï¸ Timp estimat: <strong style="color: #A855F7;">24-48 ore</strong>
                   </p>
                 </div>
               </div>
@@ -371,12 +371,12 @@ class EmailService {
               <!-- Encouragement -->
               <div style="background: #FEF3C7; border: 2px solid #FCD34D; border-radius: 12px; padding: 20px; margin: 30px 0;">
                 <p style="color: #92400E; font-size: 14px; font-weight: 600; margin: 0; text-align: center; line-height: 1.6;">
-                  <strong>💡 Știai că:</strong> Verificăm personal fiecare cerere pentru a proteja comunitatea noastră de investitori. Mulțumim pentru răbdare! 🙏
+                  <strong>ðŸ’¡ È˜tiai cÄƒ:</strong> VerificÄƒm personal fiecare cerere pentru a proteja comunitatea noastrÄƒ de investitori. MulÈ›umim pentru rÄƒbdare! ðŸ™
                 </p>
               </div>
 
               <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0; text-align: center;">
-                Întrebări? Trimite-ne un email la <a href="mailto:support@pariazainteligent.ro" style="color: #A855F7; text-decoration: none; font-weight: 600;">support@pariazainteligent.ro</a> 💌
+                ÃŽntrebÄƒri? Trimite-ne un email la <a href="mailto:support@pariazainteligent.ro" style="color: #A855F7; text-decoration: none; font-weight: 600;">support@pariazainteligent.ro</a> ðŸ’Œ
               </p>
             </td>
           </tr>
@@ -385,10 +385,10 @@ class EmailService {
           <tr>
             <td style="background: #F9FAFB; padding: 25px 30px; text-align: center; border-top: 2px solid #E5E7EB;">
               <p style="color: #6B7280; font-size: 13px; margin: 0 0 5px; font-weight: 600;">
-                © 2025 Pariază Inteligent. Toate drepturile rezervate.
+                Â© 2025 PariazÄƒ Inteligent. Toate drepturile rezervate.
               </p>
               <p style="color: #9CA3AF; font-size: 11px; margin: 0;">
-                Acest email a fost trimis automat. Te rugăm să nu răspunzi direct.
+                Acest email a fost trimis automat. Te rugÄƒm sÄƒ nu rÄƒspunzi direct.
               </p>
             </td>
           </tr>
@@ -412,7 +412,7 @@ class EmailService {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contul Tău A Fost Activat!</title>
+  <title>Contul TÄƒu A Fost Activat!</title>
 </head>
 <body style="margin: 0; padding: 0; background: linear-gradient(to bottom right, #D1FAE5, #A7F3D0, #6EE7B7); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
@@ -420,10 +420,10 @@ class EmailService {
       <td align="center">
         <!-- Prof. Investino Mascot - Super Happy! -->
         <div style="margin-bottom: 20px; text-align: center;">
-          <div style="font-size: 80px; line-height: 1; margin-bottom: 15px;">🦉✨</div>
+          <div style="font-size: 80px; line-height: 1; margin-bottom: 15px;">ðŸ¦‰âœ¨</div>
           <div style="background: white; border: 3px solid #10B981; border-radius: 20px; padding: 20px; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <p style="color: #10B981; font-size: 18px; font-weight: 700; margin: 0; line-height: 1.4;">
-              🎊 FELICITĂRI! Ai fost aprobat! Ești acum parte din echipa noastră! Pregătește-te pentru o călătorie incredibilă! 🚀
+              ðŸŽŠ FELICITÄ‚RI! Ai fost aprobat! EÈ™ti acum parte din echipa noastrÄƒ! PregÄƒteÈ™te-te pentru o cÄƒlÄƒtorie incredibilÄƒ! ðŸš€
             </p>
           </div>
         </div>
@@ -433,7 +433,7 @@ class EmailService {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #10B981, #059669); padding: 40px 30px; text-align: center;">
-              <div style="font-size: 48px; margin-bottom: 15px;">🎉</div>
+              <div style="font-size: 48px; margin-bottom: 15px;">ðŸŽ‰</div>
               <h1 style="margin: 0; color: white; font-size: 36px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
                 Cont Activat, ${user.name}!
               </h1>
@@ -447,43 +447,43 @@ class EmailService {
               <!-- Success Badge -->
               <div style="background: linear-gradient(135deg, #D1FAE5, #A7F3D0); border: 3px solid #10B981; border-radius: 16px; padding: 25px; margin: 0 0 30px; text-align: center;">
                 <p style="color: #065F46; font-size: 14px; font-weight: 700; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 1.5px;">
-                  ✅ CONT ACTIVAT - 100% Verified!
+                  âœ… CONT ACTIVAT - 100% Verified!
                 </p>
                 <p style="color: #047857; font-size: 20px; font-weight: 700; margin: 0;">
-                  Contul tău a fost verificat și aprobat! 💚
+                  Contul tÄƒu a fost verificat È™i aprobat! ðŸ’š
                 </p>
               </div>
 
               <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 0 0 30px; text-align: center;">
-                Bine ai venit în comunitatea de investitori inteligenți! Platforma ta este acum complet accesibilă. 🌟
+                Bine ai venit Ã®n comunitatea de investitori inteligenÈ›i! Platforma ta este acum complet accesibilÄƒ. ðŸŒŸ
               </p>
 
               <!-- Features List with Emoji -->
               <div style="background: #F9FAFB; border: 2px solid #E5E7EB; border-radius: 16px; padding: 25px; margin: 30px 0;">
                 <p style="color: #6B7280; font-size: 13px; font-weight: 700; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">
-                  🎁 CE POȚI FACE ACUM:
+                  ðŸŽ CE POÈšI FACE ACUM:
                 </p>
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="padding: 12px 0;">
                       <div style="display: flex; align-items: center;">
-                        <span style="font-size: 24px; margin-right: 12px;">📊</span>
-                        <span style="color: #374151; font-size: 15px; font-weight: 600;">Dashboard LIVE cu statistici în timp real</span>
+                        <span style="font-size: 24px; margin-right: 12px;">ðŸ“Š</span>
+                        <span style="color: #374151; font-size: 15px; font-weight: 600;">Dashboard LIVE cu statistici Ã®n timp real</span>
                       </div>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding: 12px 0;">
                       <div style="display: flex; align-items: center;">
-                        <span style="font-size: 24px; margin-right: 12px;">💰</span>
-                        <span style="color: #374151; font-size: 15px; font-weight: 600;">Depozite și retrageri instant</span>
+                        <span style="font-size: 24px; margin-right: 12px;">ðŸ’°</span>
+                        <span style="color: #374151; font-size: 15px; font-weight: 600;">Depozite È™i retrageri instant</span>
                       </div>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding: 12px 0;">
                       <div style="display: flex; align-items: center;">
-                        <span style="font-size: 24px; margin-right: 12px;">👥</span>
+                        <span style="font-size: 24px; margin-right: 12px;">ðŸ‘¥</span>
                         <span style="color: #374151; font-size: 15px; font-weight: 600;">Chat cu comunitatea de investitori</span>
                       </div>
                     </td>
@@ -491,7 +491,7 @@ class EmailService {
                   <tr>
                     <td style="padding: 12px 0;">
                       <div style="display: flex; align-items: center;">
-                        <span style="font-size: 24px; margin-right: 12px;">📈</span>
+                        <span style="font-size: 24px; margin-right: 12px;">ðŸ“ˆ</span>
                         <span style="color: #374151; font-size: 15px; font-weight: 600;">Strategii validate de comunitate</span>
                       </div>
                     </td>
@@ -504,7 +504,7 @@ class EmailService {
                 <tr>
                   <td align="center">
                     <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #10B981, #059669); color: white; text-decoration: none; padding: 20px 60px; border-radius: 50px; font-weight: 900; font-size: 18px; text-transform: uppercase; letter-spacing: 1.2px; box-shadow: 0 15px 40px rgba(16, 185, 129, 0.5); transition: all 0.3s;">
-                      🎯 ÎNCEPE ACUM!
+                      ðŸŽ¯ ÃŽNCEPE ACUM!
                     </a>
                   </td>
                 </tr>
@@ -513,30 +513,30 @@ class EmailService {
               <!-- Next Steps -->
               <div style="background: linear-gradient(135deg, #DBEAFE, #BFDBFE); border: 2px solid #3B82F6; border-radius: 16px; padding: 25px; margin: 30px 0;">
                 <p style="color: #1E40AF; font-size: 13px; font-weight: 700; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">
-                  📋 URMĂTORII PAȘI:
+                  ðŸ“‹ URMÄ‚TORII PAÈ˜I:
                 </p>
                 <div style="color: #374151; font-size: 15px; line-height: 2;">
                   <div style="margin-bottom: 10px;">
-                    <span style="font-size: 20px; margin-right: 10px;">1️⃣</span>
-                    <strong>Loghează-te</strong> cu emailul tău
+                    <span style="font-size: 20px; margin-right: 10px;">1ï¸âƒ£</span>
+                    <strong>LogheazÄƒ-te</strong> cu emailul tÄƒu
                   </div>
                   <div style="margin-bottom: 10px;">
-                    <span style="font-size: 20px; margin-right: 10px;">2️⃣</span>
-                    <strong>Explorează</strong> dashboard-ul colorat
+                    <span style="font-size: 20px; margin-right: 10px;">2ï¸âƒ£</span>
+                    <strong>ExploreazÄƒ</strong> dashboard-ul colorat
                   </div>
                   <div style="margin-bottom: 10px;">
-                    <span style="font-size: 20px; margin-right: 10px;">3️⃣</span>
-                    <strong>Alătură-te</strong> comunității
+                    <span style="font-size: 20px; margin-right: 10px;">3ï¸âƒ£</span>
+                    <strong>AlÄƒturÄƒ-te</strong> comunitÄƒÈ›ii
                   </div>
                   <div>
-                    <span style="font-size: 20px; margin-right: 10px;">4️⃣</span>
-                    <strong>Configurează</strong> primul depozit
+                    <span style="font-size: 20px; margin-right: 10px;">4ï¸âƒ£</span>
+                    <strong>ConfigureazÄƒ</strong> primul depozit
                   </div>
                 </div>
               </div>
 
               <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0; text-align: center;">
-                Întrebări? Scrie-ne oricând la <a href="mailto:support@pariazainteligent.ro" style="color: #10B981; text-decoration: none; font-weight: 700;">support@pariazainteligent.ro</a> 💌
+                ÃŽntrebÄƒri? Scrie-ne oricÃ¢nd la <a href="mailto:support@pariazainteligent.ro" style="color: #10B981; text-decoration: none; font-weight: 700;">support@pariazainteligent.ro</a> ðŸ’Œ
               </p>
             </td>
           </tr>
@@ -545,10 +545,10 @@ class EmailService {
           <tr>
             <td style="background: #F9FAFB; padding: 25px 30px; text-align: center; border-top: 2px solid #E5E7EB;">
               <p style="color: #6B7280; font-size: 13px; margin: 0 0 5px; font-weight: 600;">
-                © 2025 Pariază Inteligent. Toate drepturile rezervate.
+                Â© 2025 PariazÄƒ Inteligent. Toate drepturile rezervate.
               </p>
               <p style="color: #9CA3AF; font-size: 11px; margin: 0;">
-                Acest email a fost trimis automat. Te rugăm să nu răspunzi direct.
+                Acest email a fost trimis automat. Te rugÄƒm sÄƒ nu rÄƒspunzi direct.
               </p>
             </td>
           </tr>
@@ -573,79 +573,5 @@ class EmailService {
   }
 }
 
-  /**
-   * Send rejection email (when admin rejects)
-   */
-  async sendRejectionEmail(user: EmailUser): Promise < boolean > {
-  this.initialize();
-  if(!this.isConfigured || !this.transporter) {
-  console.log('📧 Skipping rejection email - service not configured');
-  return false;
-}
-try {
-  const html = this.getRejectionEmailTemplate(user);
-  await this.transporter.sendMail({
-    from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
-    to: user.email,
-    subject: '📋 Cererea Ta de Înregistrare - Actualizare',
-    html,
-  });
-  console.log(`✅ Rejection email sent to ${user.email}`);
-  return true;
-} catch (error) {
-  console.error(`❌ Failed to send rejection email to ${user.email}:`, error);
-  return false;
-}
-  }
-
-  private getRejectionEmailTemplate(user: EmailUser): string {
-  return `<!DOCTYPE html>
-<html lang="ro">
-<head>
-  <meta charset="UTF-8">
-  <title>Cererea Ta de Înregistrare</title>
-</head>
-<body style="margin: 0; padding: 0; background: linear-gradient(to bottom right, #FEE2E2, #FCA5A5); font-family: sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
-    <tr><td align="center">
-      <div style="margin-bottom: 20px; text-align: center;">
-        <div style="font-size: 80px;">🦉</div>
-        <div style="background: white; border: 3px solid #DC2626; border-radius: 20px; padding: 20px; max-width: 500px; margin: 0 auto;">
-          <p style="color: #DC2626; font-size: 18px; font-weight: 700; margin: 0;">
-            👋 Am o veste importantă despre cererea ta de înregistrare.
-          </p>
-        </div>
-      </div>
-      <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 24px;">
-        <tr>
-          <td style="background: linear-gradient(135deg, #DC2626, #B91C1C); padding: 40px 30px; text-align: center;">
-            <h1 style="margin: 0; color: white; font-size: 32px; font-weight: 800;">Cererea Ta de Înregistrare</h1>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding: 40px 30px;">
-            <p style="color: #374151; font-size: 16px; margin: 0 0 25px;">Bună ${user.name || 'investitorule'},</p>
-            <p style="color: #374151; font-size: 16px; margin: 0 0 25px;">Din păcate, cererea ta de înregistrare pe platforma <strong>Pariază Inteligent</strong> nu a putut fi aprobată în acest moment.</p>
-            <div style="background: #FEF2F2; border: 2px solid #FCA5A5; border-radius: 12px; padding: 20px; margin: 25px 0;">
-              <p style="color: #991B1B; font-size: 14px; margin: 0;"><strong>ℹ️ De ce?</strong><br>Această decizie a fost luată în urma analizării criteriilor noastre de eligibilitate.</p>
-            </div>
-            <div style="background: #DBEAFE; border: 2px solid #3B82F6; border-radius: 12px; padding: 20px; margin: 30px 0; text-align: center;">
-              <p style="color: #1E40AF; font-size: 14px; font-weight: 700; margin: 0 0 10px;">💬 Ai întrebări?</p>
-              <p style="color: #374151; margin: 0;">Contactează-ne la <a href="mailto:support@pariazainteligent.ro" style="color: #3B82F6;">support@pariazainteligent.ro</a></p>
-            </div>
-            <p style="color: #374151; margin: 30px 0 0;">Îți mulțumim pentru interesul acordat platformei noastre!</p>
-            <p style="color: #6B7280; margin: 30px 0 0;">Cu respect,<br><strong>Echipa Pariază Inteligent</strong></p>
-          </td>
-        </tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
-}
-
-}
-
 // Export singleton instance
 export const emailService = new EmailService();
-
