@@ -1,5 +1,5 @@
-import { prisma } from '';
-import { Decimal } from '';
+import { prisma } from '@pariaza/database';
+import { Decimal } from 'decimal.js';
 
 interface AuditLogData {
     userId: string;

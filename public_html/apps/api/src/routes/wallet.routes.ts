@@ -1,13 +1,13 @@
 import { FastifyInstance } from 'fastify';
-import { prisma } from '';
-import { authenticate } from '';
-import { requireAdmin } from '';
-import { unitsService } from '';
-import { ledgerService } from '';
-import { auditService } from '';
+import { prisma } from '@pariaza/database';
+import { authenticate } from '../middleware/auth.js';
+import { requireAdmin } from '../middleware/auth.js';
+import { unitsService } from '../services/units.service.js';
+import { ledgerService } from '../services/ledger.service.js';
+import { auditService } from '../services/audit.service.js';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { Decimal } from '';
+import { Decimal } from 'decimal.js';
 
 const createDepositSchema = z.object({
     amount: z.number().positive(),

@@ -1,0 +1,627 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       String                   @id @default(cuid())
+  email                    String                   @unique
+  password                 String?
+  name                     String?
+  phone                    String?
+  role                     users_role               @default(INVESTOR)
+  status                   users_status             @default(PENDING_VERIFICATION)
+  ticketId                 String?                  @map("ticket_id")
+  twoFAEnabled             Boolean                  @default(false) @map("two_fa_enabled")
+  twoFASecret              String?                  @map("two_fa_secret")
+  emailVerified            Boolean                  @default(false) @map("email_verified")
+  emailVerifiedAt          DateTime?                @map("email_verified_at") @db.DateTime(0)
+  twoFactorEnabled         Boolean                  @default(false)
+  twoFactorSecret          String?
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @default(now())
+  lastLoginAt              DateTime?
+  lastLoginIp              String?
+  gender                   String                   @default("NEUTRAL")
+  avatarType               String                   @default("DEFAULT") @map("avatar_type")
+  avatarUrl                String?                  @map("avatar_url") @db.Text
+  streakDays               Int                      @default(0) @map("streak_days")
+  loyaltyPoints            Int                      @default(0) @map("loyalty_points")
+  tier                     String                   @default("ENTRY")
+  clearanceLevel           Int                      @default(1) @map("clearance_level")
+  lastCheckinAt            DateTime?                @map("last_checkin_at")
+  referredBy               String?                  @map("referred_by")
+  invitationCodeUsed       String?                  @map("invitation_code_used")
+  admin_notes              AdminNote[]
+  audit_logs               AuditLog[]
+  deposits                 Deposit[]
+  distribution_allocations DistributionAllocation[]
+  ledger_lines             LedgerLine[]
+  sessions                 Session[]
+  support_tickets          support_tickets[]
+  withdrawals              Withdrawal[]
+  paymentMethods           PaymentMethod[]
+  referrer                 User?                    @relation("Referrals", fields: [referredBy], references: [id], onDelete: SetNull)
+  referrals                User[]                   @relation("Referrals")
+  invitationCodes          InvitationCode[]         @relation("InvitationCodesCreated")
+  invitationCodeRel        InvitationCode?          @relation("InvitationCodesUsed", fields: [invitationCodeUsed], references: [code])
+  passwordResetTokens      PasswordResetToken[]
+  loyaltyEvents            LoyaltyEvent[]
+  checkIns                 CheckIn[]
+
+  @@index([email])
+  @@index([role, status])
+  @@index([referredBy])
+  @@map("users")
+}
+
+model LeagueTier {
+  id              String   @id @default(cuid())
+  tierCode        String   @unique @map("tier_code")
+  tierName        String   @map("tier_name")
+  minInvestment   Decimal  @default(0) @map("min_investment") @db.Decimal(15, 2)
+  minStreak       Int      @default(0) @map("min_streak")
+  minLoyalty      Int      @default(0) @map("min_loyalty")
+  feeDiscountPct  Decimal  @default(0) @map("fee_discount_pct") @db.Decimal(5, 2)
+  priority        Int      @unique
+  benefitsUrl     String?  @map("benefits_url") @db.VarChar(255)
+  iconEmoji       String?  @map("icon_emoji") @db.VarChar(10)
+  benefitsJson    String?  @map("benefits_json") @db.Text
+  benefitsVersion Int      @default(1) @map("benefits_version")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("league_tiers")
+}
+
+model StreakConfig {
+  id                String   @id @default(cuid())
+  streakType        String   @default("CHECKIN_BASED") @map("streak_type") @db.VarChar(50)
+  enabled           Boolean  @default(true)
+  profitThreshold   Decimal  @default(0) @map("profit_threshold") @db.Decimal(10,2)
+  fallbackToCheckIn Boolean  @default(true) @map("fallback_to_checkin")
+  version           Int      @default(1)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  @@map("streak_config")
+}
+
+model DailySnapshot {
+  id             String   @id @default(cuid())
+  snapshotDate   DateTime @unique @map("snapshot_date") @db.Date
+  totalFundValue Decimal  @map("total_fund_value") @db.Decimal(15,2)
+  profitFlag     Boolean  @default(false) @map("profit_flag")
+  calculatedAt   DateTime @default(now()) @map("calculated_at")
+  
+  @@map("daily_snapshots")
+}
+
+model LoyaltyRule {
+  id             String   @id @default(cuid())
+  ruleName       String   @map("rule_name") @db.VarChar(100)
+  eventType      String   @map("event_type") @db.VarChar(50)
+  pointsAwarded  Int      @map("points_awarded")
+  conditionsJson String?  @map("conditions_json") @db.Text
+  isActive       Boolean  @default(true) @map("is_active")
+  isRepeatable   Boolean  @default(true) @map("is_repeatable")
+  maxOccurrences Int?     @map("max_occurrences")
+  validFrom      DateTime? @map("valid_from")
+  validUntil     DateTime? @map("valid_until")
+  priority       Int      @default(0)
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  
+  events         LoyaltyEvent[]
+  
+  @@map("loyalty_rules")
+}
+
+model LoyaltyEvent {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  ruleId        String   @map("rule_id")
+  pointsAwarded Int      @map("points_awarded")
+  triggerData   String?  @map("trigger_data") @db.Text
+  awardedAt     DateTime @default(now()) @map("awarded_at")
+  
+  user          User         @relation(fields: [userId], references: [id])
+  rule          LoyaltyRule  @relation(fields: [ruleId], references: [id])
+  
+  @@index([userId])
+  @@index([ruleId])
+  @@map("loyalty_events")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  purpose   String    @default("SET_PASSWORD") @db.VarChar(50)
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique @db.VarChar(512)
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  users        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([refreshToken])
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Account {
+  id                                                  String       @id @default(cuid())
+  code                                                String       @unique
+  name                                                String
+  type                                                AccountType
+  description                                         String?      @db.Text
+  isSystem                                            Boolean      @default(false)
+  createdAt                                           DateTime     @default(now())
+  updatedAt                                           DateTime     @updatedAt
+  ledger_lines_ledger_lines_creditAccountIdToaccounts LedgerLine[] @relation("ledger_lines_creditAccountIdToaccounts")
+  ledger_lines_ledger_lines_debitAccountIdToaccounts  LedgerLine[] @relation("ledger_lines_debitAccountIdToaccounts")
+
+  @@index([code])
+  @@index([type])
+  @@map("accounts")
+}
+
+model LedgerEntry {
+  id                String       @id @default(cuid())
+  description       String
+  referenceType     String?
+  referenceId       String?
+  createdAt         DateTime     @default(now())
+  createdBy         String?
+  isReversal        Boolean      @default(false)
+  reversesEntryId   String?
+  reversedByEntryId String?
+  ledger_lines      LedgerLine[]
+
+  @@index([createdAt])
+  @@index([referenceType, referenceId])
+  @@map("ledger_entries")
+}
+
+model LedgerLine {
+  id                                              String      @id @default(cuid())
+  entryId                                         String
+  debitAccountId                                  String?
+  creditAccountId                                 String?
+  amount                                          Decimal     @db.Decimal(15, 2)
+  userId                                          String?
+  description                                     String?
+  accounts_ledger_lines_creditAccountIdToaccounts Account?    @relation("ledger_lines_creditAccountIdToaccounts", fields: [creditAccountId], references: [id])
+  accounts_ledger_lines_debitAccountIdToaccounts  Account?    @relation("ledger_lines_debitAccountIdToaccounts", fields: [debitAccountId], references: [id])
+  ledger_entries                                  LedgerEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  users                                           User?       @relation(fields: [userId], references: [id])
+
+  @@index([creditAccountId])
+  @@index([debitAccountId])
+  @@index([entryId])
+  @@index([userId])
+  @@map("ledger_lines")
+}
+
+model Deposit {
+  id              String        @id @default(cuid())
+  userId          String
+  amount          Decimal       @db.Decimal(15, 2)
+  proofUrl        String?       @db.Text
+  status          DepositStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+  approvedAt      DateTime?
+  approvedBy      String?
+  rejectedAt      DateTime?
+  rejectedBy      String?
+  rejectionReason String?       @db.Text
+  unitsIssued     Decimal?      @db.Decimal(15, 6)
+  navAtIssue      Decimal?      @db.Decimal(10, 4)
+  ledgerEntryId   String?       @unique
+  users           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
+  @@map("deposits")
+}
+
+model Withdrawal {
+  id              String           @id @default(cuid())
+  userId          String
+  amount          Decimal          @db.Decimal(15, 2)
+  amountRequested Decimal          @default(0.00) @map("amount_requested") @db.Decimal(15, 2)
+  feeFixedPct     Decimal          @default(0.01500) @map("fee_fixed_pct") @db.Decimal(5, 5)
+  feeSurgePct     Decimal          @default(0.00000) @map("fee_surge_pct") @db.Decimal(5, 5)
+  feeFixedAmount  Decimal          @default(0.00) @map("fee_fixed_amount") @db.Decimal(15, 2)
+  feeSurgeAmount  Decimal          @default(0.00) @map("fee_surge_amount") @db.Decimal(15, 2)
+  feeTotalAmount  Decimal          @default(0.00) @map("fee_total_amount") @db.Decimal(15, 2)
+  amountPayout    Decimal          @default(0.00) @map("amount_payout") @db.Decimal(15, 2)
+  surgeReasons    Json?            @map("surge_reasons")
+  surgeSnapshot   Json?            @map("surge_snapshot")
+  feeLockedAt     DateTime?        @map("fee_locked_at")
+  requestedAt     DateTime         @default(now())
+  cooldownUntil   DateTime
+  status          WithdrawalStatus @default(PENDING)
+  approvedAt      DateTime?
+  approvedBy      String?
+  rejectedAt      DateTime?
+  rejectedBy      String?
+  rejectionReason String?          @db.Text
+  paidAt          DateTime?
+  unitsBurned     Decimal?         @db.Decimal(15, 6)
+  navAtBurn       Decimal?         @db.Decimal(10, 4)
+  ledgerEntryId   String?          @unique
+  users           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
+  @@map("withdrawals")
+}
+
+model Trade {
+  id                String           @id @default(cuid())
+  createdAt         DateTime         @default(now())
+  createdBy         String
+  sport             String
+  event             String           @db.Text
+  market            String
+  selection         String           @db.Text
+  odds              Decimal          @db.Decimal(10, 3)
+  stake             Decimal          @db.Decimal(15, 2)
+  potentialWin      Decimal          @db.Decimal(15, 2)
+  status            TradeStatus      @default(PENDING)
+  settledAt         DateTime?
+  settledBy         String?
+  resultAmount      Decimal?         @db.Decimal(15, 2)
+  ledgerEntryId     String?          @unique
+  bookmaker         String?          @db.VarChar(100)
+  betCode           String?          @db.VarChar(255)
+  eventStartTime    DateTime?        @db.DateTime(0)
+  settlement_events SettlementEvent?
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([eventStartTime])
+  @@map("trades")
+}
+
+model SettlementEvent {
+  id              String   @id @default(cuid())
+  tradeId         String   @unique
+  providerEventId String?  @unique
+  providerOdds    Decimal? @db.Decimal(10, 3)
+  providerResult  String?
+  settledAt       DateTime @default(now())
+  settledBy       String
+  notes           String?  @db.Text
+  trades          Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+
+  @@index([providerEventId])
+  @@map("settlement_events")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  userId       String
+  action       String
+  ipAddress    String?
+  userAgent    String?
+  changes      String?  @db.Text
+  metadata     String?  @db.Text
+  resourceId   String?
+  resourceType String?
+  users        User     @relation(fields: [userId], references: [id])
+
+  @@index([action])
+  @@index([createdAt])
+  @@index([resourceType, resourceId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+model AdminNote {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String   @db.Text
+  createdBy String
+  createdAt DateTime @default(now())
+  users     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("admin_notes")
+}
+
+model DistributionRound {
+  id                       String                     @id @default(cuid())
+  createdAt                DateTime                   @default(now())
+  createdBy                String
+  periodStart              DateTime
+  periodEnd                DateTime
+  status                   distribution_rounds_status @default(SIMULATED)
+  executedAt               DateTime?
+  executedBy               String?
+  snapshotId               String?
+  bankBalance              Decimal                    @db.Decimal(15, 2)
+  unitsOutstanding         Decimal                    @db.Decimal(15, 6)
+  navPerUnit               Decimal                    @db.Decimal(10, 4)
+  totalProfit              Decimal                    @db.Decimal(15, 2)
+  performanceFee           Decimal                    @db.Decimal(15, 2)
+  netDistributed           Decimal                    @db.Decimal(15, 2)
+  ledgerEntryId            String?                    @unique
+  reason                   String?                    @db.Text
+  distribution_allocations DistributionAllocation[]
+  snapshots                snapshots?                 @relation(fields: [snapshotId], references: [id])
+
+  @@index([periodStart, periodEnd])
+  @@index([snapshotId], map: "distribution_rounds_snapshotId_fkey")
+  @@index([status])
+  @@map("distribution_rounds")
+}
+
+model DistributionAllocation {
+  id                  String            @id @default(cuid())
+  roundId             String
+  userId              String
+  units               Decimal           @db.Decimal(15, 6)
+  sharePercent        Decimal           @db.Decimal(5, 4)
+  allocationAmount    Decimal           @db.Decimal(15, 2)
+  distribution_rounds DistributionRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  users               User              @relation(fields: [userId], references: [id])
+
+  @@unique([roundId, userId])
+  @@index([roundId])
+  @@index([userId])
+  @@map("distribution_allocations")
+}
+
+model articles {
+  id              String   @id
+  slug            String   @unique
+  title           String
+  summary         String   @db.Text
+  content         String   @db.LongText
+  readTimeMinutes Int
+  tags            Json
+  isFeatured      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+
+  @@index([slug])
+}
+
+model reports {
+  id          String   @id
+  createdAt   DateTime @default(now())
+  createdBy   String
+  periodStart DateTime
+  periodEnd   DateTime
+  type        String
+  pdfUrl      String?  @db.Text
+  csvUrl      String?  @db.Text
+  isPublic    Boolean  @default(false)
+  title       String
+  summary     String?  @db.Text
+
+  @@index([createdAt])
+  @@index([isPublic])
+}
+
+model snapshots {
+  id                  String              @id
+  createdAt           DateTime            @default(now())
+  bankBalance         Decimal             @db.Decimal(15, 2)
+  unitsOutstanding    Decimal             @db.Decimal(15, 6)
+  navPerUnit          Decimal             @db.Decimal(10, 4)
+  totalInvestors      Int
+  reason              String
+  referenceId         String?
+  distribution_rounds DistributionRound[]
+
+  @@index([createdAt])
+}
+
+model support_messages {
+  id              String          @id
+  ticketId        String
+  isAdmin         Boolean         @default(false)
+  senderId        String
+  content         String          @db.Text
+  attachmentUrls  Json?
+  createdAt       DateTime        @default(now())
+  support_tickets support_tickets @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+model support_tickets {
+  id               String                 @id
+  userId           String
+  subject          String
+  status           support_tickets_status @default(OPEN)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime
+  closedAt         DateTime?
+  support_messages support_messages[]
+  users            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([userId])
+}
+
+model system_config {
+  key        String   @id
+  value      Json
+  updatedAt  DateTime
+  updatedBy  String?
+  updated_at DateTime @default(now()) @db.DateTime(0)
+}
+
+model InvitationCode {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  createdBy String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  maxUses   Int       @default(1)
+  usedCount Int       @default(0)
+  isActive  Boolean   @default(true)
+  creator   User      @relation("InvitationCodesCreated", fields: [createdBy], references: [id], onDelete: Cascade)
+  usedBy    User[]    @relation("InvitationCodesUsed")
+
+  @@index([code])
+  @@index([createdBy])
+  @@index([isActive])
+  @@map("invitation_codes")
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum DepositStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum TradeStatus {
+  PENDING
+  SETTLED_WIN
+  SETTLED_LOSS
+  SETTLED_VOID
+  CANCELLED
+}
+
+enum support_tickets_status {
+  OPEN
+  REPLIED
+  CLOSED
+}
+
+enum distribution_rounds_status {
+  SIMULATED
+  APPROVED
+  EXECUTED
+  CANCELLED
+}
+
+enum users_role {
+  INVESTOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum users_status {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum users_gender {
+  MALE
+  FEMALE
+  NEUTRAL
+}
+
+enum users_avatar_type {
+  DEFAULT
+  CUSTOM
+}
+
+enum users_tier {
+  ENTRY
+  INVESTOR
+  PRO
+  WHALE
+}
+
+model PaymentMethod {
+  id                String            @id @default(cuid())
+  userId            String            @map("user_id")
+  type              PaymentMethodType
+  label             String?           @db.VarChar(100)
+  holderName        String            @map("holder_name") @db.VarChar(255)
+  detailsMasked     String            @map("details_masked") @db.VarChar(255)
+  detailsEncrypted  String            @map("details_encrypted") @db.Text
+  detailsHash       String            @map("details_hash") @db.VarChar(64) // SHA-256 hash for secure uniqueness check
+  currency          String            @default("EUR") @db.VarChar(10)
+  country           String?           @db.VarChar(100)
+  isDefault         Boolean           @default(false) @map("is_default")
+  verifiedAt        DateTime?         @map("verified_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @default(now()) @updatedAt @map("updated_at")
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isDefault])
+  @@unique([userId, detailsHash])
+  @@map("payment_methods")
+}
+
+enum PaymentMethodType {
+  IBAN
+  REVOLUT
+  PAYPAL
+  WISE
+}
+
+// NOTE: Snapshot model removed temporarily due to FK conflicts with distribution_rounds
+// Will be re-added when needed for portfolio tracking calculations
+
+model ClearanceLevelConfig {
+  level              Int      @id
+  levelName          String   @map("level_name") @db.VarChar(50)
+  requiredStreak     Int      @default(0) @map("required_streak")
+  requiredLoyalty    Int      @default(0) @map("required_loyalty")
+  requiredTier       String   @default("ENTRY") @map("required_tier")
+  requiredInvestment Decimal  @default(0) @map("required_investment") @db.Decimal(15,2)
+  iconEmoji          String?  @map("icon_emoji") @db.VarChar(10)
+  description        String?  @db.Text
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  
+  @@map("clearance_level_config")
+}
+
+model CheckIn {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  date      DateTime @db.Date // Stores only DATE part for uniqueness
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("check_ins")
+}

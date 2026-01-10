@@ -1,11 +1,11 @@
 import { FastifyInstance } from 'fastify';
-import { prisma } from '';
-import { authenticate } from '';
-import { requireAdmin } from '';
-import { ledgerService } from '';
+import { prisma } from '@pariaza/database';
+import { authenticate } from '../middleware/auth.js';
+import { requireAdmin } from '../middleware/auth.js';
+import { ledgerService } from '../services/ledger.service.js';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { Decimal } from '';
+import { Decimal } from 'decimal.js';
 
 const createEntrySchema = z.object({
     description: z.string(),

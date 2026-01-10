@@ -1,9 +1,9 @@
-import { prisma } from '';
-import { Decimal } from '';
-import { ledgerService } from '';
-import { auditService } from '';
-import { guardrailService } from '';
-import { TradeStatus } from '@prisma/client';
+import { prisma } from '@pariaza/database';
+import { Decimal } from 'decimal.js';
+import { ledgerService } from './ledger.service.js';
+import { auditService } from './audit.service.js';
+import { guardrailService } from './guardrail.service.js';
+import { TradeStatus } from '@pariaza/database';
 
 export class TradeService {
     /**

@@ -1,0 +1,19 @@
+// Missing enums for User model
+enum users_tier {
+  ENTRY
+  INVESTOR
+  PRO
+  WHALE
+}
+
+enum users_gender {
+  MALE
+  FEMALE
+  NEUTRAL
+}
+
+enum users_avatar_type {
+  DEFAULT
+  CUSTOM
+  GENERATED
+}

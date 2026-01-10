@@ -1,0 +1,203 @@
+{
+  "timestamp": "2026-01-03T14:38:08.045Z",
+  "users": [
+    {
+      "id": "cmj8xneyg000aknjwuf6g0bj1",
+      "email": "admin@pariazainteligent.ro",
+      "role": "ADMIN"
+    },
+    {
+      "id": "cmjvl64v300073rwndeokxtot",
+      "email": "tomizeimihaita@gmail.com",
+      "role": "INVESTOR"
+    }
+  ],
+  "accounts": [
+    {
+      "id": "cmj8xnaom0000knjwihobk24a",
+      "code": "1000-CASH",
+      "name": "Cash Account",
+      "type": "ASSET",
+      "description": null,
+      "isSystem": true,
+      "createdAt": "2025-12-16T18:45:18.166Z",
+      "updatedAt": "2025-12-17T19:05:19.192Z"
+    },
+    {
+      "id": "cmj8xnbap0001knjwxdu2v507",
+      "code": "1100-BANK-RON",
+      "name": "Bank Account RON",
+      "type": "ASSET",
+      "description": null,
+      "isSystem": true,
+      "createdAt": "2025-12-16T18:45:18.961Z",
+      "updatedAt": "2025-12-16T18:45:18.961Z"
+    },
+    {
+      "id": "cmj8xnbtv0002knjwo8rmu84j",
+      "code": "1200-RECEIVABLES",
+      "name": "Receivables",
+      "type": "ASSET",
+      "description": null,
+      "isSystem": false,
+      "createdAt": "2025-12-16T18:45:19.651Z",
+      "updatedAt": "2025-12-17T19:05:20.509Z"
+    },
+    {
+      "id": "cmj8xnc7f0003knjw8qayno6u",
+      "code": "2000-INVESTOR-EQUITY",
+      "name": "Investor Equity Pool",
+      "type": "LIABILITY",
+      "description": null,
+      "isSystem": true,
+      "createdAt": "2025-12-16T18:45:20.140Z",
+      "updatedAt": "2025-12-17T19:05:21.435Z"
+    },
+    {
+      "id": "cmj8xncn90004knjwthc9uk2n",
+      "code": "2100-PAYABLES",
+      "name": "Payables",
+      "type": "LIABILITY",
+      "description": null,
+      "isSystem": false,
+      "createdAt": "2025-12-16T18:45:20.709Z",
+      "updatedAt": "2025-12-17T19:05:22.321Z"
+    },
+    {
+      "id": "cmj8xncym0005knjwwh0h6xnm",
+      "code": "3000-ADMIN-EQUITY",
+      "name": "Admin Equity",
+      "type": "EQUITY",
+      "description": null,
+      "isSystem": true,
+      "createdAt": "2025-12-16T18:45:21.118Z",
+      "updatedAt": "2025-12-17T19:05:22.731Z"
+    },
+    {
+      "id": "cmj8xndc00006knjwzx0r38d4",
+      "code": "3100-RETAINED-EARNINGS",
+      "name": "Retained Earnings",
+      "type": "EQUITY",
+      "description": null,
+      "isSystem": true,
+      "createdAt": "2025-12-16T18:45:21.601Z",
+      "updatedAt": "2025-12-17T19:05:23.175Z"
+    },
+    {
+      "id": "cmj8xndnx0007knjw6qgoqmdk",
+      "code": "4000-TRADING-PNL",
+      "name": "Trading Profit/Loss",
+      "type": "REVENUE",
+      "description": null,
+      "isSystem": true,
+      "createdAt": "2025-12-16T18:45:22.030Z",
+      "updatedAt": "2025-12-17T19:05:23.580Z"
+    },
+    {
+      "id": "cmj8xne0y0008knjwf2r5e1q8",
+      "code": "4100-PERFORMANCE-FEES",
+      "name": "Performance Fees",
+      "type": "REVENUE",
+      "description": null,
+      "isSystem": true,
+      "createdAt": "2025-12-16T18:45:22.499Z",
+      "updatedAt": "2025-12-17T19:05:23.992Z"
+    },
+    {
+      "id": "cmj8xnehy0009knjwquha4ep8",
+      "code": "5000-OPERATING-COSTS",
+      "name": "Operating Costs",
+      "type": "EXPENSE",
+      "description": null,
+      "isSystem": false,
+      "createdAt": "2025-12-16T18:45:23.110Z",
+      "updatedAt": "2025-12-17T19:05:25.889Z"
+    },
+    {
+      "id": "cmj8z9e8f0001p36mb8i24ew5",
+      "code": "1100-BANK-EUR",
+      "name": "Bank Account EUR",
+      "type": "ASSET",
+      "description": null,
+      "isSystem": true,
+      "createdAt": "2025-12-16T19:30:28.815Z",
+      "updatedAt": "2025-12-17T19:05:20.085Z"
+    },
+    {
+      "id": "cmjadt0ar000911510yeot9io",
+      "code": "WITHDRAWAL_FEES_EUR",
+      "name": "Withdrawal Fees Revenue",
+      "type": "REVENUE",
+      "description": null,
+      "isSystem": true,
+      "createdAt": "2025-12-17T19:05:24.676Z",
+      "updatedAt": "2025-12-17T19:05:24.676Z"
+    }
+  ],
+  "leagueTiers": [
+    {
+      "id": "lt_entry",
+      "tierCode": "ENTRY",
+      "tierName": "Entry League",
+      "minInvestment": "0",
+      "minStreak": 0,
+      "minLoyalty": 0,
+      "feeDiscountPct": "0",
+      "priority": 1,
+      "benefitsUrl": "/benefits/entry",
+      "iconEmoji": "🌱",
+      "benefitsJson": "{\"ro\":[{\"icon\":\"✓\",\"category\":\"access\",\"description\":\"Acces la dashboard investitor\",\"order\":1},{\"icon\":\"📊\",\"category\":\"analytics\",\"description\":\"Statistici lunare bază\",\"order\":2},{\"icon\":\"💬\",\"category\":\"support\",\"description\":\"Suport email standard\",\"order\":3}],\"en\":[{\"icon\":\"✓\",\"category\":\"access\",\"description\":\"Investor dashboard access\",\"order\":1},{\"icon\":\"📊\",\"category\":\"analytics\",\"description\":\"Basic monthly statistics\",\"order\":2},{\"icon\":\"💬\",\"category\":\"support\",\"description\":\"Standard email support\",\"order\":3}]}",
+      "benefitsVersion": 7,
+      "createdAt": "2026-01-02T12:42:04.326Z",
+      "updatedAt": "2026-01-02T21:25:11.895Z"
+    },
+    {
+      "id": "lt_gold",
+      "tierCode": "GOLD",
+      "tierName": "Gold League",
+      "minInvestment": "25000",
+      "minStreak": 30,
+      "minLoyalty": 2000,
+      "feeDiscountPct": "10",
+      "priority": 3,
+      "benefitsUrl": "/benefits/gold",
+      "iconEmoji": "🥇",
+      "benefitsJson": "{\"ro\":[{\"icon\":\"💰\",\"category\":\"fees\",\"description\":\"Discount 10% la toate comisioanele\",\"order\":1},{\"icon\":\"📈\",\"category\":\"analytics\",\"description\":\"Dashboard personalizat cu predicții AI\",\"order\":2},{\"icon\":\"👨‍💼\",\"category\":\"support\",\"description\":\"Account manager dedicat\",\"order\":3},{\"icon\":\"🚀\",\"category\":\"priority\",\"description\":\"Early access la produse noi\",\"order\":4},{\"icon\":\"🎁\",\"category\":\"rewards\",\"description\":\"Bonus lunar pe bază de performance\",\"order\":5}],\"en\":[{\"icon\":\"💰\",\"category\":\"fees\",\"description\":\"10% discount on all fees\",\"order\":1},{\"icon\":\"📈\",\"category\":\"analytics\",\"description\":\"Personalized dashboard with AI predictions\",\"order\":2},{\"icon\":\"👨‍💼\",\"category\":\"support\",\"description\":\"Dedicated account manager\",\"order\":3},{\"icon\":\"🚀\",\"category\":\"priority\",\"description\":\"Early access to new products\",\"order\":4},{\"icon\":\"🎁\",\"category\":\"rewards\",\"description\":\"Monthly performance bonus\",\"order\":5}],\"it\":[{\"icon\":\"💰\",\"category\":\"fees\",\"description\":\"Sconto 10% su tutte le commissioni\",\"order\":1},{\"icon\":\"📈\",\"category\":\"analytics\",\"description\":\"Dashboard personalizzato con previsioni AI\",\"order\":2},{\"icon\":\"👨‍💼\",\"category\":\"support\",\"description\":\"Account manager dedicato\",\"order\":3},{\"icon\":\"🚀\",\"category\":\"priority\",\"description\":\"Accesso anticipato a nuovi prodotti\",\"order\":4},{\"icon\":\"🎁\",\"category\":\"rewards\",\"description\":\"Bonus mensile basato sulle prestazioni\",\"order\":5}]}",
+      "benefitsVersion": 1,
+      "createdAt": "2026-01-02T12:42:07.144Z",
+      "updatedAt": "2026-01-02T12:42:07.144Z"
+    },
+    {
+      "id": "lt_pro",
+      "tierCode": "PRO",
+      "tierName": "Pro League",
+      "minInvestment": "100000",
+      "minStreak": 90,
+      "minLoyalty": 10000,
+      "feeDiscountPct": "20",
+      "priority": 4,
+      "benefitsUrl": "/benefits/pro",
+      "iconEmoji": "💎",
+      "benefitsJson": "{\"ro\":[{\"icon\":\"💎\",\"category\":\"fees\",\"description\":\"Discount 20% + cashback lunar 2%\",\"order\":1},{\"icon\":\"🤖\",\"category\":\"analytics\",\"description\":\"AI trading signals în timp real\",\"order\":2},{\"icon\":\"📞\",\"category\":\"support\",\"description\":\"Hotline 24/7 + WhatsApp direct\",\"order\":3},{\"icon\":\"🏆\",\"category\":\"priority\",\"description\":\"Acces VIP la evenimente exclusive\",\"order\":4},{\"icon\":\"💼\",\"category\":\"consulting\",\"description\":\"Consultanță strategică trimestrială\",\"order\":5},{\"icon\":\"🎖️\",\"category\":\"rewards\",\"description\":\"Programe de loialitate premium\",\"order\":6}],\"en\":[{\"icon\":\"💎\",\"category\":\"fees\",\"description\":\"20% discount + 2% monthly cashback\",\"order\":1},{\"icon\":\"🤖\",\"category\":\"analytics\",\"description\":\"Real-time AI trading signals\",\"order\":2},{\"icon\":\"📞\",\"category\":\"support\",\"description\":\"24/7 hotline + direct WhatsApp\",\"order\":3},{\"icon\":\"🏆\",\"category\":\"priority\",\"description\":\"VIP access to exclusive events\",\"order\":4},{\"icon\":\"💼\",\"category\":\"consulting\",\"description\":\"Quarterly strategic consulting\",\"order\":5},{\"icon\":\"🎖️\",\"category\":\"rewards\",\"description\":\"Premium loyalty programs\",\"order\":6}],\"it\":[{\"icon\":\"💎\",\"category\":\"fees\",\"description\":\"Sconto 20% + cashback mensile 2%\",\"order\":1},{\"icon\":\"🤖\",\"category\":\"analytics\",\"description\":\"Segnali di trading AI in tempo reale\",\"order\":2},{\"icon\":\"📞\",\"category\":\"support\",\"description\":\"Hotline 24/7 + WhatsApp diretto\",\"order\":3},{\"icon\":\"🏆\",\"category\":\"priority\",\"description\":\"Accesso VIP a eventi esclusivi\",\"order\":4},{\"icon\":\"💼\",\"category\":\"consulting\",\"description\":\"Consulenza strategica trimestrale\",\"order\":5},{\"icon\":\"🎖️\",\"category\":\"rewards\",\"description\":\"Programmi fedeltà premium\",\"order\":6}]}",
+      "benefitsVersion": 1,
+      "createdAt": "2026-01-02T12:42:07.469Z",
+      "updatedAt": "2026-01-02T12:42:07.469Z"
+    },
+    {
+      "id": "lt_silver",
+      "tierCode": "SILVER",
+      "tierName": "Silver League",
+      "minInvestment": "5000",
+      "minStreak": 7,
+      "minLoyalty": 500,
+      "feeDiscountPct": "5",
+      "priority": 2,
+      "benefitsUrl": "/benefits/silver",
+      "iconEmoji": "🥈",
+      "benefitsJson": "{\"ro\":[{\"icon\":\"⚡\",\"category\":\"fees\",\"description\":\"Discount 5% la comisioane retragere\",\"order\":1},{\"icon\":\"📊\",\"category\":\"analytics\",\"description\":\"Rapoarte săptămânale detaliate\",\"order\":2},{\"icon\":\"💬\",\"category\":\"support\",\"description\":\"Suport prioritar chat live\",\"order\":3},{\"icon\":\"🎯\",\"category\":\"priority\",\"description\":\"Acces prioritar la oportunități noi\",\"order\":4}],\"en\":[{\"icon\":\"⚡\",\"category\":\"fees\",\"description\":\"5% discount on withdrawal fees\",\"order\":1},{\"icon\":\"📊\",\"category\":\"analytics\",\"description\":\"Detailed weekly reports\",\"order\":2},{\"icon\":\"💬\",\"category\":\"support\",\"description\":\"Priority live chat support\",\"order\":3},{\"icon\":\"🎯\",\"category\":\"priority\",\"description\":\"Priority access to new opportunities\",\"order\":4}],\"it\":[{\"icon\":\"⚡\",\"category\":\"fees\",\"description\":\"Sconto 5% sulle commissioni di prelievo\",\"order\":1},{\"icon\":\"📊\",\"category\":\"analytics\",\"description\":\"Report settimanali dettagliati\",\"order\":2},{\"icon\":\"💬\",\"category\":\"support\",\"description\":\"Supporto chat dal vivo prioritario\",\"order\":3},{\"icon\":\"🎯\",\"category\":\"priority\",\"description\":\"Accesso prioritario a nuove opportunità\",\"order\":4}]}",
+      "benefitsVersion": 1,
+      "createdAt": "2026-01-02T12:42:06.466Z",
+      "updatedAt": "2026-01-02T12:42:06.466Z"
+    }
+  ]
+}

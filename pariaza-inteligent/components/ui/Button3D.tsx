@@ -1,59 +1,41 @@
 import React from 'react';
 
 interface Button3DProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
-  variant?: 'cyan' | 'purple' | 'danger';
-  className?: string;
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'outline' | 'cyan';
+  size?: 'sm' | 'md' | 'lg';
 }
 
-export const Button3D: React.FC<Button3DProps> = ({ 
-  children, 
-  variant = 'cyan', 
-  className = "",
-  ...props 
+export const Button3D: React.FC<Button3DProps> = ({
+  children,
+  variant = 'primary',
+  size = 'md',
+  className = '',
+  ...props
 }) => {
-  const styles = {
-    cyan: {
-      bg: 'bg-cyan-600',
-      border: 'border-cyan-400',
-      shadow: 'shadow-cyan-900',
-      text: 'text-white',
-      glow: 'group-hover:shadow-[0_0_20px_rgba(6,182,212,0.6)]'
-    },
-    purple: {
-      bg: 'bg-violet-600',
-      border: 'border-violet-400',
-      shadow: 'shadow-violet-900',
-      text: 'text-white',
-      glow: 'group-hover:shadow-[0_0_20px_rgba(139,92,246,0.6)]'
-    },
-    danger: {
-      bg: 'bg-red-600',
-      border: 'border-red-400',
-      shadow: 'shadow-red-900',
-      text: 'text-white',
-      glow: 'group-hover:shadow-[0_0_20px_rgba(220,38,38,0.6)]'
-    }
+
+  const variants = {
+    primary: 'bg-blue-500 hover:bg-blue-400 text-white shadow-[0_4px_0_#1E40AF]',
+    secondary: 'bg-slate-200 hover:bg-slate-100 text-slate-700 shadow-[0_4px_0_#94A3B8]',
+    danger: 'bg-red-500 hover:bg-red-400 text-white shadow-[0_4px_0_#991B1B]',
+    success: 'bg-[#58CC02] hover:bg-[#46A302] text-white shadow-[0_4px_0_#46A302]',
+    outline: 'bg-transparent border-2 border-slate-200 text-slate-400 hover:bg-slate-50 shadow-[0_4px_0_#E2E8F0]',
+    cyan: 'bg-[#1CB0F6] hover:bg-[#1899D6] text-white shadow-[0_4px_0_#1899D6]',
   };
 
-  const s = styles[variant];
+  const sizes = {
+    sm: 'px-3 py-1.5 text-xs',
+    md: 'px-6 py-3 text-sm',
+    lg: 'px-8 py-4 text-lg',
+  };
+
+  const activeStyle = 'active:translate-y-[4px] active:shadow-none transition-all rounded-xl font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed';
 
   return (
-    <button 
-      className={`group relative inline-flex items-center justify-center font-display font-bold uppercase tracking-wider transition-all duration-200 active:translate-y-1 active:shadow-none ${className}`}
+    <button
+      className={`${variants[variant]} ${sizes[size]} ${activeStyle} ${className}`}
       {...props}
     >
-      {/* 3D Depth Layer */}
-      <div className={`absolute inset-0 translate-y-2 rounded-lg ${s.shadow} bg-opacity-100`}></div>
-      <div className={`absolute inset-0 translate-y-2 rounded-lg bg-black/40`}></div>
-      
-      {/* Main Button Body */}
-      <div className={`relative z-10 px-8 py-4 rounded-lg border-t border-l border-r ${s.border} ${s.bg} ${s.text} shadow-lg ${s.glow} transition-shadow`}>
-        {/* Shine highlight */}
-        <div className="absolute top-0 left-0 w-full h-1/2 bg-white/10 rounded-t-lg pointer-events-none"></div>
-        
-        {children}
-      </div>
+      {children}
     </button>
   );
 };

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
-import { prisma } from '';
-import { tradeService } from '';
-import { ledgerService } from '';
-import { Decimal } from '';
+import { prisma } from '@pariaza/database';
+import { tradeService } from '../services/trade.service.js';
+import { ledgerService } from '../services/ledger.service.js';
+import { Decimal } from 'decimal.js';
 
 describe('Trade Lifecycle Integration Tests', () => {
     let adminUserId: string;

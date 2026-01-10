@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { build } from '';
+import { build } from '@pariaza/database';
 import type { FastifyInstance } from 'fastify';
 
 describe('Rate Limiting Tests', () => {

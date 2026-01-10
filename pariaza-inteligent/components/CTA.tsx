@@ -1,11 +1,18 @@
 import React from 'react';
 import { Sparkles, TrendingUp, Shield, CheckCircle } from 'lucide-react';
 
-interface CTAProps {
-  onJoin: () => void;
+interface LandingStats {
+  investorCount: number;
+  equity: string;
+  averageRoi: string;
 }
 
-export const CTA: React.FC<CTAProps> = ({ onJoin }) => {
+interface CTAProps {
+  onJoin: () => void;
+  stats: LandingStats | null;
+}
+
+export const CTA: React.FC<CTAProps> = ({ onJoin, stats }) => {
   return (
     <section id="start" className="py-24 relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Playful Background Elements */}
@@ -61,7 +68,7 @@ export const CTA: React.FC<CTAProps> = ({ onJoin }) => {
 
                 {/* Description */}
                 <p className="text-xl text-gray-700 mb-8 max-w-xl">
-                  Alătură-te celor <span className="font-bold text-purple-600">62 de investitori</span> care
+                  Alătură-te celor <span className="font-bold text-purple-600">{stats?.investorCount || 0} de investitori</span> care
                   câștigă deja cu{' '}
                   <span className="font-bold text-green-600">Prof. Investino</span>! Este simplu,
                   sigur și <span className="font-bold text-orange-600">100% gratuit</span> să începi.
@@ -90,7 +97,7 @@ export const CTA: React.FC<CTAProps> = ({ onJoin }) => {
                   </div>
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-purple-500" />
-                    <span>70% ROI Mediu</span>
+                    <span>{stats?.averageRoi || '0%'} ROI Mediu</span>
                   </div>
                 </div>
               </div>
@@ -112,7 +119,7 @@ export const CTA: React.FC<CTAProps> = ({ onJoin }) => {
                 <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-6">
                   <div className="text-4xl mb-2">💎</div>
                   <div className="font-bold text-gray-900 text-lg">Profit Real</div>
-                  <div className="text-sm text-gray-600">526k EUR în fond</div>
+                  <div className="text-sm text-gray-600">{stats?.equity || '0'} EUR în fond</div>
                 </div>
               </div>
             </div>
@@ -130,7 +137,7 @@ export const CTA: React.FC<CTAProps> = ({ onJoin }) => {
       <div className="absolute top-20 right-10 hidden md:block">
         <div className="bg-white rounded-2xl shadow-playful px-4 py-2 flex items-center gap-2 animate-float-delayed">
           <div className="text-2xl">🔥</div>
-          <div className="text-sm font-bold text-gray-800">62 Investitori</div>
+          <div className="text-sm font-bold text-gray-800">{stats?.investorCount || 0} Investitori</div>
         </div>
       </div>
     </section>

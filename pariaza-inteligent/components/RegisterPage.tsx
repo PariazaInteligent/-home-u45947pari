@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Check, Mail, User, Target, Key, Sparkles, Clock } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { SoundManager } from '../utils/SoundManager';
+import { ToastManager } from '../utils/ToastManager';
 
 interface RegisterPageProps {
   onBack: () => void;
@@ -9,11 +11,12 @@ interface RegisterPageProps {
 }
 
 export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLogin, onLoginSuccess }) => {
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 'success'>(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5 | 'success'>(1);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     tier: 'Entry Level',
+    gender: 'NEUTRAL' as 'MALE' | 'FEMALE' | 'NEUTRAL',
     inviteCode: ''
   });
   const [verificationStatus, setVerificationStatus] = useState<'approved' | 'pending'>('pending');
@@ -22,7 +25,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLo
   const [ticketId, setTicketId] = useState<string>('');
 
   // Progress calculation
-  const progress = currentStep === 'success' ? 100 : (currentStep / 4) * 100;
+  const progress = currentStep === 'success' ? 100 : (currentStep / 5) * 100;
 
   // Validation for current step
   const isStepValid = () => {
@@ -30,25 +33,30 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLo
       case 1: return formData.name.trim().length >= 2;
       case 2: return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
       case 3: return formData.tier.length > 0;
-      case 4: return true; // Invite code is optional
+      case 4: return formData.gender.length > 0;
+      case 5: return true; // Invite code is optional
       default: return false;
     }
   };
 
   const handleNext = () => {
     if (isStepValid()) {
-      if (currentStep === 4) {
+      SoundManager.play('whoosh'); // 🎵 Step transition sound
+      if (currentStep === 5) {
         // Submit form
         handleSubmit();
       } else {
-        setCurrentStep((currentStep + 1) as 1 | 2 | 3 | 4);
+        setCurrentStep((currentStep + 1) as 1 | 2 | 3 | 4 | 5);
       }
+    } else {
+      SoundManager.play('error'); // 🎵 Validation error sound
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1 && currentStep !== 'success') {
-      setCurrentStep((currentStep - 1) as 1 | 2 | 3 | 4);
+      SoundManager.play('whoosh'); // 🎵 Backward transition sound
+      setCurrentStep((currentStep - 1) as 1 | 2 | 3 | 4 | 5);
     }
   };
 
@@ -65,7 +73,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLo
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          password: 'DefaultPassword123!', // TODO: Add password field to form
+          gender: formData.gender, // Send gender to backend
           invitationCode: formData.inviteCode.trim() || undefined,
         }),
       });
@@ -92,7 +100,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLo
             particleCount: 100,
             spread: 70,
             origin: { y: 0.6 },
-            colors: ['#58CC02', '#7C3AED', '#FF9600', '#10B981']
+            colors: ['#58CC02', '#7C3AED', '##FF9600', '#10B981']
           });
         }, 100);
       } else {
@@ -100,9 +108,24 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLo
       }
 
       setCurrentStep('success');
+
+      // ACHIEVEMENT TOAST - major milestone!
+      ToastManager.showWithSound('achievement', '🎉 Cont creat cu succes!');
+
+      // Trigger confetti with slight delay for dramatic effect
+      setTimeout(() => {
+        SoundManager.play('coins'); // 🎵 Bonus points feeling
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#58CC02', '#7C3AED', '#FF9600', '#10B981']
+        });
+      }, 300);
     } catch (error) {
       console.error('Registration error:', error);
       setSubmitError(error instanceof Error ? error.message : 'Eroare la înregistrare. Încearcă din nou.');
+      ToastManager.showWithSound('error', 'Eroare la înregistrare. Încearcă din nou.');
     } finally {
       setIsSubmitting(false);
     }
@@ -113,8 +136,9 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLo
     switch (currentStep) {
       case 1: return "Hai să ne cunoaștem! Cum te cheamă? 🦉";
       case 2: return "Perfect! Unde să-ți trimitem știri bune? 📧";
-      case 3: return "La ce nivel vrei să începi aventura? 🎯";
-      case 4: return "Ai un cod special? Dacă nu, nicio problemă! 🔑";
+      case 3: return "Cum vrei să apari în platformă? 👤";
+      case 4: return "La ce nivel vrei să începi aventura? 🎯";
+      case 5: return "Ai un cod special? Dacă nu, nicio problemă! 🔑";
       default: return "Bun venit! 🦉";
     }
   };
@@ -144,7 +168,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLo
             {/* Progress bar */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-bold text-gray-700">Pasul {currentStep} din 4</span>
+                <span className="text-sm font-bold text-gray-700">Pasul {currentStep} din 5</span>
                 <span className="text-sm font-medium text-gray-500">{Math.round(progress)}%</span>
               </div>
               <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
@@ -221,8 +245,60 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLo
             </div>
           )}
 
-          {/* Step 3: Investment Level */}
+          {/* Step 3: Gender Selection */}
           {currentStep === 3 && (
+            <div className="space-y-6 animate-[slideIn_0.3s_ease-out]">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="w-8 h-8 text-indigo-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Cum vrei să apari?</h2>
+                <p className="text-gray-600">Alege varianta care te reprezintă 👤</p>
+              </div>
+
+              <div className="space-y-3">
+                <label className="block text-sm font-bold text-gray-700 ml-1">Gen (pentru avatar implicit)</label>
+                <div className="space-y-3">
+                  {[
+                    { value: 'MALE', label: 'Bărbat', icon: '👨', desc: 'Avatar masculin implicit' },
+                    { value: 'FEMALE', label: 'Femeie', icon: '👩', desc: 'Avatar feminin implicit' },
+                    { value: 'NEUTRAL', label: 'Prefer să nu spun', icon: '😊', desc: 'Avatar neutru' }
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, gender: option.value as 'MALE' | 'FEMALE' | 'NEUTRAL' })}
+                      className={`w-full p-5 rounded-2xl border-2 text-left transition-all hover:scale-[1.02] ${formData.gender === option.value
+                        ? 'border-indigo-500 bg-indigo-50 shadow-lg'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                        }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                          <div className="text-3xl">{option.icon}</div>
+                          <div>
+                            <div className="font-bold text-gray-900 text-lg">{option.label}</div>
+                            <div className="text-gray-600 text-sm">{option.desc}</div>
+                          </div>
+                        </div>
+                        {formData.gender === option.value && (
+                          <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                            <Check className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 ml-1 mt-2">
+                  💡 Poți schimba avatarul mai târziu cu o fotografie personală
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Investment Level */}
+          {currentStep === 4 && (
             <div className="space-y-6 animate-[slideIn_0.3s_ease-out]">
               <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -268,8 +344,8 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLo
             </div>
           )}
 
-          {/* Step 4: Invite Code */}
-          {currentStep === 4 && (
+          {/* Step 5: Invite Code */}
+          {currentStep === 5 && (
             <div className="space-y-6 animate-[slideIn_0.3s_ease-out]">
               <div className="text-center mb-8">
                 <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -428,7 +504,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBack, onSwitchToLo
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
               >
-                {currentStep === 4 ? 'Finalizează' : 'Continuă'}
+                {currentStep === 5 ? 'Finalizează' : 'Continuă'}
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>

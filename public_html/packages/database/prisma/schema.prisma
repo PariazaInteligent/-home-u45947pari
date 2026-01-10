@@ -10,7 +10,7 @@ datasource db {
 model User {
   id                       String                   @id @default(cuid())
   email                    String                   @unique
-  password                 String
+  password                 String?
   name                     String?
   phone                    String?
   role                     users_role               @default(INVESTOR)
@@ -28,23 +28,151 @@ model User {
   lastLoginIp              String?
   referredBy               String?                  @map("referred_by")
   invitationCodeUsed       String?                  @map("invitation_code_used")
+  gender                   String                   @default("NEUTRAL")
+  avatarType               String                   @default("DEFAULT") @map("avatar_type")
+  avatarUrl                String?                  @map("avatar_url") @db.Text
+  streakDays               Int                      @default(0) @map("streak_days")
+  loyaltyPoints            Int                      @default(0) @map("loyalty_points")
+  tier                     String                   @default("ENTRY")
+  clearanceLevel           Int                      @default(1) @map("clearance_level")
+  lastCheckinAt            DateTime?                @map("last_checkin_at")
+  biometricEnabled         Boolean                  @default(false) @map("biometric_enabled")
+  biometricPublicKey       String?                  @db.Text @map("biometric_public_key")
+  biometricCredentialId    String?                  @map("biometric_credential_id")
+  biometricChallenge       String?                  @map("biometric_challenge")
+  biometricLastUsed        DateTime?                @map("biometric_last_used")
+  ab_tests                 ab_tests[]
   admin_notes              AdminNote[]
   audit_logs               AuditLog[]
+  broadcastNotifications   BroadcastNotification[]
+  broadcasts               Broadcast[]
+  checkIns                 CheckIn[]
   deposits                 Deposit[]
   distribution_allocations DistributionAllocation[]
+  email_broadcasts         email_broadcasts[]
+  invitationCodes          InvitationCode[]         @relation("InvitationCodesCreated")
   ledger_lines             LedgerLine[]
+  loyaltyEvents            LoyaltyEvent[]
+  passwordResetTokens      PasswordResetToken[]
+  paymentMethods           PaymentMethod[]
   sessions                 Session[]
   support_tickets          support_tickets[]
-  withdrawals              Withdrawal[]
-  referrer                 User?                    @relation("Referrals", fields: [referredBy], references: [id], onDelete: SetNull)
-  referrals                User[]                   @relation("Referrals")
-  invitationCodes          InvitationCode[]         @relation("InvitationCodesCreated")
+  preferences              UserPreference?
   invitationCodeRel        InvitationCode?          @relation("InvitationCodesUsed", fields: [invitationCodeUsed], references: [code])
+  referrer                 User?                    @relation("Referrals", fields: [referredBy], references: [id])
+  referrals                User[]                   @relation("Referrals")
+  withdrawals              Withdrawal[]
+  backupCodes              BackupCode[]
 
   @@index([email])
   @@index([role, status])
   @@index([referredBy])
+  @@index([invitationCodeUsed], map: "users_invitation_code_used_fkey")
   @@map("users")
+}
+
+model BackupCode {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  codeHash  String    @map("code_hash") @db.VarChar(255)
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("backup_codes")
+}
+
+model LeagueTier {
+  id              String   @id @default(cuid())
+  tierCode        String   @unique @map("tier_code")
+  tierName        String   @map("tier_name")
+  minInvestment   Decimal  @default(0.00) @map("min_investment") @db.Decimal(15, 2)
+  minStreak       Int      @default(0) @map("min_streak")
+  minLoyalty      Int      @default(0) @map("min_loyalty")
+  feeDiscountPct  Decimal  @default(0.00) @map("fee_discount_pct") @db.Decimal(5, 2)
+  priority        Int      @unique
+  benefitsUrl     String?  @map("benefits_url") @db.VarChar(255)
+  iconEmoji       String?  @map("icon_emoji") @db.VarChar(10)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  benefitsJson    String?  @map("benefits_json") @db.Text
+  benefitsVersion Int      @default(1) @map("benefits_version")
+
+  @@map("league_tiers")
+}
+
+model StreakConfig {
+  id                String   @id @default(cuid())
+  streakType        String   @default("CHECKIN_BASED") @map("streak_type") @db.VarChar(50)
+  enabled           Boolean  @default(true)
+  profitThreshold   Decimal  @default(0.00) @map("profit_threshold") @db.Decimal(10, 2)
+  fallbackToCheckIn Boolean  @default(true) @map("fallback_to_checkin")
+  version           Int      @default(1)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("streak_config")
+}
+
+model DailySnapshot {
+  id             String   @id @default(cuid())
+  snapshotDate   DateTime @unique @map("snapshot_date") @db.Date
+  totalFundValue Decimal  @map("total_fund_value") @db.Decimal(15, 2)
+  profitFlag     Boolean  @default(false) @map("profit_flag")
+  calculatedAt   DateTime @default(now()) @map("calculated_at")
+
+  @@map("daily_snapshots")
+}
+
+model LoyaltyRule {
+  id             String         @id @default(cuid())
+  ruleName       String         @map("rule_name") @db.VarChar(100)
+  eventType      String         @map("event_type") @db.VarChar(50)
+  pointsAwarded  Int            @map("points_awarded")
+  conditionsJson String?        @map("conditions_json") @db.Text
+  isActive       Boolean        @default(true) @map("is_active")
+  isRepeatable   Boolean        @default(true) @map("is_repeatable")
+  maxOccurrences Int?           @map("max_occurrences")
+  validFrom      DateTime?      @map("valid_from")
+  validUntil     DateTime?      @map("valid_until")
+  priority       Int            @default(0)
+  version        Int            @default(1)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  events         LoyaltyEvent[]
+
+  @@map("loyalty_rules")
+}
+
+model LoyaltyEvent {
+  id            String      @id @default(cuid())
+  userId        String      @map("user_id")
+  ruleId        String      @map("rule_id")
+  pointsAwarded Int         @map("points_awarded")
+  triggerData   String?     @map("trigger_data") @db.Text
+  awardedAt     DateTime    @default(now()) @map("awarded_at")
+  rule          LoyaltyRule @relation(fields: [ruleId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([ruleId])
+  @@map("loyalty_events")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  purpose   String    @default("SET_PASSWORD") @db.VarChar(50)
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }
 
 model Session {
@@ -365,8 +493,8 @@ model support_tickets {
 model system_config {
   key        String   @id
   value      Json
-  updatedAt  DateTime
   updatedBy  String?
+  updatedAt  DateTime
   updated_at DateTime @default(now()) @db.DateTime(0)
 }
 
@@ -386,6 +514,178 @@ model InvitationCode {
   @@index([createdBy])
   @@index([isActive])
   @@map("invitation_codes")
+}
+
+model PaymentMethod {
+  id               String            @id @default(cuid())
+  userId           String            @map("user_id")
+  type             PaymentMethodType
+  label            String?           @db.VarChar(100)
+  holderName       String            @map("holder_name") @db.VarChar(255)
+  detailsMasked    String            @map("details_masked") @db.VarChar(255)
+  detailsEncrypted String            @map("details_encrypted") @db.Text
+  currency         String            @default("EUR") @db.VarChar(10)
+  country          String?           @db.VarChar(100)
+  isDefault        Boolean           @default(false) @map("is_default")
+  verifiedAt       DateTime?         @map("verified_at")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at")
+  detailsHash      String            @map("details_hash") @db.VarChar(64)
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, detailsHash])
+  @@index([userId])
+  @@index([userId, isDefault])
+  @@map("payment_methods")
+}
+
+model ClearanceLevelConfig {
+  level              Int      @id
+  levelName          String   @map("level_name") @db.VarChar(50)
+  requiredStreak     Int      @default(0) @map("required_streak")
+  requiredLoyalty    Int      @default(0) @map("required_loyalty")
+  requiredTier       String   @default("ENTRY") @map("required_tier")
+  requiredInvestment Decimal  @default(0.00) @map("required_investment") @db.Decimal(15, 2)
+  iconEmoji          String?  @map("icon_emoji") @db.VarChar(10)
+  description        String?  @db.Text
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("clearance_level_config")
+}
+
+model CheckIn {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  date      DateTime @db.Date
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("check_ins")
+}
+
+model UserPreference {
+  id                 String   @id @default(cuid())
+  userId             String   @unique @map("user_id")
+  emailNotifications Boolean  @default(true) @map("email_notifications")
+  dailyReports       Boolean  @default(true) @map("daily_reports")
+  uiSounds           Boolean  @default(true) @map("ui_sounds")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model BroadcastAnalytics {
+  id               String             @id
+  templateId       String?            @map("template_id")
+  broadcastSubject String?            @map("broadcast_subject")
+  sentAt           DateTime           @default(now()) @map("sent_at")
+  recipientCount   Int                @default(0) @map("recipient_count")
+  openedCount      Int                @default(0) @map("opened_count")
+  clickedCount     Int                @default(0) @map("clicked_count")
+  convertedCount   Int                @default(0) @map("converted_count")
+  engagementScore  Decimal            @default(0.00) @map("engagement_score") @db.Decimal(10, 2)
+  events           BroadcastEvent[]
+  email_broadcasts email_broadcasts[]
+  broadcast        Broadcast?
+
+  @@map("broadcast_analytics")
+}
+
+model BroadcastEvent {
+  id          String             @id @default(cuid())
+  analyticsId String             @map("analytics_id")
+  userId      String             @map("user_id")
+  eventType   String             @map("event_type")
+  occurredAt  DateTime           @default(now()) @map("occurred_at")
+  metadata    Json?
+  analytics   BroadcastAnalytics @relation(fields: [analyticsId], references: [id], onDelete: Cascade)
+
+  @@index([analyticsId])
+  @@index([userId])
+  @@map("broadcast_events")
+}
+
+model BroadcastNotification {
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  type           String    @default("BROADCAST_OPPORTUNITY") @db.VarChar(50)
+  templateId     String    @map("template_id") @db.VarChar(50)
+  title          String    @db.VarChar(255)
+  message        String    @db.Text
+  recipientCount Int       @default(0) @map("recipient_count")
+  isRead         Boolean   @default(false) @map("is_read")
+  isManual       Boolean   @default(false) @map("is_manual")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  readAt         DateTime? @map("read_at")
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("broadcast_notifications")
+}
+
+model ab_test_variants {
+  id               String             @id
+  test_id          String
+  name             String
+  subject          String?            @db.VarChar(255)
+  content          String?            @db.Text
+  traffic_pct      Int                @default(50)
+  sent_count       Int                @default(0)
+  opened_count     Int                @default(0)
+  clicked_count    Int                @default(0)
+  ab_tests         ab_tests           @relation(fields: [test_id], references: [id], onDelete: Cascade)
+  email_broadcasts email_broadcasts[]
+
+  @@index([test_id], map: "ab_test_variants_test_id_fkey")
+}
+
+model ab_tests {
+  id                String                @id
+  name              String                @db.VarChar(255)
+  status            ab_tests_status       @default(DRAFT)
+  test_type         ab_tests_test_type    @default(SUBJECT_LINE)
+  started_at        DateTime?
+  ended_at          DateTime?
+  winner_variant_id String?
+  winning_metric    String?
+  distribution      ab_tests_distribution @default(EQUAL)
+  created_at        DateTime              @default(now())
+  created_by        String
+  ab_test_variants  ab_test_variants[]
+  users             User                  @relation(fields: [created_by], references: [id])
+  email_broadcasts  email_broadcasts[]
+
+  @@index([created_by], map: "ab_tests_created_by_fkey")
+}
+
+model email_broadcasts {
+  id                  String              @id
+  subject             String              @db.VarChar(255)
+  message             String              @db.Text
+  html_content        String              @db.Text
+  sent_by_user_id     String
+  sent_count          Int                 @default(0)
+  skipped_count       Int                 @default(0)
+  failed_count        Int                 @default(0)
+  filters             String?             @db.Text
+  created_at          DateTime            @default(now())
+  ab_test_id          String?
+  ab_test_variant_id  String?
+  analytics_id        String?
+  ab_tests            ab_tests?           @relation(fields: [ab_test_id], references: [id])
+  ab_test_variants    ab_test_variants?   @relation(fields: [ab_test_variant_id], references: [id])
+  broadcast_analytics BroadcastAnalytics? @relation(fields: [analytics_id], references: [id])
+  users               User                @relation(fields: [sent_by_user_id], references: [id], onDelete: Cascade)
+
+  @@index([ab_test_id])
+  @@index([ab_test_variant_id])
+  @@index([analytics_id])
+  @@index([created_at])
+  @@index([sent_by_user_id])
 }
 
 enum AccountType {
@@ -431,14 +731,72 @@ enum distribution_rounds_status {
 }
 
 enum users_role {
-  GUEST
   INVESTOR
   ADMIN
   SUPER_ADMIN
 }
 
 enum users_status {
+  PENDING_VERIFICATION
   ACTIVE
   SUSPENDED
-  PENDING_VERIFICATION
+  BANNED
+}
+
+enum PaymentMethodType {
+  IBAN
+  REVOLUT
+  PAYPAL
+  WISE
+}
+
+enum ab_tests_status {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+enum ab_tests_test_type {
+  SUBJECT_LINE
+  CONTENT
+}
+
+enum ab_tests_distribution {
+  EQUAL
+  WEIGHTED
+}
+
+enum BroadcastStatus {
+  DRAFT
+  SCHEDULED
+  SENT
+  FAILED
+}
+
+model Broadcast {
+  id              String   @id @default(cuid())
+  subject         String   @db.VarChar(255)
+  messageText     String   @map("message_text") @db.Text
+  htmlContent     String?  @map("html_content") @db.Text
+  templateId      String   @map("template_id") @db.VarChar(50)
+  sentByUserId    String   @map("sent_by_user_id")
+  sentByName      String   @map("sent_by_name") @db.VarChar(100)
+  recipientUserIds String? @map("recipient_user_ids") @db.LongText
+  filters         String?  @db.Text
+  analyticsId     String?  @unique @map("analytics_id")
+  status          BroadcastStatus @default(SENT)
+  scheduledFor    DateTime? @map("scheduled_for")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  sentAt          DateTime @default(now()) @map("sent_at")
+  
+  sentByUser      User     @relation(fields: [sentByUserId], references: [id], onDelete: Cascade)
+  analytics       BroadcastAnalytics? @relation(fields: [analyticsId], references: [id])
+
+  @@index([sentByUserId])
+  @@index([createdAt])
+  @@index([status, scheduledFor])
+  @@map("broadcasts")
 }

@@ -1,0 +1,127 @@
+import fs from 'fs';
+
+// Read the file
+const filePath = 'c:/Users/tomiz/Desktop/-home-u45947pari/public_html/apps/api/src/services/email.service.ts';
+let content = fs.readFileSync(filePath, 'utf8');
+
+// The correct UTF-8 version of getBroadcastEmailTemplate
+const fixedMethod = `  /**
+   * Broadcast email template (Duolingo style)
+   */
+  getBroadcastEmailTemplate(subject: string, message: string, adminName: string): string {
+    const platformUrl = process.env.PLATFORM_URL || 'http://localhost:3000';
+    const unsubscribeUrl = \`\${platformUrl}/profile\`; // Users can disable in preferences
+
+    return \`
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>\${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background: linear-gradient(to bottom right, #E0F2FE, #BAE6FD, #7DD3FC); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <!-- Mascot -->
+        <div style="margin-bottom: 20px; text-align: center;">
+          <div style="font-size: 80px; line-height: 1; margin-bottom: 15px;">📧🦉</div>
+          <div style="background: white; border: 3px solid #0EA5E9; border-radius: 20px; padding: 20px; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <p style="color: #0EA5E9; font-size: 18px; font-weight: 700; margin: 0; line-height: 1.4;">
+              📣 NOTIFICARE IMPORTANTĂ! 🎯
+            </p>
+          </div>
+        </div>
+
+        <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #0EA5E9, #0284C7); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: white; font-size: 32px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                \${subject}
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Message Content -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              <div style="background: linear-gradient(135deg, #E0F2FE, #BAE6FD); border: 3px solid #0EA5E9; border-radius: 16px; padding: 30px; margin: 0 0 30px;">
+                <p style="color: #0C4A6E; font-size: 16px; line-height: 1.8; margin: 0; white-space: pre-wrap;">
+                  \${message}
+                </p>
+              </div>
+
+              <!-- Signature -->
+              <div style="text-align: right; margin-top: 30px; padding-top: 20px; border-top: 2px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 14px; margin: 0; font-weight: 600;">
+                   📝 Trimis de: <strong style="color: #0EA5E9;">\${adminName}</strong>
+                </p>
+                <p style="color: #9CA3AF; font-size: 12px; margin: 5px 0 0 0;">
+                  🦉 Echipa Pariază Inteligent
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 30px; background: #F8FAFC; text-align: center; border-top: 1px solid #E2E8F0;">
+              <p style="margin: 0 0 10px 0; color: #64748B; font-size: 12px;">
+                Primești acest email pentru că ai activat notificările email.
+              </p>
+              <p style="margin: 0; color: #64748B; font-size: 12px;">
+                <a href="\${unsubscribeUrl}" style="color: #0EA5E9; text-decoration: none; font-weight: 600;">Dezactivează notificările</a> din pagina de profil.
+              </p>
+              <p style="margin: 15px 0 0 0; color: #94A3AF; font-size: 11px;">
+                &copy; \${new Date().getFullYear()} Pariază Inteligent. Toate drepturile rezervate.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    \`;
+  }
+}`;
+
+// Find and replace the method
+// We need to find the start of getBroadcastEmailTemplate and the closing }
+const methodStart = content.indexOf('getBroadcastEmailTemplate(subject: string');
+if (methodStart === -1) {
+    console.error('Method not found!');
+    process.exit(1);
+}
+
+// Find the method's opening brace
+const methodStartBrace = content.indexOf('{', methodStart);
+
+// Find the closing brace - we need to count braces to find the matching one
+let braceCount = 1;
+let currentPos = methodStartBrace + 1;
+while (braceCount > 0 && currentPos < content.length) {
+    if (content[currentPos] === '{') braceCount++;
+    if (content[currentPos] === '}') braceCount--;
+    currentPos++;
+}
+
+// Find the line start before the method (to preserve indentation context)
+let lineStart = methodStart;
+while (lineStart > 0 && content[lineStart - 1] !== '\n') {
+    lineStart--;
+}
+
+// Replace the method
+const before = content.substring(0, lineStart);
+const after = content.substring(currentPos);
+const newContent = before + fixedMethod + '\n' + after;
+
+// Write back with UTF-8 encoding
+fs.writeFileSync(filePath, newContent, 'utf8');
+
+console.log('✅ Fixed getBroadcastEmailTemplate with proper UTF-8 encoding!');
+console.log('📧 Emojis should now render correctly: 📧🦉📣🎯');

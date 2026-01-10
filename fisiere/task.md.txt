@@ -1,0 +1,22 @@
+Task: Complete /api/users/me Robustness Implementation
+Progress
+ Verify robust error handling (200 OK without INVESTOR_ID_SECRET)
+ Add INVESTOR_ID_SECRET to environment configuration
+ Add to .env.example with documentation
+ Document in README or setup docs
+ Hide configWarning for non-admin users
+ Update user.routes.ts to filter configWarning based on role
+ Create integration test for graceful degradation
+ Test missing INVESTOR_ID_SECRET scenario
+ Assert 200 OK status
+ Assert investorIdHash is null
+ Assert configWarning for admin, hidden for investors
+Test Results
+✅ All 6 integration tests passed in 22.2s
+
+✓ Returns 200 OK when INVESTOR_ID_SECRET missing
+✓ Sets investorIdHash to null when secret missing
+✓ Includes configWarning for ADMIN users
+✓ Hides configWarning from INVESTOR users
+✓ Generates valid hash when secret present
+✓ Returns all profile fields correctly with degradation

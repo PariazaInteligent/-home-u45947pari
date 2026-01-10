@@ -1,0 +1,549 @@
+import { FastifyInstance } from 'fastify';
+import { authenticate } from '../middleware/auth.js';
+import { handleAvatarUpload } from '../middleware/upload.js';
+import { prisma, DepositStatus, WithdrawalStatus } from '@pariaza/database';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+
+export default async function userRoutes(fastify: FastifyInstance) {
+
+    // GET /api/users/me - Full profile payload
+    fastify.get('/me', {
+        preHandler: [authenticate]
+    }, async (request, reply) => {
+        const userId = (request.user as any).id;
+
+        // Fetch user with all gamification fields
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                status: true,
+                createdAt: true,
+                updatedAt: true,
+                gender: true,
+                avatarType: true,
+                avatarUrl: true,
+                streakDays: true,
+                loyaltyPoints: true,
+                tier: true,
+                clearanceLevel: true,
+                lastCheckinAt: true,
+                preferences: true,
+            },
+        });
+
+        if (!user) {
+            return reply.code(404).send({ error: 'User not found' });
+        }
+
+        // Calculate avatarFinalUrl
+        let avatarFinalUrl: string;
+        if (user.avatarType === 'CUSTOM' && user.avatarUrl) {
+            // Custom avatar with cache bust
+            avatarFinalUrl = `http://localhost:3001${user.avatarUrl}?t=${Date.now()}`;
+        } else {
+            // Default avatar based on gender
+            const gender = user.gender || 'NEUTRAL';
+            if (gender === 'MALE') {
+                avatarFinalUrl = 'http://localhost:3000/avatars/default-male.png';
+            } else if (gender === 'FEMALE') {
+                avatarFinalUrl = 'http://localhost:3000/avatars/default-female.png';
+            } else {
+                avatarFinalUrl = 'http://localhost:3000/avatars/default-neutral.png';
+            }
+        }
+
+        // Fetch payout methods
+        // Fetch payment methods
+        const paymentMethods = await prisma.paymentMethod.findMany({
+            where: { userId },
+            select: {
+                id: true,
+                type: true,
+                label: true,
+                holderName: true,
+                detailsMasked: true,
+                currency: true,
+                country: true,
+                isDefault: true,
+                verifiedAt: true,
+            },
+            orderBy: [
+                { isDefault: 'desc' },
+                { createdAt: 'desc' }
+            ]
+        });
+
+        // Calculate stats
+        // 1. Total sessions
+        const totalSessions = await prisma.session.count({
+            where: { userId }
+        });
+
+        // 2. NAV/SHARES-BASED CALCULATIONS (Correct Logic)
+        // Import UnitsService
+        const { unitsService } = await import('../services/units.service.js');
+        const { Decimal } = await import('decimal.js');
+
+        // Get user's shares and current value
+        const userUnits = await unitsService.getInvestorUnits(userId);
+
+        // Principal invested = sum of all deposit amounts (what user actually put in)
+        const userDeposits = await prisma.deposit.findMany({
+            where: { userId, status: DepositStatus.APPROVED },
+            select: { amount: true }
+        });
+        const principalInvested = userDeposits.reduce(
+            (sum, d) => sum + Number(d.amount),
+            0
+        );
+
+        // Current value = shares × NAV (from UnitsService)
+        const currentValue = Number(userUnits.value);
+
+        // Profit generated = current value - principal
+        const profitGenerated = currentValue - principalInvested;
+
+        // Get total shares outstanding for sharePercent calculation
+        const allDeposits = await prisma.deposit.findMany({
+            where: { status: DepositStatus.APPROVED },
+            select: { unitsIssued: true }
+        });
+        const allWithdrawals = await prisma.withdrawal.findMany({
+            where: { status: { in: [WithdrawalStatus.APPROVED, WithdrawalStatus.PAID] } },
+            select: { unitsBurned: true }
+        });
+        const totalSharesIssued = allDeposits.reduce(
+            (sum, d) => sum.add(d.unitsIssued || 0),
+            new Decimal(0)
+        );
+        const totalSharesBurned = allWithdrawals.reduce(
+            (sum, w) => sum.add(w.unitsBurned || 0),
+            new Decimal(0)
+        );
+        const totalShares = totalSharesIssued.sub(totalSharesBurned);
+
+        // Share percent (shares-based, NOT money-based) - 4 decimal precision
+        const sharePercentExact = totalShares.gt(0)
+            ? Number(userUnits.unitsBalance.div(totalShares).mul(100))
+            : 0;
+
+        // Net return percent = (profit / principal) × 100
+        const netReturnPercent = principalInvested > 0
+            ? (profitGenerated / principalInvested) * 100
+            : 0;
+
+        // 3. Total fund value - NAV-BASED (Correct: NAV × totalShares)
+        // This ensures: currentValue = totalFundValue × sharePercent
+        const currentNAV = await unitsService.calculateNAV();
+        const totalFundValue = Number(totalShares.mul(currentNAV));
+
+        // DEPRECATED: Old calculation for backwards compatibility (DO NOT USE FOR LOGIC)
+        const userDepositsSum = principalInvested; // Keep same value
+        const userWithdrawalsAgg = await prisma.withdrawal.aggregate({
+            where: { userId, status: WithdrawalStatus.APPROVED },
+            _sum: { amountPayout: true }
+        });
+        const userWithdrawalsSum = Number(userWithdrawalsAgg._sum?.amountPayout ?? 0);
+        const investmentValue = userDepositsSum - userWithdrawalsSum; // DEPRECATED
+        const sharePercent = sharePercentExact; // Use new calculation
+
+        // 6. Check if checked in today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayCheckedIn = user.lastCheckinAt ?
+            new Date(user.lastCheckinAt).setHours(0, 0, 0, 0) === today.getTime() :
+            false;
+
+        // 7. League info based on tier - USE CACHE SERVICE
+        const tierValue = user.tier || 'ENTRY';
+
+        // Get language from Accept-Language header (fallback to 'ro')
+        const acceptLang = request.headers['accept-language'];
+        const userLang = acceptLang?.split(',')[0]?.substring(0, 2) || 'ro';
+
+        // Import cache service
+        const { getTierCacheService } = await import('../services/tier-cache.service');
+        const tierCacheService = getTierCacheService(prisma);
+
+        // Get tier from cache (or DB if cache miss)
+        const cachedTier = await tierCacheService.getTier(tierValue, userLang);
+
+        const leagueInfo = cachedTier ? {
+            code: cachedTier.tierCode,
+            name: cachedTier.tierName,
+            feeDiscountPercent: cachedTier.feeDiscountPct,
+            benefitsUrl: `/benefits/${cachedTier.tierCode.toLowerCase()}`,
+            iconEmoji: cachedTier.iconEmoji,
+            thresholds: cachedTier.thresholds,
+            benefits: cachedTier.benefits,
+            version: cachedTier.version
+        } : {
+            // Fallback if tier not found
+            code: 'ENTRY',
+            name: 'Entry League',
+            feeDiscountPercent: 0,
+            benefitsUrl: '/benefits/entry',
+            iconEmoji: '🌱',
+            thresholds: { minInvestment: 0, minStreak: 0, minLoyalty: 0 },
+            benefits: [],
+            version: 1
+        };
+        const lang = request.headers['accept-language']?.split(',')[0]?.split('-')[0] || 'ro';
+        const leagueTier = await tierCacheService.getTier(user.tier, lang);
+
+        // Get loyalty breakdown
+        const { LoyaltyService } = await import('../services/loyalty.service.js');
+        const loyaltyService = new LoyaltyService();
+        const loyaltyBreakdown = await loyaltyService.getUserLoyaltyBreakdown(user.id);
+
+        // Security: ID Hash (HMAC-SHA256)
+        // Security: ID Hash (HMAC-SHA256)
+        const secret = process.env.INVESTOR_ID_SECRET;
+        if (!secret) {
+            // CRITICAL: Strict requirement - no fallback allowed
+            throw new Error('Configuration Error: INVESTOR_ID_SECRET is missing from environment variables.');
+        }
+        const investorIdHash = crypto.createHmac('sha256', secret)
+            .update(user.id)
+            .digest('hex');
+
+        // Stats: Member Since & Total Days
+        const now = new Date();
+        const createdAt = new Date(user.createdAt);
+        const diffTime = Math.abs(now.getTime() - createdAt.getTime());
+        const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const monthNames = ["Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie",
+            "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
+        const memberSinceLabel = `${monthNames[createdAt.getMonth()]} ${createdAt.getFullYear()}`;
+
+        return reply.send({
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                gender: user.gender,
+                role: user.role,
+                status: user.status,
+                avatarType: user.avatarType || 'DEFAULT',
+                avatarUrl: user.avatarUrl,
+                avatarFinalUrl,
+                joinedAt: user.createdAt,
+                updatedAt: user.updatedAt,
+                streakDays: user.streakDays || 0,
+                loyaltyPoints: user.loyaltyPoints || 0,
+                tier: tierValue,
+                clearanceLevel: user.clearanceLevel || 1,
+                lastCheckinAt: user.lastCheckinAt,
+                // NEW FIELDS
+                investorIdHash,
+                memberSinceLabel,
+                totalDays,
+                preferences: (user as any).preferences || {
+                    emailNotifications: true,
+                    dailyReports: true,
+                    uiSounds: true
+                }
+            },
+            stats: {
+                // NEW: NAV/Shares-based fields (USE THESE)
+                principalInvested: Number(principalInvested.toFixed(2)),
+                profitGenerated: Number(profitGenerated.toFixed(2)),
+                currentValue: Number(currentValue.toFixed(2)),
+                sharePercentExact: Number(sharePercentExact.toFixed(4)),
+                netReturnPercent: Number(netReturnPercent.toFixed(2)),
+                totalFundValue: Number(totalFundValue.toFixed(2)),
+                totalSessions,
+
+                // DEPRECATED (kept for backwards compatibility, DO NOT USE)
+                investmentValue: Number(investmentValue.toFixed(2)), // DEPRECATED: use currentValue instead
+                sharePercent: Number(sharePercent.toFixed(4)), // DEPRECATED: use sharePercentExact instead
+            },
+            league: {
+                code: leagueTier?.tierCode || user.tier,
+                name: leagueTier?.tierName || 'Entry League',
+                feeDiscountPercent: leagueTier?.feeDiscountPct || 0,
+                benefits: leagueTier?.benefits || [],
+                version: leagueTier?.version || 1,
+                iconEmoji: leagueTier?.iconEmoji || '🌱',
+                benefitsUrl: leagueTier?.tierCode ? `/benefits/${leagueTier.tierCode.toLowerCase()}` : '/benefits/entry',
+                thresholds: leagueTier?.thresholds || { minInvestment: 0, minStreak: 0, minLoyalty: 0 }
+            },
+            loyalty: {
+                total: user.loyaltyPoints,
+                breakdown: loyaltyBreakdown
+            },
+            paymentMethods: paymentMethods.map(pm => ({
+                id: pm.id,
+                type: pm.type,
+                label: pm.label,
+                holderName: pm.holderName,
+                detailsMasked: pm.detailsMasked,
+                currency: pm.currency,
+                country: pm.country,
+                isDefault: pm.isDefault,
+                isVerified: !!pm.verifiedAt, // map VerifiedAt to boolean for frontend convenience if needed, otherwise just pass date or boolean
+            })),
+            activity: {
+                todayCheckedIn,
+                nextGoalText: todayCheckedIn ?
+                    'Revino mâine pentru +10 puncte' :
+                    'Verifică randamentul pentru +10 puncte'
+            },
+            // DEBUG: Only in dev (set DEBUG_PROFILE=1 in env)
+            ...(process.env.DEBUG_PROFILE === '1' && {
+                debug: {
+                    fundCalcSource: 'ALIGNED_APPROVED_WITHDRAWALS',
+                    // approvedDepositsSum: allDepositsSum,
+                    // approvedWithdrawalsSum: allWithdrawalsSum,
+                    // tradingProfit,
+                    totalFundValue,
+                    userDepositsSum,
+                    userWithdrawalsSum,
+                    investmentValue,
+                    sharePercent,
+                    calculatedInvestmentValue: Number((totalFundValue * sharePercent / 100).toFixed(2)),
+                    note: 'Fund = Deposits(APPROVED) - Withdrawals(APPROVED) + TradingProfit - ALIGNED with investmentValue'
+                }
+            })
+        });
+    });
+
+    // POST /api/users/avatar - Upload avatar
+    fastify.post('/avatar', {
+        preHandler: [authenticate]
+    }, handleAvatarUpload);
+
+    // DELETE /api/users/avatar - Reset to default avatar
+    fastify.delete('/avatar', {
+        preHandler: [authenticate]
+    }, async (request: any, reply) => {
+        try {
+            const userId = request.user.id;
+
+            // Get current avatar
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { avatarUrl: true }
+            });
+
+            if (user?.avatarUrl) {
+                // Delete file
+                const filename = user.avatarUrl.split('/').pop();
+                if (filename) {
+                    const filePath = path.join(process.cwd(), 'public', 'uploads', 'avatars', filename);
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                    }
+                }
+            }
+
+            // Reset to DEFAULT avatar type
+            await prisma.user.update({
+                where: { id: userId },
+                data: {
+                    avatarType: 'DEFAULT',
+                    avatarUrl: null
+                }
+            });
+
+            return reply.send({
+                success: true,
+                message: 'Avatar resetat la default'
+            });
+        } catch (error) {
+            fastify.log.error('Error removing avatar:', error);
+            return reply.code(500).send({ error: 'Internal server error' });
+        }
+    });
+
+    // POST /api/profile/checkin - Scalable & Idempotent Check-in
+    fastify.post('/profile/checkin', {
+        preHandler: [authenticate]
+    }, async (request, reply) => {
+        try {
+            const userId = (request as any).user.id;
+            const now = new Date();
+            const today = new Date(now);
+            today.setHours(0, 0, 0, 0); // Normalize to midnight
+
+            // Transaction: CheckIn(Unique) + UserUpdate + Audit
+            try {
+                const result = await prisma.$transaction(async (tx) => {
+                    // 1. Create CheckIn (Will throw P2002 if already checked in today)
+                    await tx.checkIn.create({
+                        data: {
+                            userId,
+                            date: today
+                        }
+                    });
+
+                    // 2. Fetch current user data for streak calc
+                    const user = await tx.user.findUniqueOrThrow({
+                        where: { id: userId },
+                        select: { streakDays: true, lastCheckinAt: true, loyaltyPoints: true }
+                    });
+
+                    // 3. Calculate Streak
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+
+                    let lastCheckinDate: Date | null = user.lastCheckinAt ? new Date(user.lastCheckinAt) : null;
+                    if (lastCheckinDate) lastCheckinDate.setHours(0, 0, 0, 0);
+
+                    let newStreakDays = user.streakDays || 0;
+                    // If checked in yesterday, increment. Else reset to 1.
+                    if (lastCheckinDate && lastCheckinDate.getTime() === yesterday.getTime()) {
+                        newStreakDays++;
+                    } else {
+                        newStreakDays = 1;
+                    }
+
+                    // 4. Update User (Streak + Points + LastCheckin)
+                    const pointsAwarded = 10;
+                    const updatedUser = await tx.user.update({
+                        where: { id: userId },
+                        data: {
+                            streakDays: newStreakDays,
+                            lastCheckinAt: now,
+                            loyaltyPoints: { increment: pointsAwarded }
+                        },
+                        select: { streakDays: true, loyaltyPoints: true }
+                    });
+
+                    // 5. Audit Log
+                    await tx.auditLog.create({
+                        data: {
+                            userId,
+                            action: 'CHECKIN',
+                            metadata: JSON.stringify({
+                                streak: newStreakDays,
+                                points: pointsAwarded,
+                                date: today.toISOString()
+                            }),
+                            resourceType: 'user',
+                            resourceId: userId
+                        }
+                    });
+
+                    return {
+                        streakDays: updatedUser.streakDays,
+                        loyaltyPoints: updatedUser.loyaltyPoints,
+                        pointsAwarded,
+                        message: `Check-in reușit! +${pointsAwarded} Puncte. Streak: ${newStreakDays} zile.`
+                    };
+                });
+
+                // Transaction Success
+                return reply.send({
+                    success: true,
+                    alreadyCheckedIn: false,
+                    streakDays: result.streakDays,
+                    loyaltyPoints: result.loyaltyPoints,
+                    pointsAwarded: result.pointsAwarded,
+                    message: result.message
+                });
+
+            } catch (err: any) {
+                // Handle Unique Constraint Violation (P2002) - Idempotent Success
+                if (err.code === 'P2002') {
+                    // Fetch latest data to return accurate state even if no update happened
+                    const currentUser = await prisma.user.findUnique({
+                        where: { id: userId },
+                        select: { streakDays: true, loyaltyPoints: true }
+                    });
+
+                    return reply.send({
+                        success: true,
+                        alreadyCheckedIn: true, // Frontend knows to disable button
+                        streakDays: currentUser?.streakDays || 0,
+                        loyaltyPoints: currentUser?.loyaltyPoints || 0,
+                        pointsAwarded: 0,
+                        message: 'Ai verificat deja randamentul astăzi! Revino mâine.'
+                    });
+                }
+
+                // Other errors
+                throw err;
+            }
+
+        } catch (error) {
+            fastify.log.error(`[CHECKIN ERROR] User ${(request as any).user?.id}:`, error);
+            return reply.code(500).send({ error: 'Check-in failed. Please try again.' });
+        }
+    });
+
+    // GET /api/users/preferences - Get user preferences
+    fastify.get('/preferences', {
+        preHandler: [authenticate]
+    }, async (request, reply) => {
+        try {
+            const userId = (request as any).user.id;
+
+            let prefs = await prisma.userPreference.findUnique({
+                where: { userId }
+            });
+
+            // Create default if missing
+            if (!prefs) {
+                prefs = await prisma.userPreference.create({
+                    data: { userId }
+                });
+            }
+
+            return reply.send({ success: true, preferences: prefs });
+        } catch (error) {
+            fastify.log.error('Error fetching preferences:', error);
+            return reply.code(500).send({ error: 'Failed to fetch preferences' });
+        }
+    });
+
+    // PATCH /api/users/preferences - Update user preferences
+    fastify.patch('/preferences', {
+        preHandler: [authenticate]
+    }, async (request, reply) => {
+        try {
+            const userId = (request as any).user.id;
+            const body = request.body as any; // Validation normally via schema
+
+            // Allow specific fields only
+            const updateData: any = {};
+            if (typeof body.emailNotifications === 'boolean') updateData.emailNotifications = body.emailNotifications;
+            if (typeof body.dailyReports === 'boolean') updateData.dailyReports = body.dailyReports;
+            if (typeof body.uiSounds === 'boolean') updateData.uiSounds = body.uiSounds;
+
+            if (Object.keys(updateData).length === 0) {
+                return reply.code(400).send({ error: 'No valid fields to update' });
+            }
+
+            const updatedPrefs = await prisma.userPreference.upsert({
+                where: { userId },
+                create: { userId, ...updateData },
+                update: updateData
+            });
+
+            // Audit
+            await prisma.auditLog.create({
+                data: {
+                    userId,
+                    action: 'UPDATE_PREFERENCES',
+                    metadata: JSON.stringify(updateData),
+                    resourceType: 'user_preference',
+                    resourceId: updatedPrefs.id
+                }
+            });
+
+            return reply.send({ success: true, preferences: updatedPrefs });
+
+        } catch (error) {
+            fastify.log.error('Error updating preferences:', error);
+            return reply.code(500).send({ error: 'Failed to update preferences' });
+        }
+    });
+}

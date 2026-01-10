@@ -1,7 +1,15 @@
 import React from 'react';
 import { Users, MessageCircle, Heart, Sparkles } from 'lucide-react';
 
-export const Community: React.FC = () => {
+interface LandingStats {
+   investorCount: number;
+}
+
+interface CommunityProps {
+   stats: LandingStats | null;
+}
+
+export const Community: React.FC<CommunityProps> = ({ stats }) => {
    return (
       <section id="community" className="py-24 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 relative overflow-hidden">
          {/* Playful Background */}
@@ -37,7 +45,7 @@ export const Community: React.FC = () => {
                   {/* Stats */}
                   <div className="flex items-center gap-8 mb-10">
                      <div className="text-center bg-white rounded-2xl p-6 shadow-playful flex-1">
-                        <div className="text-4xl font-bold text-purple-600 font-display mb-1">62+</div>
+                        <div className="text-4xl font-bold text-purple-600 font-display mb-1">{stats?.investorCount || 0}</div>
                         <div className="text-sm text-gray-600 font-bold">Investitori Activi</div>
                      </div>
                      <div className="text-center bg-white rounded-2xl p-6 shadow-playful flex-1">

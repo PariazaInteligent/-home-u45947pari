@@ -1,8 +1,8 @@
 
 import { FastifyInstance } from 'fastify';
-import { prisma } from '';
-import { ledgerService } from '';
-import { Decimal } from '';
+import { prisma } from '@pariaza/database';
+import { ledgerService } from '../services/ledger.service.js';
+import { Decimal } from 'decimal.js';
 
 export async function publicRoutes(app: FastifyInstance) {
     app.get('/public/metrics', {

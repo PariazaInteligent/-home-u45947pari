@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>STEP B Test</title>
+</head>
+
+<body>
+    <h1>STEP B: /api/users/me Safe Fields Test</h1>
+    <button onclick="login()">1. LOGIN</button>
+    <button onclick="testApi()">2. TEST /api/users/me (auto re-login pe 401)</button>
+    <button onclick="clearToken()">CLEAR TOKEN</button>
+    <pre id="output"></pre>
+
+    <script>
+        async function login() {
+            const output = document.getElementById('output');
+            output.textContent = 'Logging in...';
+
+            try {
+                const loginRes = await fetch('http://localhost:3001/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@pariazainteligent.ro',
+                        password: 'password123'
+                    })
+                });
+
+                const loginData = await loginRes.json();
+
+                if (loginData.accessToken) {
+                    localStorage.setItem('accessToken', loginData.accessToken);
+                    output.textContent = '✅ Login SUCCESS\n';
+                    output.textContent += 'Token (primele 20): ' + loginData.accessToken.substring(0, 20) + '...\n';
+                    output.textContent += 'Token cached în localStorage\n\n';
+                    output.textContent += 'Acum apasă "TEST /api/users/me"';
+                } else {
+                    output.textContent = '❌ Login FAILED\n' + JSON.stringify(loginData, null, 2);
+                }
+            } catch (err) {
+                output.textContent = '💥 Login ERROR: ' + err.message;
+            }
+        }
+
+        async function testApi() {
+            const output = document.getElementById('output');
+            let token = localStorage.getItem('accessToken');
+
+            if (!token) {
+                output.textContent = '⚠️ NO TOKEN - Auto login...\n';
+                await login();
+                token = localStorage.getItem('accessToken');
+                if (!token) {
+                    output.textContent += '\n❌ Login failed, cannot test /me';
+                    return;
+                }
+                output.textContent += '\n\nTesting /me cu token nou...\n';
+            } else {
+                output.textContent = 'Testing /api/users/me...\n';
+                output.textContent += 'Token (primele 20): ' + token.substring(0, 20) + '...\n';
+            }
+
+            try {
+                const meRes = await fetch('http://localhost:3001/api/users/me', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                const meData = await meRes.json();
+
+                // AUTO RE-LOGIN PE 401
+                if (meRes.status === 401) {
+                    output.textContent += '\n⚠️ 401 INVALID TOKEN - Clearing + auto re-login...\n';
+                    localStorage.removeItem('accessToken');
+                    await login();
+
+                    // Retry cu token nou
+                    token = localStorage.getItem('accessToken');
+                    if (!token) {
+                        output.textContent += '\n❌ Re-login failed';
+                        return;
+                    }
+
+                    output.textContent += '\n🔄 Retrying /me cu token NOU...\n';
+                    const retryRes = await fetch('http://localhost:3001/api/users/me', {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    const retryData = await retryRes.json();
+
+                    output.textContent += '\n========== RETRY RESULT ==========\n';
+                    output.textContent += 'HTTP Status: ' + retryRes.status + '\n';
+                    output.textContent += 'Response:\n' + JSON.stringify(retryData, null, 2);
+
+                    if (retryRes.status === 200) {
+                        output.textContent += '\n\n✅ STEP B PASSED (după re-login): 200 OK';
+                        output.textContent += '\n   Fields: ' + Object.keys(retryData.user || {}).join(', ');
+                    } else {
+                        output.textContent += '\n\n❌ STEP B FAILED: ' + retryRes.status;
+                        output.textContent += '\n   Error: ' + (retryData.error || 'Unknown');
+                        output.textContent += '\n   Code: ' + (retryData.code || 'N/A');
+                        output.textContent += '\n   Meta: ' + JSON.stringify(retryData.meta || {});
+                    }
+                    return;
+                }
+
+                output.textContent += '\n========== STEP B RESULT ==========\n';
+                output.textContent += 'HTTP Status: ' + meRes.status + '\n';
+                output.textContent += 'Response:\n';
+                output.textContent += JSON.stringify(meData, null, 2);
+
+                if (meRes.status === 200) {
+                    output.textContent += '\n\n✅ STEP B PASSED: 200 OK';
+                    output.textContent += '\n   Fields: ' + Object.keys(meData.user || {}).join(', ');
+                } else {
+                    output.textContent += '\n\n❌ STEP B FAILED: ' + meRes.status;
+                    output.textContent += '\n   Error: ' + (meData.error || 'Unknown');
+                    output.textContent += '\n   Code: ' + (meData.code || 'N/A');
+                    output.textContent += '\n   Meta: ' + JSON.stringify(meData.meta || {});
+                }
+
+            } catch (err) {
+                output.textContent += '\n\n💥 ERROR: ' + err.message;
+            }
+        }
+
+        function clearToken() {
+            localStorage.removeItem('accessToken');
+            document.getElementById('output').textContent = '🗑️ Token cleared';
+        }
+    </script>
+</body>
+
+</html>

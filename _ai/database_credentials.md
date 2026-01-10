@@ -1,47 +1,34 @@
-# Database Credentials - Pariază Inteligent
+# Database Configuration
+## Real Database Credentials (PhpMyAdmin)
 
-## Remote Database Connection
+```php
+<?php
+// Database connection details
+$DB_HOST = 'localhost';
+$DB_USER = 'u45947pari_api';
+$DB_PASS = '3DSecurity31';
+$DB_NAME = 'u45947pari_pariaza_inteligent';
 
-**Host:** 85.9.45.213  
-**Port:** 3306  
-**Database Name:** u45947pari_pariaza_inteligent
-
-## Users
-
-### API User (Recommended for Application)
-
-- **Username:** `u45947pari_api`
-- **Password:** `3DSecurity31`
-- **Permissions:** Full access to `u45947pari_pariaza_inteligent` database
-
-### Admin User (Alternative)
-
-- **Username:** `u45947pari_admin_pariaza`
-- **Password:** (Same as API user)
-
-## Connection String Format
-
-```bash
-DATABASE_URL="mysql://u45947pari_api:3DSecurity31@85.9.45.213:3306/u45947pari_pariaza_inteligent"
+// MySQLi Connection
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+$mysqli = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
+$mysqli->set_charset('utf8mb4');
+?>
 ```
 
-## SMTP Email Configuration
+## Prisma Connection String
 
-**Host:** mail.pariazainteligent.ro  
-**Port:** 465  
-**Security:** SSL/TLS (SMTP_SECURE=true)  
-**Username:** <noreply@pariazainteligent.ro>  
-**Password:** NoReply#Secure2025  
-**From Name:** Pariază Inteligent  
-**From Email:** <noreply@pariazainteligent.ro>
+For the Node.js API (Fastify + Prisma), use this connection string:
 
-## Notes
+```
+DATABASE_URL="mysql://u45947pari_api:3DSecurity31@localhost:3306/u45947pari_pariaza_inteligent"
+```
 
-- Database is hosted remotely, not on localhost
-- Always use remote IP (85.9.45.213) for connection
-- Ensure firewall allows connections from your development IP
-- For production, update `PLATFORM_URL` and JWT secrets
+## File Locations
 
-## Last Updated
+- **API .env**: `public_html/apps/api/.env.local` (blocked by gitignore)
+- **Database Package .env**: `public_html/packages/database/.env` (blocked by gitignore)
 
-2025-12-25 00:14:00 UTC
+## Note
+
+These credentials connect to the real production database containing live user data, trades, and financial records.

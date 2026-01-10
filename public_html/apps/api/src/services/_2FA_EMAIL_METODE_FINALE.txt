@@ -1,0 +1,248 @@
+/**
+ * Send email when 2FA is enabled (with backup codes)
+ */
+async send2FAEnabledEmail(user: { email: string; name: string }, backupCodes: string[]): Promise<boolean> {
+  this.initialize();
+
+  if (!this.isConfigured || !this.transporter) {
+    console.log('📧 Skipping 2FA enabled email - service not configured');
+    return false;
+  }
+
+  try {
+    const platformUrl = process.env.PLATFORM_URL || 'http://localhost:3000';
+    const loginUrl = `${platformUrl}/login`;
+
+    const html = `<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🛡️ Autentificare 2FA Activată</title>
+</head>
+<body style="margin: 0; padding: 0; background: linear-gradient(to bottom right, #E0F9FF, #C7F9CC, #FFF7CD); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <div style="margin-bottom: 20px; text-align: center;">
+          <div style="font-size: 80px; line-height: 1; margin-bottom: 15px;">🦉🔐</div>
+          <div style="background: white; border: 3px solid #7C3AED; border-radius: 20px; padding: 20px; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <p style="color: #7C3AED; font-size: 18px; font-weight: 700; margin: 0; line-height: 1.4;">
+              🎉 Super! Ai activat 2FA! Contul tău este acum ULTRA securizat! ✨
+            </p>
+          </div>
+        </div>
+        <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+          <tr>
+            <td style="background: linear-gradient(135deg, #7C3AED, #6D28D9); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: white; font-size: 32px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                🛡️ 2FA Activată, \${user.name || user.email}!
+              </h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px 30px;">
+              <div style="background: linear-gradient(135deg, #DBEAFE, #BFDBFE); border: 3px solid #3B82F6; border-radius: 16px; padding: 25px; margin: 0 0 30px; text-align: center;">
+                <p style="color: #1E40AF; font-size: 14px; font-weight: 700; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 1.5px;">
+                  ✅ SUPER SECURIZAT
+                </p>
+                <p style="color: #1E3A8A; font-size: 18px; font-weight: 600; margin: 0;">
+                  Autentificarea în 2 pași este acum activă! 🎊
+                </p>
+              </div>
+              <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 0 0 30px; text-align: center;">
+                De acum înainte, la fiecare login vei introduce și un cod din Google Authenticator! 📱
+              </p>
+              <div style="background: #FEF3C7; border: 2px solid #FCD34D; border-radius: 16px; padding: 25px; margin: 0 0 30px;">
+                <p style="color: #92400E; font-size: 14px; font-weight: 700; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">
+                  ⚠️ CODURI BACKUP (Foarte Important!)
+                </p>
+                <p style="color: #78350F; font-size: 14px; margin: 0 0 20px; text-align: center;">
+                  Salvează aceste coduri într-un loc SIGUR! Fiecare poate fi folosit o singură dată dacă pierzi telefonul:
+                </p>
+                <div style="background: white; border-radius: 12px; padding: 20px; font-family: monospace;">
+                  \${backupCodes.map(code => \`<p style="margin: 8px 0; font-size: 16px; color: #374151; font-weight: 600; text-align: center;">\${code}</p>\`).join('')}
+                </div>
+                <p style="color: #92400E; font-size: 13px; font-style: italic; margin: 20px 0 0; text-align: center;">
+                  💡 Print sau salvează acest email! Dacă pierzi codurile și telefonul, contactează admin-ul.
+                </p>
+              </div>
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="\${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #7C3AED, #6D28D9); color: white; text-decoration: none; padding: 18px 50px; border-radius: 50px; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);">
+                      🚀 LOGHEAZĂ-TE ACUM
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0; text-align: center;">
+                Întrebări? Scrie-ne la <a href="mailto:support@pariazainteligent.ro" style="color: #7C3AED; text-decoration: none; font-weight: 600;">support@pariazainteligent.ro</a> 💌
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background: #F9FAFB; padding: 25px 30px; text-align: center; border-top: 2px solid #E5E7EB;">
+              <p style="color: #6B7280; font-size: 13px; margin: 0; font-weight: 600;">
+                © 2026 Pariază Inteligent. Toate drepturile rezervate.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    await this.transporter.sendMail({
+      from: `\"${process.env.SMTP_FROM_NAME}\" <${process.env.SMTP_FROM_EMAIL}>`,
+      to: user.email,
+      subject: '🛡️ Autentificare 2FA Activată - Pariază Inteligent',
+      html,
+    });
+
+    console.log(`✅ 2FA enabled email sent to ${user.email}`);
+    return true;
+  } catch (error) {
+    console.error(`❌ Failed to send 2FA enabled email to ${user.email}:`, error);
+    return false;
+  }
+}
+
+async send2FADisabledEmail(user: { email: string; name: string }): Promise<boolean> {
+  this.initialize();
+
+  if (!this.isConfigured || !this.transporter) {
+    console.log('📧 Skipping 2FA disabled email - service not configured');
+    return false;
+  }
+
+  try {
+    const html = `<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>🔓 2FA Dezactivată</title>
+</head>
+<body style="margin: 0; padding: 0; background: linear-gradient(to bottom right, #FEE2E2, #FECACA, #FCA5A5); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+          <tr>
+            <td style="background: linear-gradient(135deg, #EF4444, #DC2626); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: white; font-size: 32px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                🔓 2FA Dezactivată
+              </h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px 30px; text-align: center;">
+              <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 0 0 30px;">
+                Bună \${user.name || user.email},
+              </p>
+              <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 0 0 30px;">
+                Autentificarea în 2 pași a fost <strong>dezactivată</strong> pe contul tău.
+              </p>
+              <div style="background: #FEF3C7; border: 2px solid #FCD34D; border-radius: 12px; padding: 20px; margin: 30px 0;">
+                <p style="color: #92400E; font-size: 14px; font-weight: 600; margin: 0;">
+                  ⚠️ Dacă nu ai fost tu, contactează-ne IMEDIAT!
+                </p>
+              </div>
+              <p style="color: #6B7280; font-size: 14px;">
+                Echipa Pariază Inteligent
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    await this.transporter.sendMail({
+      from: `\"${process.env.SMTP_FROM_NAME}\" <${process.env.SMTP_FROM_EMAIL}>`,
+      to: user.email,
+      subject: '🔓 Autentificare 2FA Dezactivată - Pariază Inteligent',
+      html,
+    });
+
+    console.log(`✅ 2FA disabled email sent to ${user.email}`);
+    return true;
+  } catch (error) {
+    console.error(`❌ Failed to send 2FA disabled email to ${user.email}:`, error);
+    return false;
+  }
+}
+
+async send2FABackupCodesRegeneratedEmail(user: { email: string; name: string }, backupCodes: string[]): Promise<boolean> {
+  this.initialize();
+
+  if (!this.isConfigured || !this.transporter) {
+    console.log('📧 Skipping backup codes regenerated email - service not configured');
+    return false;
+  }
+
+  try {
+    const html = `<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>🔄 Coduri Backup Regenerate</title>
+</head>
+<body style="margin: 0; padding: 0; background: linear-gradient(to bottom right, #F3E8FF, #E9D5FF, #D8B4FE); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+          <tr>
+            <td style="background: linear-gradient(135deg, #A855F7, #9333EA); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: white; font-size: 28px; font-weight: 900; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                🔄 Coduri Backup Regenerate
+              </h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px 30px;">
+              <p style="color: #374151; font-size: 16px; text-align: center; margin: 0 0 30px;">
+                Bună \${user.name || user.email},
+              </p>
+              <p style="color: #374151; font-size: 16px; text-align: center; margin: 0 0 30px;">
+                Ai generat 10 coduri backup NOI. Codurile vechi sunt acum <strong>invalide</strong>.
+              </p>
+              <div style="background: #FEF3C7; border: 2px solid #FCD34D; border-radius: 12px; padding: 20px; margin: 0 0 30px;">
+                <p style="color: #92400E; font-size: 14px; font-weight: 700; margin: 0 0 15px; text-align: center;">
+                  📝 NOILE TALE CODURI BACKUP:
+                </p>
+                <div style="background: white; border-radius: 8px; padding: 15px; font-family: monospace;">
+                  \${backupCodes.map(code => \`<p style="margin: 6px 0; font-size: 14px; color: #374151; font-weight: 600; text-align: center;">\${code}</p>\`).join('')}
+                </div>
+              </div>
+              <p style="color: #6B7280; font-size: 14px; text-align: center;">
+                Echipa Pariază Inteligent
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    await this.transporter.sendMail({
+      from: `\"${process.env.SMTP_FROM_NAME}\" <${process.env.SMTP_FROM_EMAIL}>`,
+      to: user.email,
+      subject: '🔄 Coduri Backup Regenerate - Pariază Inteligent',
+      html,
+    });
+
+    console.log(`✅ Backup codes regenerated email sent to ${user.email}`);
+    return true;
+  } catch (error) {
+    console.error(`❌ Failed to send backup codes email to ${user.email}:`, error);
+    return false;
+  }
+}

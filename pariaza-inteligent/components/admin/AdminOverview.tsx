@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Rocket, Zap, Users, Clock, UserPlus, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ro } from 'date-fns/locale';
+import { InvestorSearch } from './InvestorSearch';
 
 interface AdminStatsData {
     dataSource: 'DATABASE' | 'MOCK';
@@ -269,7 +270,7 @@ export const AdminOverview: React.FC = () => {
             {/* Main Content Grid */}
             <div className="grid lg:grid-cols-3 gap-8">
                 {/* Verification Queue */}
-                <div className="lg:col-span-2 animate-[fadeIn_0.5s_ease-out] animate-delay-400">
+                <div id="approval-requests" className="lg:col-span-2 animate-[fadeIn_0.5s_ease-out] animate-delay-400">
                     <div className="bg-white rounded-3xl p-8 shadow-2xl border-2 border-purple-200">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-500 
@@ -377,6 +378,9 @@ export const AdminOverview: React.FC = () => {
                         </div>
 
                         <div className="space-y-4 flex-1">
+                            {/* Investor ID Search */}
+                            <InvestorSearch />
+
                             {/* Colorful Action Buttons */}
                             <button className="w-full bg-gradient-to-r from-cyan-400 to-cyan-600 
                                  hover:from-cyan-500 hover:to-cyan-700
@@ -386,6 +390,7 @@ export const AdminOverview: React.FC = () => {
                                 <span className="text-2xl">📝</span>
                                 Adaugă Bilet Nou
                             </button>
+
 
                             <button className="w-full bg-gradient-to-r from-purple-400 to-purple-600 
                                  hover:from-purple-500 hover:to-purple-700

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { prisma } from '';
-import { Decimal } from '';
+import { prisma } from '@pariaza/database';
+import { Decimal } from 'decimal.js';
 
 describe('Withdrawal Fees Integration Tests', () => {
     let adminUserId: string;

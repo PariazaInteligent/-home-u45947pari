@@ -1,5 +1,5 @@
 import { PrismaClient } from '@pariaza/database';
-import { Decimal } from '';
+import { Decimal } from 'decimal.js';
 
 const prisma = new PrismaClient();
 

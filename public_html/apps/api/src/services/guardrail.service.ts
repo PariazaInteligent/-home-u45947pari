@@ -1,5 +1,6 @@
-import { prisma } from '';
-import { Decimal } from '';
+import { prisma } from '@pariaza/database';
+import { Decimal } from 'decimal.js';
+import { auditService } from './audit.service.js';
 
 interface GuardrailConfig {
     maxStakePercent: number; // % din bank balance

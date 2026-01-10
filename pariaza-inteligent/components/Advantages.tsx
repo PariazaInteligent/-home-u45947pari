@@ -1,7 +1,17 @@
 import React from 'react';
 import { Shield, Brain, TrendingUp, Heart, Sparkles, Target } from 'lucide-react';
 
-export const Advantages: React.FC = () => {
+interface LandingStats {
+  investorCount: number;
+  equity: string;
+  averageRoi: string;
+}
+
+interface AdvantagesProps {
+  stats: LandingStats | null;
+}
+
+export const Advantages: React.FC<AdvantagesProps> = ({ stats }) => {
   const benefits = [
     {
       icon: Shield,
@@ -117,20 +127,23 @@ export const Advantages: React.FC = () => {
         </div>
 
         {/* Bottom Achievement */}
-        <div className="mt-16 bg-gradient-to-r from-yellow-100 via-orange-100 to-pink-100 rounded-3xl p-8 border-4 border-yellow-300 text-center shadow-playful-lg">
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <div className="text-5xl">🏆</div>
-            <div className="text-left">
-              <h4 className="text-2xl font-bold text-gray-900 mb-1">
-                ROI Mediu: 70% 🎯
-              </h4>
-              <p className="text-gray-700">
-                Peste <span className="font-bold text-purple-600">526.000 EUR</span> în fond și <span className="font-bold text-green-600">62 investitori</span> mulțumiți!
-              </p>
+        {/* Bottom Achievement - Only show if we have data */}
+        {stats && (stats.investorCount > 0 || parseFloat(stats.equity.replace(/[^0-9.-]+/g, "")) > 0) && (
+          <div className="mt-16 bg-gradient-to-r from-yellow-100 via-orange-100 to-pink-100 rounded-3xl p-8 border-4 border-yellow-300 text-center shadow-playful-lg">
+            <div className="flex items-center justify-center gap-4 flex-wrap">
+              <div className="text-5xl">🏆</div>
+              <div className="text-left">
+                <h4 className="text-2xl font-bold text-gray-900 mb-1">
+                  ROI Mediu: {stats.averageRoi} 🎯
+                </h4>
+                <p className="text-gray-700">
+                  Peste <span className="font-bold text-purple-600">{stats.equity} EUR</span> în fond și <span className="font-bold text-green-600">{stats.investorCount} investitori</span> mulțumiți!
+                </p>
+              </div>
+              <div className="text-5xl">📊</div>
             </div>
-            <div className="text-5xl">📊</div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

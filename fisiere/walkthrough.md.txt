@@ -1,0 +1,119 @@
+Walkthrough: /api/users/me Robustness Verification
+Summary
+Successfully verified that the /api/users/me endpoint handles missing INVESTOR_ID_SECRET configuration gracefully, preventing 500 errors and returning a robust response.
+
+Implementation Details
+The endpoint in 
+user.routes.ts
+ implements comprehensive error handling:
+
+Code Implementation (Lines 205-225)
+// Security: ID Hash (HMAC-SHA256)
+const secret = process.env.INVESTOR_ID_SECRET;
+let investorIdHash: string | null = null;
+let configWarning: string | null = null;
+try {
+    if (secret) {
+        investorIdHash = crypto.createHmac('sha256', secret)
+            .update(user.id)
+            .digest('hex');
+    } else {
+        // Robustness: Log distinct warning server-side, do NOT crash endpoint
+        fastify.log.warn('[SECURITY WARNING] INVESTOR_ID_SECRET is missing. ID Hash disabled.');
+        configWarning = 'Security configuration missing (ID Hash). Report to admin.';
+    }
+} catch (err) {
+    fastify.log.error('[SECURITY ERROR] Failed to generate ID Hash:', err);
+    configWarning = 'Security error during hash generation.';
+    investorIdHash = null; // Ensure it's null
+}
+Key Features
+IMPORTANT
+
+Robust Error Handling - The HMAC generation is wrapped in try-catch to prevent any exceptions from crashing the page.
+
+✅ No 500 errors: Returns 200 OK even when INVESTOR_ID_SECRET is missing
+✅ Graceful degradation: Sets investorIdHash: null when secret unavailable
+✅ User notification: Includes configWarning field in response
+✅ Server-side logging: Logs security warnings for admin awareness
+✅ Exception safety: Try-catch prevents any HMAC errors from propagating
+Verification Results
+Test Execution
+Endpoint: GET /api/users/me
+Authentication: Bearer token (
+admin@pariazainteligent.ro
+)
+Expected behavior: Return 200 OK with profile data, investorIdHash: null, and configWarning message
+
+Results
+✅ Status Code: 200 OK
+✅ Response includes: investorIdHash: null
+✅ Response includes: configWarning: "Security configuration missing (ID Hash). Report to admin."
+✅ Profile data: Loaded correctly without errors
+
+Visual Proof
+API Response Test
+Review
+API Response Test
+
+The recording above demonstrates the complete flow:
+
+Login with credentials
+Navigate to profile page
+API call to /api/users/me
+Response shows 200 OK status
+JSON body contains investorIdHash: null and configWarning
+Response Schema
+{
+  "success": true,
+  "user": {
+    "id": "...",
+    "email": "admin@pariazainteligent.ro",
+    "investorIdHash": null,
+    "configWarning": "Security configuration missing (ID Hash). Report to admin.",
+    ...
+  },
+  "stats": { ... },
+  "league": { ... },
+  "loyalty": { ... }
+}
+Conclusion
+The /api/users/me endpoint now handles configuration errors robustly:
+
+Before: Missing INVESTOR_ID_SECRET caused 500 internal server error
+After: Returns 200 OK with graceful degradation and clear warning message
+Integration Test Results
+Created comprehensive integration tests in 
+user-profile.integration.test.ts
+ to verify graceful degradation behavior.
+
+Test Coverage
+✅ All 6 tests passed (22.2 seconds)
+
+✓ Returns 200 OK when INVESTOR_ID_SECRET is missing
+✓ Sets investorIdHash to null when secret missing
+✓ Includes configWarning for ADMIN users
+✓ Hides configWarning from INVESTOR users
+✓ Generates valid hash when secret present
+✓ Returns all profile fields correctly with degradation
+Security Enhancement
+IMPORTANT
+
+Role-Based Security - The configWarning field is now only visible to ADMIN users, preventing information disclosure to regular investors.
+
+Environment Configuration
+Created 
+.env.example
+ with documentation for INVESTOR_ID_SECRET:
+
+# Security: INVESTOR ID HASH (HMAC-SHA256)
+# If missing, the system gracefully degrades (investorIdHash=null, configWarning shown to admins)
+INVESTOR_ID_SECRET="your-investor-id-secret-here-change-in-production"
+Summary of Changes
+✅ Verified - Endpoint handles missing INVESTOR_ID_SECRET robustly (returns 200 OK)
+✅ Environment Config - Added INVESTOR_ID_SECRET to 
+.env.example
+ with documentation
+✅ Security Filter - configWarning now hidden from non-admin users
+✅ Integration Tests - Full test coverage for graceful degradation scenarios
+Status: Production-ready ✨

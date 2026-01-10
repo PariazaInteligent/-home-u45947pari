@@ -1,11 +1,11 @@
 import { FastifyInstance } from 'fastify';
-import { prisma } from '';
-import { authenticate } from '';
-import { requireAdmin } from '';
-import { tradeService } from '';
+import { prisma } from '@pariaza/database';
+import { authenticate } from '../middleware/auth.js';
+import { requireAdmin } from '../middleware/auth.js';
+import { tradeService } from '../services/trade.service.js';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { Decimal } from '';
+import { Decimal } from 'decimal.js';
 
 const createTradeSchema = z.object({
     sport: z.string(),

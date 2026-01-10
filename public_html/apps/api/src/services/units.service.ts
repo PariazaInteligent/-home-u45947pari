@@ -1,6 +1,6 @@
-import { prisma } from '';
-import { Decimal } from '';
-import { ledgerService } from '';
+import { prisma } from '@pariaza/database';
+import { Decimal } from 'decimal.js';
+import { ledgerService } from './ledger.service.js';
 
 export class UnitsService {
     /**

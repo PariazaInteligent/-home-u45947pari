@@ -1,0 +1,119 @@
+  async sendPendingEmail(user: EmailUser, ticket Id: string): Promise<boolean> {
+    this.initialize();
+
+    if (!this.isConfigured || !this.transporter) {
+      console.log('📧 Skipping pending email - service not configured');
+      return false;
+    }
+
+    try {
+      const html = this.getPendingEmailTemplate(user, ticketId);
+
+      await this.transporter.sendMail({
+        from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
+        to: user.email,
+        subject: '⏳ Cererea Ta Este În Procesare - TEST v3',
+        html,
+        headers: {
+          'Content-Type': 'text/html; charset=UTF-8'
+        }
+      });
+
+      console.log(`✅ Pending email sent to ${user.email}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Failed to send pending email to ${user.email}:`, error);
+      return false;
+    }
+  }
+
+  private getPendingEmailTemplate(user: EmailUser, ticketId: string): string {
+    return `
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cererea Ta Este În Procesare</title>
+</head>
+<body style="margin: 0; padding: 0; background: linear-gradient(to bottom right, #FAE8FF, #FED7AA, #FECACA); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <div style="margin-bottom: 20px; text-align: center;">
+          <div style="font-size: 80px; line-height: 1; margin-bottom: 15px;">🦉</div>
+          <div style="background: white; border: 3px solid #A855F7; border-radius: 20px; padding: 20px; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <p style="color: #A855F7; font-size: 18px; font-weight: 700; margin: 0; line-height: 1.4;">
+              👋 Hei! Nu te îngrijora! Cererea ta e la noi și o verificăm cu atenție. Administratorii noștri sunt super rapizi! ⚡
+            </p>
+          </div>
+        </div>
+
+        <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+          <tr>
+            <td style="background: linear-gradient(135deg, #A855F7, #7C3AED); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: white; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                Cerere Primită, ${user.name}! 💜
+              </h1>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 40px 30px;">
+              <div style="background: linear-gradient(135deg, #F3E8FF, #E9D5FF); border: 2px solid #A855F7; border-radius: 16px; padding: 20px; margin: 0 0 30px; text-align: center;">
+                <p style="color: #6B21A8; font-size: 14px; font-weight: 700; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1.5px;">
+                  ⏰ ÎN CURS DE VERIFICARE - Gata în 24-48h!
+                </p>
+                <p style="color: #7C3AED; font-size: 18px; font-weight: 600; margin: 0;">
+                  Verificăm fiecare cerere personal pentru siguranța tuturor! 💪
+                </p>
+              </div>
+
+              <p style="color: #374151; font-size: 16px; line-height: 1.7; margin: 0 0 30px; text-align: center;">
+                Cererea ta a fost înregistrată cu succes! Un administrator o va verifica în cel mult <strong>48 de ore</strong>. 📋
+              </p>
+
+              <div style="background: linear-gradient(135deg, #DDD6FE, #C4B5FD); border: 3px solid #A855F7; border-radius: 20px; padding: 30px; margin: 30px 0; text-align: center;">
+                <p style="color: #6B21A8; font-size: 14px; font-weight: 700; margin: 0 0 15px; text-transform: uppercase; letter-spacing: 2px;">
+                  🎫 CODUL TĂU DE AȘTEPTARE
+                </p>
+                <p style="color: #7C3AED; font-size: 36px; font-weight: 900; margin: 0 0 20px; font-family: monospace; letter-spacing: 3px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">
+                  ${ticketId}
+                </p>
+                <div style="background: white; border-radius: 12px; padding: 15px; margin-top: 20px;">
+                  <p style="color: #6B7280; font-size: 13px; font-weight: 600; margin: 0;">
+                    ⏱️ Timp estimat: <strong style="color: #A855F7;">24-48 ore</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div style="background: #FEF3C7; border: 2px solid #FCD34D; border-radius: 12px; padding: 20px; margin: 30px 0;">
+                <p style="color: #92400E; font-size: 14px; font-weight: 600; margin: 0; text-align: center; line-height: 1.6;">
+                  <strong>💡 Știai că:</strong> Verificăm personal fiecare cerere pentru a proteja comunitatea noastră de investitori. Mulțumim pentru răbdare! 🙏
+                </p>
+              </div>
+
+              <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0; text-align: center;">
+                Întrebări? Trimite-ne un email la <a href="mailto:support@pariazainteligent.ro" style="color: #A855F7; text-decoration: none; font-weight: 600;">support@pariazainteligent.ro</a> 💌
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background: #F9FAFB; padding: 25px 30px; text-align: center; border-top: 2px solid #E5E7EB;">
+              <p style="color: #6B7280; font-size: 13px; margin: 0 0 5px; font-weight: 600;">
+                © 2025 Pariază Inteligent. Toate drepturile rezervate.
+              </p>
+              <p style="color: #9CA3AF; font-size: 11px; margin: 0;">
+                Acest email a fost trimis automat. Te rugăm să nu răspunzi direct.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `;
+  }

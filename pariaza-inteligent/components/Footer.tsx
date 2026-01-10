@@ -2,7 +2,18 @@ import React from 'react';
 import { Heart, Mail, Shield, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export const Footer: React.FC = () => {
+interface LandingStats {
+  investorCount: number;
+  equity: string;
+  averageRoi: string;
+}
+
+interface FooterProps {
+  stats: LandingStats | null;
+}
+
+export const Footer: React.FC<FooterProps> = ({ stats }) => {
+
   return (
     <footer className="bg-gradient-to-br from-purple-900 via-pink-800 to-orange-700 pt-20 pb-12 relative overflow-hidden">
       {/* Playful Background Elements */}
@@ -29,13 +40,15 @@ export const Footer: React.FC = () => {
             </div>
             <p className="text-purple-100 text-sm leading-relaxed max-w-sm">
               Transformăm pariurile în investiții inteligente prin matematică, disciplină și
-              transparență! 🎯 Alătură-te celor 62 de investitori care câștigă deja!
+              transparență! 🎯 Alătură-te celor {stats?.investorCount || 0} de investitori care câștigă deja!
             </p>
             {/* Achievement Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-bold">
-              <span className="text-xl">🏆</span>
-              <span>ROI mediu: 70% 🎯</span>
-            </div>
+            {stats && (stats.investorCount > 0 || parseFloat(stats.averageRoi) !== 0) && (
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-bold">
+                <span className="text-xl">🏆</span>
+                <span>ROI mediu: {stats.averageRoi} 🎯</span>
+              </div>
+            )}
           </div>
 
           {/* Col 2: Quick Links */}

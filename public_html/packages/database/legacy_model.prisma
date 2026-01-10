@@ -1,0 +1,18 @@
+
+model LegacyBroadcast {
+  id              String   @id @default(cuid())
+  subject         String   @db.VarChar(255)
+  message         String   @db.Text
+  htmlContent     String   @map("html_content") @db.Text
+  sentByUserId    String   @map("sent_by_user_id")
+  sentCount       Int      @default(0) @map("sent_count")
+  skippedCount    Int      @default(0) @map("skipped_count")
+  failedCount     Int      @default(0) @map("failed_count")
+  filters         String?  @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+  abTestId        String?  @map("ab_test_id")
+  abTestVariantId String?  @map("ab_test_variant_id")
+  analyticsId     String?  @map("analytics_id")
+
+  @@map("email_broadcasts")
+}

@@ -1,51 +1,51 @@
-
-import React, { useRef, useState, MouseEvent } from 'react';
+import React, { useRef, useState } from 'react';
 
 interface TiltCardProps {
   children: React.ReactNode;
   className?: string;
-  glowColor?: 'cyan' | 'purple' | 'emerald' | 'red';
+  glowColor?: 'cyan' | 'purple' | 'red' | 'green';
   noPadding?: boolean;
-  hFull?: boolean;
 }
 
-export const TiltCard: React.FC<TiltCardProps> = ({ 
-  children, 
-  className = "", 
+export const TiltCard: React.FC<TiltCardProps> = ({
+  children,
+  className = '',
   glowColor = 'cyan',
-  noPadding = false,
-  hFull = true
+  noPadding = false
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
+  const [opacity, setOpacity] = useState(0);
 
-  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
 
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
+    const div = cardRef.current;
+    const rect = div.getBoundingClientRect();
 
-    const rotateX = ((y - centerY) / centerY) * -8; // Slight constraint for realism
-    const rotateY = ((x - centerX) / centerX) * 8;
+    const width = rect.width;
+    const height = rect.height;
+
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const rotateX = (mouseY / height - 0.5) * 20; // -10 to 10 deg
+    const rotateY = (mouseX / width - 0.5) * -20; // 10 to -10 deg
 
     setRotation({ x: rotateX, y: rotateY });
+    setOpacity(1);
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
     setRotation({ x: 0, y: 0 });
+    setOpacity(0);
   };
 
-  const colors = {
-    cyan: 'from-cyan-500/20 to-blue-600/20 border-cyan-500/30 group-hover:border-cyan-400',
-    purple: 'from-violet-500/20 to-fuchsia-600/20 border-violet-500/30 group-hover:border-violet-400',
-    emerald: 'from-emerald-500/20 to-teal-600/20 border-emerald-500/30 group-hover:border-emerald-400',
-    red: 'from-red-500/20 to-orange-600/20 border-red-500/30 group-hover:border-red-400'
+  const glowColors = {
+    cyan: 'from-cyan-500/20 to-blue-500/20',
+    purple: 'from-purple-500/20 to-pink-500/20',
+    red: 'from-red-500/20 to-orange-500/20',
+    green: 'from-emerald-500/20 to-green-500/20',
   };
 
   return (
@@ -53,46 +53,22 @@ export const TiltCard: React.FC<TiltCardProps> = ({
       ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onMouseEnter={() => setIsHovered(true)}
-      className={`relative group perspective-1000 ${className}`}
+      className={`relative rounded-3xl transition-transform duration-200 ease-out transform-gpu hover:z-50 ${className} ${!noPadding ? 'p-6' : ''}`}
       style={{
-        transformStyle: 'preserve-3d',
-        transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale3d(${isHovered ? 1.02 : 1}, ${isHovered ? 1.02 : 1}, 1)`,
-        transition: 'transform 0.1s ease-out'
+        transform: `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) scale3d(1, 1, 1)`,
+        boxShadow: opacity > 0 ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' : 'none',
       }}
     >
-      {/* Back Glow Layer */}
-      <div 
-        className={`absolute inset-4 rounded-xl blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-500 -z-10 bg-gradient-to-r ${
-          glowColor === 'cyan' ? 'from-cyan-600 to-blue-600' : 
-          glowColor === 'purple' ? 'from-violet-600 to-fuchsia-600' : 
-          glowColor === 'emerald' ? 'from-emerald-600 to-teal-600' : 
-          'from-red-600 to-orange-600'
-        }`}
-        style={{ transform: 'translateZ(-20px)' }}
-      />
-
-      <div className={`
-        ${hFull ? 'h-full' : ''} w-full 
-        bg-slate-900/60 backdrop-blur-xl 
-        border ${colors[glowColor]} 
-        rounded-2xl 
-        ${noPadding ? '' : 'p-8'}
-        shadow-2xl 
-        relative overflow-hidden
-        transition-colors duration-300
-      `}>
-        {/* Technical Corner Markers */}
-        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/20 rounded-tl-lg"></div>
-        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/20 rounded-tr-lg"></div>
-        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/20 rounded-bl-lg"></div>
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/20 rounded-br-lg"></div>
-
+      <div
+        className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${glowColors[glowColor]} opacity-0 transition-opacity duration-300 pointer-events-none`}
+        style={{ opacity }}
+      ></div>
+      <div className="relative z-10 h-full">
         {children}
-        
-        {/* Glossy Reflection */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500" />
       </div>
+
+      {/* Border Gradient */}
+      <div className="absolute inset-0 rounded-3xl border border-white/10 pointer-events-none"></div>
     </div>
   );
 };

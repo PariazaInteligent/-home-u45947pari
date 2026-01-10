@@ -1,7 +1,6 @@
 import { FastifyInstance } from 'fastify';
-import { prisma } from '';
-import { authenticate } from '';
-import { requireAdmin, requireSuperAdmin } from '';
+import { prisma } from '@pariaza/database';
+import { authenticate, requireAdmin, requireSuperAdmin } from '../middleware/auth.js';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 

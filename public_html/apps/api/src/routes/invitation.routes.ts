@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@pariaza/database';
 import { randomBytes } from 'crypto';
-import { authenticate } from '';
+import { authenticate } from '../middleware/auth.js';
 
 const prisma = new PrismaClient();
 
